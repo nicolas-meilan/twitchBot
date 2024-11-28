@@ -1,0 +1,32 @@
+{
+  "name": "twitch-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/nicolas-meilan/twitchBot.git",
+  "author": "nicolas-meilan <sebastian.nicolas.meilan@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev src/index.ts",
+    "lint": "eslint 'src/**/*.{js,ts}'",
+    "lint:fix": "eslint 'src/**/*.{js,ts}' --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@types/node": "^22.10.1",
+    "@types/tmi.js": "^1.8.6",
+    "@typescript-eslint/eslint-plugin": "^8.16.0",
+    "@typescript-eslint/parser": "^8.16.0",
+    "eslint": "^9.15.0",
+    "globals": "^15.12.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.16.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.8",
+    "dotenv": "^16.4.5",
+    "tmi.js": "^1.8.5"
+  }
+}
