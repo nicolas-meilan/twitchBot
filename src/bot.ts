@@ -1,6 +1,6 @@
 import tmi from 'tmi.js';
 
-import getOAuthToken from './services/auth';
+import getTokens from './services/auth';
 import connectToChat, { OnNewMessage } from './services/chat';
 import { MESSAGES_CONFIG } from './configuration/chat';
 
@@ -14,13 +14,16 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => ({ channel, message }
 
     if (!currentMessageResponse) return;
 
-    chat.say(channel, currentMessageResponse);
+    const messages = currentMessageResponse.split('\n');
+    messages.forEach((currentMessage) => {
+        chat.say(channel, currentMessage);
+    })
 }
 
 const startBot = async () => {
-    const token = await getOAuthToken();
+    const token = await getTokens();
 
-    const chat = await connectToChat(BOT_USERNAME, token, ACCOUNT_CHAT_USERNAME, (params) => {
+    const chat = await connectToChat(BOT_USERNAME, token.access_token, ACCOUNT_CHAT_USERNAME, (params) => {
         messageHandler(chat)(params)
     });
 };
