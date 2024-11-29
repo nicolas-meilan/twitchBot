@@ -15,7 +15,7 @@ export const MESSAGES_CONFIG: {
     🗓️ Martes: 10:30 PM - ¡Seguimos fuertes! 🚀\n
     🗓️ Miércoles: 10:30 PM - ¡Mitad de semana, no aflojamos! 💪\n
     ❌ Jueves: Día libre para recargar energías 🧘‍♂️\n
-    🗓️ Viernes: ¡A confirmar! Mantente atento a mis redes 📅\n
-    🗓️ Sábado: ¡A confirmar! Te avisaré por Twitch o Kick ✨\n
+    🗓️ Viernes: 10:30 PM - ¡A confirmar! Mantente atento a mis redes 📅\n
+    🗓️ Sábado: 10:30 PM - ¡A confirmar! Te avisaré por Twitch o Kick ✨\n
     🗓️ Domingo: 10:30 PM - ¡Cerramos la semana jugando a tope! 🎉`,
 };

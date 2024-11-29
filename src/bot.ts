@@ -14,12 +14,20 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => ({ tags, channel, mes
   const currentMessageResponse = MESSAGES_CONFIG[formattedMessage] || '';
 
   if (!currentMessageResponse) return;
-
   logger.info(`${tags.username}: ${formattedMessage}`);
-  const messages = currentMessageResponse.split('\n');
-  messages.forEach((currentMessage) => {
-    chat.say(channel, currentMessage);
-  });
+  const responses = currentMessageResponse.split('\n');
+
+  responses.reduce((promiseAcc, currentResponse) => (
+    promiseAcc.then(async () => {
+      const formattedResponse = currentResponse.trim();
+
+      if (!formattedResponse) return;
+      logger.info(`rungekutta93bot: ${formattedResponse}`);
+      await chat.say(channel, formattedResponse);
+    }).catch(() => {
+      logger.error(`ERROR rungekutta93bot: ${currentResponse.trim()}`);
+    })
+  ), Promise.resolve());
 };
 
 const startBot = async () => {
