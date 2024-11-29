@@ -9,8 +9,8 @@
     "build": "tsc",
     "start": "yarn build && node dist/index.js",
     "dev": "ts-node-dev src/index.ts",
-    "lint": "eslint 'src/**/*.{js,ts}'",
-    "lint:fix": "eslint 'src/**/*.{js,ts}' --fix"
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
@@ -30,5 +30,6 @@
     "sqlite3": "^5.1.7",
     "tmi.js": "^1.8.5",
     "winston": "^3.17.0"
-  }
+  },
+  "packageManager": "yarn@4.5.3"
 }

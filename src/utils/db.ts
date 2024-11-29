@@ -1,37 +1,89 @@
 import sqlite3 from 'sqlite3';
+import crypto from 'crypto';
 
 const DATABASE = './tokens.db';
+
+const KEY = crypto.createHash('sha256').update(process.env.ENCRYPTION_KEY || '').digest();
+const IV = crypto.randomBytes(16);
 
 export type Tokens = {
     access_token: string;
     refresh_token: string;
 };
 
+type EncryptedTokens = {
+  access_token: string;
+  refresh_token: string;
+  iv_access_token: string;
+  iv_refresh_token: string;
+};
+
 const db = new sqlite3.Database(DATABASE, (err) => {
-    if (err) throw err;
+  if (err) throw err;
 });
 
 db.serialize(() => {
-    db.run(`
+  db.run(`
       CREATE TABLE IF NOT EXISTS oauth_tokens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         access_token TEXT NOT NULL,
-        refresh_token TEXT NOT NULL
+        refresh_token TEXT NOT NULL,
+        iv_access_token TEXT NOT NULL,
+        iv_refresh_token TEXT NOT NULL
       )
     `);
 });
 
-export const saveTokens = ({ access_token, refresh_token }: Tokens) => {
-    const stmt = db.prepare('INSERT INTO oauth_tokens (access_token, refresh_token) VALUES (?, ?)');
+const encrypt = (text: string) => {
+  const cipher = crypto.createCipheriv('aes-256-cbc', KEY, IV);
+  const encrypted = cipher.update(text, 'utf8', 'hex');
+    
+  return encrypted + cipher.final('hex');
+};
 
-    stmt.run(access_token, refresh_token);
-    stmt.finalize();
+const decrypt = (encryptedData: string, iv: string) => {
+  const decipher = crypto.createDecipheriv('aes-256-cbc', KEY, Buffer.from(iv, 'hex'));
+  const decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+
+  return decrypted + decipher.final('utf8');
+};
+
+export const saveTokens = ({ access_token, refresh_token }: Tokens) => {
+  const encryptedAccessToken = encrypt(access_token);
+  const encryptedRefreshToken = encrypt(refresh_token);
+
+  const stmt = db.prepare(`
+        INSERT INTO oauth_tokens (access_token, refresh_token, iv_access_token, iv_refresh_token) 
+        VALUES (?, ?, ?, ?)
+    `);
+
+  stmt.run(
+    encryptedAccessToken,  
+    encryptedRefreshToken,
+    IV.toString('hex'),
+    IV.toString('hex'),
+  );
+  stmt.finalize();
 };
 
 export const loadTokens = () => new Promise<Tokens | undefined>((resolve, reject) => {
-    db.get<Tokens>('SELECT access_token, refresh_token FROM oauth_tokens', (err, row) => {
-        if (err) reject(err);
+  db.get<EncryptedTokens>('SELECT access_token, refresh_token, iv_access_token, iv_refresh_token FROM oauth_tokens', (err, row) => {
+    if (err) {
+      reject(err);
+      return;
+    }
 
-        resolve(row);
+    if (!row) {
+      resolve(undefined);
+      return;
+    }
+
+    const decryptedAccessToken = decrypt(row.access_token, row.iv_access_token);
+    const decryptedRefreshToken = decrypt(row.refresh_token, row.iv_refresh_token);
+
+    resolve({
+      access_token: decryptedAccessToken,
+      refresh_token: decryptedRefreshToken,
     });
+  });
 });
