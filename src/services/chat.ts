@@ -1,4 +1,5 @@
 import tmi from 'tmi.js';
+import logger from '../utils/logger';
 
 export type OnNewMessage = (props: {
     channel: string;
@@ -12,6 +13,9 @@ const connectToChat = async (
     accountChatUsername: string,
     onNewMessage: OnNewMessage,
 ) => {
+    try {
+        logger.info(`Connecting to Twitch chat for channel: ${accountChatUsername}...`);
+
         const client = new tmi.Client({
             identity: {
                 username: botUsername,
@@ -22,6 +26,8 @@ const connectToChat = async (
 
         // Conectar al chat
         await client.connect();
+
+        logger.info('Successfully connected to Twitch chat.');
 
         client.on('message', (channel, tags, message, self) => {
             if (self) return; // Bot message
@@ -34,6 +40,10 @@ const connectToChat = async (
         });
 
         return client;
+    } catch(error) {
+        logger.error('Error connecting to chat');
+        throw error;
+    }
 };
 
 export default connectToChat;

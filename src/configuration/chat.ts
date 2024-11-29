@@ -1,6 +1,10 @@
 export const MESSAGES_CONFIG: {
     [message: string]: string;
 } = {
+    ['!plataformas']: `
+        🌐 ¡Sigue mis aventuras en todas las plataformas! 🌐\n
+        🎮 Twitch: https://www.twitch.tv/rungekutta93\n
+        🎮 Kick: https://kick.com/rungekutta93`,
     ['!redes']: `
         🌐 ¡Sigue mis aventuras en todas las plataformas! 🌐\n
         🎮 Twitch: https://www.twitch.tv/rungekutta93\n
