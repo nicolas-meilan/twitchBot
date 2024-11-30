@@ -2,17 +2,16 @@ import tmi from 'tmi.js';
 
 import getTokens from './services/auth';
 import connectToChat, { OnNewMessage } from './services/chat';
-import { MESSAGES_CONFIG } from './configuration/chat';
+import { MESSAGES_CONFIG, VALORANT_RANK_COMMAND_KEY } from './configuration/chat';
 import logger from './utils/logger';
+import { fetchCurrentRank } from './services/valorant';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
 const COMMANDS_KEY = '!comandos';
 const JOINER = ', ';
 
-// TODO https://api.kyroskoh.xyz/valorant/v1/mmr/latam/rungekutta93/RK93
-
-const messageHandler = (chat: tmi.Client): OnNewMessage => ({ tags, channel, message }) => {
+const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message }) => {
   const formattedMessage = message.toLowerCase().trim();
 
   const currentMessageResponse = MESSAGES_CONFIG[formattedMessage] || '';
@@ -25,8 +24,17 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => ({ tags, channel, mes
 
   if (!formattedResponse) return;
 
-  logger.info(`rungekutta93bot: ${formattedResponse}`);
-  chat.say(channel, formattedResponse);
+  const valorantRankNeeded = formattedResponse.includes(VALORANT_RANK_COMMAND_KEY);
+  let responseToSend = formattedResponse;
+
+  if (valorantRankNeeded) {
+    const valorantRank = await fetchCurrentRank();
+
+    responseToSend = responseToSend.replace(VALORANT_RANK_COMMAND_KEY, valorantRank);
+  }
+
+  logger.info(`rungekutta93bot: ${responseToSend}`);
+  chat.say(channel, responseToSend);
 };
 
 const startBot = async () => {
