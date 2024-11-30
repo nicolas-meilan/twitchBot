@@ -10,6 +10,7 @@ const CLIENT_ID = process.env.CLIENT_ID || '';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || '';
 const LOGIN_REDIRECT_URI = process.env.LOGIN_REDIRECT_URI || '';
 const ENVIRONMENT = process.env.ENVIRONMENT || '';
+const PORT = process.env.PORT || '';
 
 const TOKENS_GENERATION_ENDPOINT = '/oauth2/token';
 const TOKEN_VALIDATION_ENDPOINT = '/oauth2/validate';
@@ -41,7 +42,7 @@ const obtaionLoginCodeFromRedirect = () => new Promise<string>((resolve) => {
     }
   });
 
-  server.listen(3339);
+  server.listen(PORT);
 });
 
 const fetchTokens = async (code: string): Promise<Tokens> => {
