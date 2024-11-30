@@ -8,7 +8,7 @@ import { delay } from './utils/system';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
-const DELAY_MESSAGE_TIME = 1000;
+const DELAY_MESSAGE_TIME = 300;
 
 const messageHandler = (chat: tmi.Client): OnNewMessage => ({ tags, channel, message }) => {
   const formattedMessage = message.toLowerCase().trim();
