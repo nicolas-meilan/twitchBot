@@ -28,9 +28,13 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   let responseToSend = formattedResponse;
 
   if (valorantRankNeeded) {
-    const valorantRank = await fetchCurrentRank();
-
-    responseToSend = responseToSend.replace(VALORANT_RANK_COMMAND_KEY, valorantRank);
+    try {
+      const valorantRank = await fetchCurrentRank();
+      responseToSend = responseToSend.replace(VALORANT_RANK_COMMAND_KEY, valorantRank);
+    } catch (error) {
+      logger.error('Error fetching valorant data');
+      return;
+    }
   }
 
   logger.info(`rungekutta93bot: ${responseToSend}`);
