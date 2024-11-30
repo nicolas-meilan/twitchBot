@@ -4,9 +4,11 @@ import getTokens from './services/auth';
 import connectToChat, { OnNewMessage } from './services/chat';
 import { MESSAGES_CONFIG } from './configuration/chat';
 import logger from './utils/logger';
+import { delay } from './utils/system';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
+const DELAY_MESSAGE_TIME = 1000;
 
 const messageHandler = (chat: tmi.Client): OnNewMessage => ({ tags, channel, message }) => {
   const formattedMessage = message.toLowerCase().trim();
@@ -24,6 +26,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => ({ tags, channel, mes
       if (!formattedResponse) return;
       logger.info(`rungekutta93bot: ${formattedResponse}`);
       await chat.say(channel, formattedResponse);
+      await delay(DELAY_MESSAGE_TIME);
     }).catch(() => {
       logger.error(`ERROR rungekutta93bot: ${currentResponse.trim()}`);
     })

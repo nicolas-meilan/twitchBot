@@ -22,4 +22,5 @@ export const openBrowser = (url: string) => {
     }
   });
 };
-  
+
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
