@@ -8,18 +8,25 @@ import logger from '../utils/logger';
 
 const CLIENT_ID = process.env.CLIENT_ID || '';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || '';
+const LOGIN_REDIRECT_URI = process.env.LOGIN_REDIRECT_URI || '';
+const ENVIRONMENT = process.env.ENVIRONMENT || '';
 
 const TOKENS_GENERATION_ENDPOINT = '/oauth2/token';
 const TOKEN_VALIDATION_ENDPOINT = '/oauth2/validate';
 
-const LOGIN_REDIRECT_URI = 'http://localhost:3339';
+const LOCAL_ENVIRONMENT = 'local';
 const SCOPE = 'chat:read chat:edit';
-
 const LOGIN_URL = `${BASE_URL}/oauth2/authorize?client_id=${encodeURIComponent(CLIENT_ID)}&redirect_uri=${encodeURIComponent(LOGIN_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}`;
 
 const dispatchLogin = () => {
   logger.info('Awaiting login...');
-  openBrowser(LOGIN_URL);
+  if (!ENVIRONMENT || ENVIRONMENT === LOCAL_ENVIRONMENT) {
+    openBrowser(LOGIN_URL);
+    return;
+  }
+
+  logger.info('Please open the following URL in your browser to authorize the bot:');
+  logger.info(LOGIN_URL);
 };
 
 const obtaionLoginCodeFromRedirect = () => new Promise<string>((resolve) => {
