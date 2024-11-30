@@ -88,7 +88,11 @@ const refreshTokens = async (refreshToken: string) => {
     });
 
     logger.info('Tokens retrieved successfully.');
-    return response.data;
+
+    return {
+      access_token: response.data.access_token,
+      refresh_token: response.data.refresh_token,
+    };
   } catch {
     logger.error('Error fetching tokens');
     throw new Error('Error fetching tokens');
