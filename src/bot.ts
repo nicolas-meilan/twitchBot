@@ -7,12 +7,21 @@ import logger from './utils/logger';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
+const COMMANDS_KEY = '!comandos';
+const JOINER = ', ';
+
+// TODO https://api.kyroskoh.xyz/valorant/v1/mmr/latam/rungekutta93/RK93
 
 const messageHandler = (chat: tmi.Client): OnNewMessage => ({ tags, channel, message }) => {
   const formattedMessage = message.toLowerCase().trim();
 
   const currentMessageResponse = MESSAGES_CONFIG[formattedMessage] || '';
   const formattedResponse = currentMessageResponse.trim();
+
+  if (formattedMessage === COMMANDS_KEY) {
+    chat.say(channel, Object.keys(MESSAGES_CONFIG).join(JOINER));
+    return;
+  }
 
   if (!formattedResponse) return;
 
