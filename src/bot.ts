@@ -2,43 +2,54 @@ import tmi from 'tmi.js';
 
 import getTokens from './services/auth';
 import connectToChat, { OnNewMessage } from './services/chat';
-import { MESSAGES_CONFIG, VALORANT_RANK_COMMAND_KEY } from './configuration/chat';
+import {
+  MESSAGES_CONFIG,
+  RESPONSES_KEYS,
+  VALORANT_RANK_RESPONSE_KEY,
+  KEY_DELIMITER,
+  COMMANDS_RESPONSE_KEY,
+} from './configuration/chat';
 import logger from './utils/logger';
 import { fetchCurrentRank } from './services/valorant';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
-const COMMANDS_KEY = '!comandos';
-const JOINER = ', ';
+
+const responsesKeysHandler = async (message: string): Promise<string | undefined> => {
+  try {
+    if (!message) return;
+
+    const key = message.split(KEY_DELIMITER)?.[1];
+    const formattedKey = `${KEY_DELIMITER}${key}${KEY_DELIMITER}`;
+
+    if (!RESPONSES_KEYS.includes(formattedKey)) return message;
+
+    const keysConfig: {
+      [key: string]: () => Promise<string>
+    } = {
+      [VALORANT_RANK_RESPONSE_KEY]: fetchCurrentRank,
+      [COMMANDS_RESPONSE_KEY]: async () => Object.keys(MESSAGES_CONFIG).sort().join(', '),
+    };
+
+    const keyValue = await (keysConfig[formattedKey]!)();
+
+    return message.replace(formattedKey, keyValue);
+  } catch(error) {
+    console.log(error)
+    logger.error(`Error processing the message: ${message}`);
+  }
+};
 
 const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message }) => {
   const formattedMessage = message.toLowerCase().trim();
 
   const currentMessageResponse = MESSAGES_CONFIG[formattedMessage] || '';
-  const formattedResponse = currentMessageResponse.trim();
-
-  if (formattedMessage === COMMANDS_KEY) {
-    chat.say(channel, Object.keys(MESSAGES_CONFIG).join(JOINER));
-    return;
-  }
+  const formattedResponse = await responsesKeysHandler(currentMessageResponse.trim());
 
   if (!formattedResponse) return;
 
-  const valorantRankNeeded = formattedResponse.includes(VALORANT_RANK_COMMAND_KEY);
-  let responseToSend = formattedResponse;
-
-  if (valorantRankNeeded) {
-    try {
-      const valorantRank = await fetchCurrentRank();
-      responseToSend = responseToSend.replace(VALORANT_RANK_COMMAND_KEY, valorantRank);
-    } catch (error) {
-      logger.error('Error fetching valorant data');
-      return;
-    }
-  }
-
-  logger.info(`rungekutta93bot: ${responseToSend}`);
-  chat.say(channel, responseToSend);
+  logger.info(`rungekutta93bot: ${formattedResponse}`);
+  chat.say(channel, formattedResponse);
 };
 
 const startBot = async () => {
