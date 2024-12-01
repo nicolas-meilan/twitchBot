@@ -9,6 +9,7 @@ import {
   KEY_DELIMITER,
   COMMANDS_RESPONSE_KEY,
   CHUK_JOKES_KEY,
+  VALORANT_LAST_RANKED_RESPONSE_KEY,
 } from './configuration/chat';
 import logger from './utils/logger';
 import { fetchCurrentRank } from './services/valorant';
@@ -29,7 +30,17 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
     const keysConfig: {
       [key: string]: () => Promise<string>
     } = {
-      [VALORANT_RANK_RESPONSE_KEY]: fetchCurrentRank,
+      [VALORANT_RANK_RESPONSE_KEY]: async () => {
+        const valorantInfo = await fetchCurrentRank();
+
+        return valorantInfo.currenttierpatched;
+      },
+      [VALORANT_LAST_RANKED_RESPONSE_KEY]: async () => {
+        const valorantInfo = await fetchCurrentRank();
+
+        const isPositive = valorantInfo.mmr_change_to_last_game >= 0;
+        return `${isPositive ? 'Gané' : 'Perdí'} ${Math.abs(valorantInfo.mmr_change_to_last_game)} puntos ${isPositive ? '🏆' : '😭'}`;
+      },
       [CHUK_JOKES_KEY]: fetchChuckJokes,
       [COMMANDS_RESPONSE_KEY]: async () => Object.keys(MESSAGES_CONFIG).sort().join(', '),
     };
