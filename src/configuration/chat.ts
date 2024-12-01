@@ -1,12 +1,14 @@
-
 export const KEY_DELIMITER = '__';
 export const VALORANT_RANK_RESPONSE_KEY = `${KEY_DELIMITER}VALORANT_RANK${KEY_DELIMITER}`;
 export const COMMANDS_RESPONSE_KEY = `${KEY_DELIMITER}COMMANDS${KEY_DELIMITER}`;
+export const CHUK_JOKES_KEY = `${KEY_DELIMITER}CHUKC_JOKES${KEY_DELIMITER}`;
 
 export const RESPONSES_KEYS = [
   VALORANT_RANK_RESPONSE_KEY,
   COMMANDS_RESPONSE_KEY,
+  CHUK_JOKES_KEY,
 ];
+
 
 export const MESSAGES_CONFIG: {
     [message: string]: string;
@@ -22,4 +24,5 @@ export const MESSAGES_CONFIG: {
   ['!valorantrango']: `🎮rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
   ['!valorant']: `🎮rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
   ['!comandos']: COMMANDS_RESPONSE_KEY,
+  ['!chiste']: CHUK_JOKES_KEY,
 };

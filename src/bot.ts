@@ -8,9 +8,11 @@ import {
   VALORANT_RANK_RESPONSE_KEY,
   KEY_DELIMITER,
   COMMANDS_RESPONSE_KEY,
+  CHUK_JOKES_KEY,
 } from './configuration/chat';
 import logger from './utils/logger';
 import { fetchCurrentRank } from './services/valorant';
+import { fetchChuckJokes } from './services/chuckJokes';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
@@ -28,6 +30,7 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
       [key: string]: () => Promise<string>
     } = {
       [VALORANT_RANK_RESPONSE_KEY]: fetchCurrentRank,
+      [CHUK_JOKES_KEY]: fetchChuckJokes,
       [COMMANDS_RESPONSE_KEY]: async () => Object.keys(MESSAGES_CONFIG).sort().join(', '),
     };
 
