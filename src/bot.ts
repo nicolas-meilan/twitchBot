@@ -8,12 +8,12 @@ import {
   VALORANT_RANK_RESPONSE_KEY,
   KEY_DELIMITER,
   COMMANDS_RESPONSE_KEY,
-  CHUK_JOKES_KEY,
+  JOKES_KEY,
   VALORANT_LAST_RANKED_RESPONSE_KEY,
 } from './configuration/chat';
 import logger from './utils/logger';
 import { fetchCurrentRank } from './services/valorant';
-import { fetchChuckJokes } from './services/chuckJokes';
+import { fetchJokes } from './services/jokes';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
@@ -41,15 +41,14 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
         const isPositive = valorantInfo.mmr_change_to_last_game >= 0;
         return `${isPositive ? 'Gané' : 'Perdí'} ${Math.abs(valorantInfo.mmr_change_to_last_game)} puntos ${isPositive ? '🏆' : '😭'}`;
       },
-      [CHUK_JOKES_KEY]: fetchChuckJokes,
+      [JOKES_KEY]: fetchJokes,
       [COMMANDS_RESPONSE_KEY]: async () => Object.keys(MESSAGES_CONFIG).sort().join(', '),
     };
 
     const keyValue = await (keysConfig[formattedKey]!)();
 
     return message.replace(formattedKey, keyValue);
-  } catch(error) {
-    console.log(error)
+  } catch {
     logger.error(`Error processing the message: ${message}`);
   }
 };
