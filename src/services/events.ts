@@ -57,7 +57,7 @@ const registerEventSubSubscription = async (accessToken: string, sessionId: stri
   const headers = {
     'Client-ID': CLIENT_ID,
     'Authorization': `Bearer ${accessToken}`,
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   };
 
   const body = {
@@ -70,25 +70,37 @@ const registerEventSubSubscription = async (accessToken: string, sessionId: stri
     transport: {
       method: 'websocket',
       session_id: sessionId
-    }
+    },
   };
 
-  try {
-    await Promise.all([
-      axios.post(REGISTER_EVENT_SUBSCRIPTION_URL, {
+  const subscribeFollowsEvents = async () => {
+    try {
+      await axios.post(REGISTER_EVENT_SUBSCRIPTION_URL, {
         ...body,
         type: 'channel.follow',
         version: '2',
-      }, { headers }),
-      axios.post(REGISTER_EVENT_SUBSCRIPTION_URL, {
+      }, { headers });
+    } catch {
+      logger.error('Error on register channel.follow websocket, try to add bot user as moderator');
+    }
+  };
+
+  const subscribeSubscriptorsEvents = async () => {
+    try {
+      await axios.post(REGISTER_EVENT_SUBSCRIPTION_URL, {
         ...body,
         type: 'channel.subscribe',
         version: '1',
-      }, { headers }),
-    ]);
-  } catch {
-    logger.error('Error on register subscriptions to websocket');
-  }
+      }, { headers });
+    } catch {
+      logger.error('Error on register channel.subscribe websocket, try to use the same user as bot and account');
+    }
+  };
+
+  await Promise.all([
+    subscribeFollowsEvents(),
+    subscribeSubscriptorsEvents(),
+  ]);
 };
 
 const connectToEvents = async (
