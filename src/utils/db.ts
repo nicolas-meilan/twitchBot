@@ -52,6 +52,9 @@ export const saveTokens = ({ access_token, refresh_token }: Tokens) => {
   const encryptedAccessToken = encrypt(access_token);
   const encryptedRefreshToken = encrypt(refresh_token);
 
+  const stmtDelete = db.prepare('DELETE FROM oauth_tokens');
+  stmtDelete.run();
+
   const stmt = db.prepare(`
         INSERT INTO oauth_tokens (access_token, refresh_token, iv_access_token, iv_refresh_token) 
         VALUES (?, ?, ?, ?)
