@@ -316,7 +316,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^22.10.1":
+"@types/node@npm:*, @types/node@npm:^22.10.1":
   version: 22.10.1
   resolution: "@types/node@npm:22.10.1"
   dependencies:
@@ -350,6 +350,15 @@ __metadata:
   version: 1.3.5
   resolution: "@types/triple-beam@npm:1.3.5"
   checksum: 10c0/d5d7f25da612f6d79266f4f1bb9c1ef8f1684e9f60abab251e1261170631062b656ba26ff22631f2760caeafd372abc41e64867cde27fba54fafb73a35b9056a
+  languageName: node
+  linkType: hard
+
+"@types/ws@npm:^8":
+  version: 8.5.13
+  resolution: "@types/ws@npm:8.5.13"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/a5430aa479bde588e69cb9175518d72f9338b6999e3b2ae16fc03d3bdcff8347e486dc031e4ed14601260463c07e1f9a0d7511dfc653712b047c439c680b0b34
   languageName: node
   linkType: hard
 
@@ -3085,6 +3094,7 @@ __metadata:
     "@eslint/js": "npm:^9.15.0"
     "@types/node": "npm:^22.10.1"
     "@types/tmi.js": "npm:^1.8.6"
+    "@types/ws": "npm:^8"
     "@typescript-eslint/eslint-plugin": "npm:^8.16.0"
     "@typescript-eslint/parser": "npm:^8.16.0"
     axios: "npm:^1.7.8"
@@ -3097,6 +3107,7 @@ __metadata:
     typescript: "npm:^5.7.2"
     typescript-eslint: "npm:^8.16.0"
     winston: "npm:^3.17.0"
+    ws: "npm:^8.18.0"
   languageName: unknown
   linkType: soft
 
@@ -3325,7 +3336,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^8.2.0":
+"ws@npm:^8.18.0, ws@npm:^8.2.0":
   version: 8.18.0
   resolution: "ws@npm:8.18.0"
   peerDependencies:

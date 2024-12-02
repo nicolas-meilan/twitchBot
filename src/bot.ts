@@ -14,6 +14,7 @@ import {
 import logger from './utils/logger';
 import { fetchCurrentRank } from './services/valorant';
 import { fetchJokes } from './services/jokes';
+import connectToEvents from './services/events';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
@@ -65,12 +66,20 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   chat.say(channel, formattedResponse);
 };
 
+const onNewFollower = (chat: tmi.Client) => async (newFollower: string) => {
+  const chatMessage = `🎉 ¡Muchas gracias por seguirme, ${newFollower}! 🙏✨ ¡Bienvenido a la comunidad! 🎮🚀`;
+  logger.info(chatMessage);
+  chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
+};
+
 const startBot = async () => {
   const token = await getTokens();
 
   const chat = await connectToChat(BOT_USERNAME, token.access_token, ACCOUNT_CHAT_USERNAME, (params) => {
     messageHandler(chat)(params);
   });
+
+  connectToEvents(token.access_token, onNewFollower(chat));
 };
 
 export default startBot;

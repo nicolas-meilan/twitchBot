@@ -16,7 +16,7 @@ const TOKENS_GENERATION_ENDPOINT = '/oauth2/token';
 const TOKEN_VALIDATION_ENDPOINT = '/oauth2/validate';
 
 const LOCAL_ENVIRONMENT = 'local';
-const SCOPE = 'chat:read chat:edit';
+const SCOPE = 'chat:read chat:edit moderator:read:followers channel:read:subscriptions';
 const LOGIN_URL = `${BASE_URL}/oauth2/authorize?client_id=${encodeURIComponent(CLIENT_ID)}&redirect_uri=${encodeURIComponent(LOGIN_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}`;
 
 const dispatchLogin = () => {
