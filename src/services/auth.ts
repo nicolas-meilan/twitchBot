@@ -10,7 +10,7 @@ const CLIENT_ID = process.env.CLIENT_ID || '';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || '';
 const LOGIN_REDIRECT_URI = process.env.LOGIN_REDIRECT_URI || '';
 const ENVIRONMENT = process.env.ENVIRONMENT || '';
-const PORT = process.env.PORT || '';
+const LOGIN_PORT = process.env.LOGIN_PORT || '';
 
 const TOKENS_GENERATION_ENDPOINT = '/oauth2/token';
 const TOKEN_VALIDATION_ENDPOINT = '/oauth2/validate';
@@ -42,7 +42,7 @@ const obtaionLoginCodeFromRedirect = () => new Promise<string>((resolve) => {
     }
   });
 
-  server.listen(PORT);
+  server.listen(LOGIN_PORT);
 });
 
 const fetchTokens = async (code: string): Promise<Tokens> => {
@@ -54,7 +54,7 @@ const fetchTokens = async (code: string): Promise<Tokens> => {
         client_secret: CLIENT_SECRET,
         redirect_uri: LOGIN_REDIRECT_URI,
         grant_type: 'authorization_code',
-        scope: 'chat:read chat:edit',
+        scope: SCOPE,
         code,
       },
     });
