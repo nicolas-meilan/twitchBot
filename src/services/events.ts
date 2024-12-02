@@ -109,10 +109,8 @@ const connectToEvents = async (accessToken: string, onNewFollower: OnNewFollower
     logger.error('Error in webSocket:');
   });
 
-  ws.on('close', (code, reason) => {
+  ws.on('close', () => {
     logger.info('Reconnecting websocket...');
-    logger.info(code);
-    logger.info(reason);
     setTimeout(() => connectToEvents(accessToken, onNewFollower), RECONNECTION_TIME);
   });
 };
