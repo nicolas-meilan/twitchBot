@@ -72,6 +72,12 @@ const onNewFollower = (chat: tmi.Client) => async (newFollower: string) => {
   chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
 };
 
+const onNewSub = (chat: tmi.Client) => async (user: string) => {
+  const chatMessage = `🎉 ¡Muchísimas gracias por suscribirte, ${user}! 🙏✨ ¡Bienvenido/a a la comunidad de subs! 🎮🚀 ¡Ahora eres parte de la familia! 💜`;
+  logger.info(chatMessage);
+  chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
+};
+
 const startBot = async () => {
   const token = await getTokens();
 
@@ -79,7 +85,7 @@ const startBot = async () => {
     messageHandler(chat)(params);
   });
 
-  connectToEvents(token.access_token, onNewFollower(chat));
+  connectToEvents(token.access_token, onNewFollower(chat), onNewSub(chat));
 };
 
 export default startBot;
