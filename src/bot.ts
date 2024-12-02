@@ -67,7 +67,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
 };
 
 const onNewFollower = (chat: tmi.Client) => async (newFollower: string) => {
-  const chatMessage = `🎉 ¡Muchas gracias por seguirme, ${newFollower}! 🙏✨ ¡Bienvenido a la comunidad! 🎮🚀`;
+  const chatMessage = `🎉 ¡Muchas gracias por seguirme, ${newFollower}! 🙏✨ ¡Bienvenido/a a la comunidad! 🎮🚀`;
   logger.info(chatMessage);
   chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
 };
