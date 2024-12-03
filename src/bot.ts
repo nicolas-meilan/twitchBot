@@ -67,13 +67,13 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
 };
 
 const onNewFollower = (chat: tmi.Client) => async (newFollower: string) => {
-  const chatMessage = `🎉 ¡Muchas gracias por seguirme, ${newFollower}! 🙏✨ ¡Bienvenido/a a la comunidad! 🎮🚀`;
+  const chatMessage = `🎉 ¡Muchas gracias @${newFollower} por seguirme! 🙏✨ ¡Bienvenido/a a la comunidad! 🎮🚀`;
   logger.info(chatMessage);
   chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
 };
 
 const onNewSub = (chat: tmi.Client) => async (user: string) => {
-  const chatMessage = `🎉 ¡Muchísimas gracias por suscribirte, ${user}! 🙏✨ ¡Bienvenido/a a la comunidad de subs! 🎮🚀 ¡Ahora eres parte de la familia! 💜`;
+  const chatMessage = `🎉 ¡Muchísimas gracias @${user} por suscribirte! 🙏✨ ¡Bienvenido/a a la comunidad de subs! 🎮🚀 ¡Ahora eres parte de la familia! 💜`;
   logger.info(chatMessage);
   chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
 };
