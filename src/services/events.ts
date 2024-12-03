@@ -1,6 +1,7 @@
 import WebSocket from 'ws';
 import logger from '../utils/logger';
 import axios from 'axios';
+import getTokens from './auth';
 
 export type EventCallback = (user: string) => void;
 
@@ -144,21 +145,41 @@ const connectToEvents = async (
   });
 
   ws.on('error', () => {
-    logger.error('Error in webSocket:');
+    logger.error('Error in webSocket');
   });
 
-  ws.on('close', () => {
-    setTimeout(() => {
-      if (reconnectionCurrentRetries >= RECONNECTION_RETRIES) {
-        logger.error('Error connecting websocket');
-        return;
+  ws.on('close', async (code) => {
+    if (code === 4004) {
+      logger.error('Token expired');
+      try {
+        const newTokens = await getTokens();
+        eventsReconnection(newTokens.access_token, onNewFollower, onNewSub); 
+      } catch {
+        logger.error('Unavailable tokens');
       }
 
-      logger.info('Reconnecting websocket...');
-      connectToEvents(accessToken, onNewFollower, onNewSub);
-      reconnectionCurrentRetries += 1;
-    }, RECONNECTION_TIME);
+      return;
+    }
+
+    eventsReconnection(accessToken, onNewFollower, onNewSub);
   });
+};
+
+const eventsReconnection = (
+  accessToken: string,
+  onNewFollower: EventCallback,
+  onNewSub: EventCallback,
+) => {
+  setTimeout(() => {
+    if (reconnectionCurrentRetries >= RECONNECTION_RETRIES) {
+      logger.error('Error connecting websocket');
+      return;
+    }
+
+    logger.info('Reconnecting websocket...');
+    connectToEvents(accessToken, onNewFollower, onNewSub);
+    reconnectionCurrentRetries += 1;
+  }, RECONNECTION_TIME);
 };
 
 export default connectToEvents;
