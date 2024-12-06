@@ -1,4 +1,5 @@
 export const KEY_DELIMITER = '__';
+export const STRING_PARAM = '__PARAM_';
 
 export const VALORANT_RANK_RESPONSE_KEY = `${KEY_DELIMITER}VALORANT_RANK${KEY_DELIMITER}`;
 export const VALORANT_LAST_RANKED_RESPONSE_KEY = `${KEY_DELIMITER}VALORANT_LAST_RANKED${KEY_DELIMITER}`;
@@ -33,3 +34,9 @@ export const MESSAGES_CONFIG: {
   ['!chiste']: `🤡 ${JOKES_KEY}`,
   ['!chistes']: `🤡 ${JOKES_KEY}`,
 };
+
+export const NEW_FOLLOWER_MESSAGE = `🎉 ¡Muchas gracias @${STRING_PARAM}1 por seguirme! 🙏✨ ¡Bienvenido/a a la comunidad! 🎮🚀`;
+export const NEW_SUB_MESSAGE = `🎉 ¡Muchísimas gracias @${STRING_PARAM}1 por suscribirte! 🙏✨ ¡Bienvenido/a a la comunidad de subs! 🎮🚀 ¡Ahora eres parte de la familia! 💜`;
+export const BITS_MESSAGE = `🎉 ¡Muchísimas gracias @${STRING_PARAM}1 por esos ${STRING_PARAM}2 bits! 💎✨`;
+
+export const SPAM_MESSAGE = '🎮 ¡Gracias por estar aquí! 🔔 Sígueme para no perderte nada. 💜 Si te gusta el contenido, suscríbete y apóyame. 🔥 ¡También sígueme en Kick! https://kick.com/rungekutta93';

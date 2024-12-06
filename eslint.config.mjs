@@ -14,6 +14,7 @@ export default [
     rules: {
       'no-undef': ['error', { 'typeof': false }],
       '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
       'no-process-env': 'off',
       'no-exports-assign': 'off',
       "indent": ["error", 2],

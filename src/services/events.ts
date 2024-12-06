@@ -123,7 +123,7 @@ const connectToEvents = async (
       ['channel.cheer']: () => onBits(principalData, extraData?.bits),
       ['stream.online']: () => { isOnline = true; },
       ['stream.offline']: () => { isOnline = false; },
-    }
+    };
 
     const action = websocketConfig[subscriptionType as keyof typeof websocketConfig];
     if (!action) return;

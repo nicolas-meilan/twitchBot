@@ -5,6 +5,7 @@ export type OnNewMessage = (props: {
     channel: string;
     tags: tmi.ChatUserstate;
     message: string;
+    self: boolean;
 }) => void;
 
 const connectToChat = async (
@@ -30,12 +31,11 @@ const connectToChat = async (
     logger.info('Successfully connected to Twitch chat.');
 
     client.on('message', (channel, tags, message, self) => {
-      if (self) return; // Bot message
-
       onNewMessage({
         channel,
         tags,
         message,
+        self,
       });
     });
 

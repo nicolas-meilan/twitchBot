@@ -10,14 +10,22 @@ import {
   COMMANDS_RESPONSE_KEY,
   JOKES_KEY,
   VALORANT_LAST_RANKED_RESPONSE_KEY,
+  SPAM_MESSAGE,
+  NEW_FOLLOWER_MESSAGE,
+  STRING_PARAM,
+  NEW_SUB_MESSAGE,
+  BITS_MESSAGE,
 } from './configuration/chat';
 import logger from './utils/logger';
 import { fetchCurrentRank } from './services/valorant';
 import { fetchJokes } from './services/jokes';
-import connectToEvents from './services/events';
+import connectToEvents, { isOnline } from './services/events';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
+const RECURRENT_MESSAGE_TIME_MIN = Number(process.env.RECURRENT_MESSAGE_TIME_MIN || '0');
+
+let previousMessage = '';
 
 const responsesKeysHandler = async (message: string): Promise<string | undefined> => {
   try {
@@ -54,8 +62,11 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
   }
 };
 
-const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message }) => {
+const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, self }) => {
   const formattedMessage = message.toLowerCase().trim();
+  previousMessage = formattedMessage;
+
+  if (self) return;
 
   const currentMessageResponse = MESSAGES_CONFIG[formattedMessage] || '';
   const formattedResponse = await responsesKeysHandler(currentMessageResponse.trim());
@@ -66,10 +77,26 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   chat.say(channel, formattedResponse);
 };
 
+const spamMessage = (chat: tmi.Client) => {
+  const time = RECURRENT_MESSAGE_TIME_MIN * 60 * 1000; // ms
+
+  setInterval(() => {
+    if (!isOnline) {
+      previousMessage = '';
+      return;
+    }
+
+    if (previousMessage === SPAM_MESSAGE.toLowerCase().trim()) return;
+
+    logger.info(SPAM_MESSAGE);
+    chat.say(ACCOUNT_CHAT_USERNAME, SPAM_MESSAGE);
+  }, time);
+};
+
 const onNewFollower = (chat: tmi.Client) => async (newFollower?: string) => {
   if (!newFollower) return;
 
-  const chatMessage = `🎉 ¡Muchas gracias @${newFollower} por seguirme! 🙏✨ ¡Bienvenido/a a la comunidad! 🎮🚀`;
+  const chatMessage = NEW_FOLLOWER_MESSAGE.replace(`${STRING_PARAM}1`, newFollower);
   logger.info(chatMessage);
   chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
 };
@@ -77,7 +104,7 @@ const onNewFollower = (chat: tmi.Client) => async (newFollower?: string) => {
 const onNewSub = (chat: tmi.Client) => async (user?: string) => {
   if (!user) return;
 
-  const chatMessage = `🎉 ¡Muchísimas gracias @${user} por suscribirte! 🙏✨ ¡Bienvenido/a a la comunidad de subs! 🎮🚀 ¡Ahora eres parte de la familia! 💜`;
+  const chatMessage = NEW_SUB_MESSAGE.replace(`${STRING_PARAM}1`, user);
   logger.info(chatMessage);
   chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
 };
@@ -85,7 +112,7 @@ const onNewSub = (chat: tmi.Client) => async (user?: string) => {
 const onBits = (chat: tmi.Client) => async (user?: string, bits?: number) => {
   if (!user || !bits) return;
 
-  const chatMessage = `🎉 ¡Muchísimas gracias @${user} por esos ${bits} bits! 💎✨`;
+  const chatMessage = BITS_MESSAGE.replace(`${STRING_PARAM}1`, user).replace(`${STRING_PARAM}2`, bits.toString());
   logger.info(chatMessage);
   chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
 };
@@ -97,7 +124,9 @@ const startBot = async () => {
     messageHandler(chat)(params);
   });
 
-  connectToEvents(token.access_token, onNewFollower(chat), onNewSub(chat), onBits(chat));
+  await connectToEvents(token.access_token, onNewFollower(chat), onNewSub(chat), onBits(chat));
+
+  spamMessage(chat);
 };
 
 export default startBot;
