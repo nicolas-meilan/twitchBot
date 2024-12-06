@@ -3,7 +3,7 @@ import logger from '../utils/logger';
 import axios from 'axios';
 import getTokens from './auth';
 
-export type EventCallback = (user: string) => void;
+export type EventCallback = (principalData?: string, extraData?: any) => void;
 
 const CLIENT_ID = process.env.CLIENT_ID || '';
 const ACCOUNT_TRACK_ID = process.env.ACCOUNT_TRACK_ID || '';
@@ -15,6 +15,27 @@ let reconnectionCurrentRetries = 0;
 
 const REGISTER_EVENT_SUBSCRIPTION_URL = 'https://api.twitch.tv/helix/eventsub/subscriptions';
 const LIST_EVENT_SUBSCRIPTIONS_URL = 'https://api.twitch.tv/helix/eventsub/subscriptions';
+const WEB_SOCKET_URL = 'wss://eventsub.wss.twitch.tv/ws';
+
+const EVENT_SUB_SUBSCRIPTIONS: {
+  type: string;
+  version: string;
+}[] = [{
+  type: 'channel.follow',
+  version: '2',
+}, {
+  type: 'channel.subscribe',
+  version: '1',
+}, {
+  type: 'channel.cheer',
+  version: '1',
+}, {
+  type: 'stream.online',
+  version: '1',
+}, {
+  type: 'stream.offline',
+  version: '1',
+}];
 
 const deleteExistingSubscriptions = async (accessToken: string) => {
   try {
@@ -34,7 +55,7 @@ const deleteExistingSubscriptions = async (accessToken: string) => {
           moderator_user_id: string;
         };
       }) =>
-        ['channel.follow', 'channel.subscribe'].includes(sub.type) &&
+        EVENT_SUB_SUBSCRIPTIONS.map(({ type }) => type).includes(sub.type) &&
         sub.condition.broadcaster_user_id === ACCOUNT_TRACK_ID &&
         sub.condition.moderator_user_id === ACCOUNT_BOT_ID
     );
@@ -54,7 +75,7 @@ const deleteExistingSubscriptions = async (accessToken: string) => {
   }
 };
 
-const registerEventSubSubscription = async (accessToken: string, sessionId: string) => {
+const registerEventSubSubscriptions = async (accessToken: string, sessionId: string) => {
   const headers = {
     'Client-ID': CLIENT_ID,
     'Authorization': `Bearer ${accessToken}`,
@@ -74,43 +95,45 @@ const registerEventSubSubscription = async (accessToken: string, sessionId: stri
     },
   };
 
-  const subscribeFollowsEvents = async () => {
+  await Promise.all(EVENT_SUB_SUBSCRIPTIONS.map(async (eventSub) => {
     try {
       await axios.post(REGISTER_EVENT_SUBSCRIPTION_URL, {
         ...body,
-        type: 'channel.follow',
-        version: '2',
+        type: eventSub.type,
+        version: eventSub.version,
       }, { headers });
     } catch {
-      logger.error('Error on register channel.follow websocket, try to add bot user as moderator');
+      logger.error(`Error on register ${eventSub.type} websocket, try to add bot user as moderator`);
     }
-  };
-
-  const subscribeSubscriptorsEvents = async () => {
-    try {
-      await axios.post(REGISTER_EVENT_SUBSCRIPTION_URL, {
-        ...body,
-        type: 'channel.subscribe',
-        version: '1',
-      }, { headers });
-    } catch {
-      logger.error('Error on register channel.subscribe websocket, try to use the same user as bot and account');
-    }
-  };
-
-  await Promise.all([
-    subscribeFollowsEvents(),
-    subscribeSubscriptorsEvents(),
-  ]);
+  }));
 };
+
+let isOnline = false;
 
 const connectToEvents = async (
   accessToken: string,
   onNewFollower: EventCallback,
   onNewSub: EventCallback,
+  onBits: EventCallback,
 ) => {
+  const runHandler = (subscriptionType: string = '', principalData?: string, extraData?: any) => {
+    const websocketConfig = {
+      ['channel.follow']: () => onNewFollower(principalData),
+      ['channel.subscribe']: () => onNewSub(principalData),
+      ['channel.cheer']: () => onBits(principalData, extraData?.bits),
+      ['stream.online']: () => { isOnline = true; },
+      ['stream.offline']: () => { isOnline = false; },
+    }
+
+    const action = websocketConfig[subscriptionType as keyof typeof websocketConfig];
+    if (!action) return;
+
+    logger.info(subscriptionType);
+    action();
+  };
+
   await deleteExistingSubscriptions(accessToken);
-  const ws = new WebSocket('wss://eventsub.wss.twitch.tv/ws');
+  const ws = new WebSocket(WEB_SOCKET_URL);
 
   ws.on('open', () => {
     logger.info('Twitch websocket connected');
@@ -127,18 +150,11 @@ const connectToEvents = async (
         const sessionId = data.payload.session.id;
         logger.info('Session ID received:', sessionId);
 
-        await registerEventSubSubscription(accessToken, sessionId);
+        await registerEventSubSubscriptions(accessToken, sessionId);
       }
 
-      if (data.metadata && data.payload?.subscription?.type === 'channel.follow') {
-        logger.info('New follower event');
-        onNewFollower(data.payload.event.user_name);
-      }
-
-      if (data.metadata && data.payload?.subscription?.type === 'channel.subscribe') {
-        logger.info('New subscription event');
-        onNewSub(data.payload.event.user_name);
-      }
+      const event = data?.payload?.event;
+      runHandler(data.payload?.subscription?.type, event?.user_name, event);
     } catch {
       logger.error('Error processing websocket message');
     }
@@ -153,7 +169,7 @@ const connectToEvents = async (
       logger.error('Token expired');
       try {
         const newTokens = await getTokens();
-        eventsReconnection(newTokens.access_token, onNewFollower, onNewSub); 
+        eventsReconnection(newTokens.access_token, onNewFollower, onNewSub, onBits); 
       } catch {
         logger.error('Unavailable tokens');
       }
@@ -161,7 +177,7 @@ const connectToEvents = async (
       return;
     }
 
-    eventsReconnection(accessToken, onNewFollower, onNewSub);
+    eventsReconnection(accessToken, onNewFollower, onNewSub, onBits);
   });
 };
 
@@ -169,6 +185,7 @@ const eventsReconnection = (
   accessToken: string,
   onNewFollower: EventCallback,
   onNewSub: EventCallback,
+  onBits: EventCallback,
 ) => {
   setTimeout(() => {
     if (reconnectionCurrentRetries >= RECONNECTION_RETRIES) {
@@ -177,9 +194,10 @@ const eventsReconnection = (
     }
 
     logger.info('Reconnecting websocket...');
-    connectToEvents(accessToken, onNewFollower, onNewSub);
+    connectToEvents(accessToken, onNewFollower, onNewSub, onBits);
     reconnectionCurrentRetries += 1;
   }, RECONNECTION_TIME);
 };
 
+export { isOnline };
 export default connectToEvents;

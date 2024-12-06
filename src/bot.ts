@@ -66,14 +66,26 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   chat.say(channel, formattedResponse);
 };
 
-const onNewFollower = (chat: tmi.Client) => async (newFollower: string) => {
+const onNewFollower = (chat: tmi.Client) => async (newFollower?: string) => {
+  if (!newFollower) return;
+
   const chatMessage = `🎉 ¡Muchas gracias @${newFollower} por seguirme! 🙏✨ ¡Bienvenido/a a la comunidad! 🎮🚀`;
   logger.info(chatMessage);
   chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
 };
 
-const onNewSub = (chat: tmi.Client) => async (user: string) => {
+const onNewSub = (chat: tmi.Client) => async (user?: string) => {
+  if (!user) return;
+
   const chatMessage = `🎉 ¡Muchísimas gracias @${user} por suscribirte! 🙏✨ ¡Bienvenido/a a la comunidad de subs! 🎮🚀 ¡Ahora eres parte de la familia! 💜`;
+  logger.info(chatMessage);
+  chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
+};
+
+const onBits = (chat: tmi.Client) => async (user?: string, bits?: number) => {
+  if (!user || !bits) return;
+
+  const chatMessage = `🎉 ¡Muchísimas gracias @${user} por esos ${bits} bits! 💎✨`;
   logger.info(chatMessage);
   chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
 };
@@ -85,7 +97,7 @@ const startBot = async () => {
     messageHandler(chat)(params);
   });
 
-  connectToEvents(token.access_token, onNewFollower(chat), onNewSub(chat));
+  connectToEvents(token.access_token, onNewFollower(chat), onNewSub(chat), onBits(chat));
 };
 
 export default startBot;
