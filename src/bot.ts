@@ -15,17 +15,52 @@ import {
   STRING_PARAM,
   NEW_SUB_MESSAGE,
   BITS_MESSAGE,
+  ACTION_MESSAGES_CONFIG,
+  CHANGE_CHANNEL_INFORMATION_KEY,
+  CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE,
+  CHANNEL_INFO_ACTION_SUCCESS,
+  CHANNEL_INFO_ACTION_ERROR,
+  ACTION_NOT_ALLOWED,
 } from './configuration/chat';
 import logger from './utils/logger';
 import { fetchCurrentRank } from './services/valorant';
 import { fetchJokes } from './services/jokes';
 import connectToEvents, { isOnline } from './services/events';
+import { GAMES, GAMES_KEYS } from './configuration/games';
+import { updateChannelInfo } from './services/twitchActions';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
 const RECURRENT_MESSAGE_TIME_MIN = Number(process.env.RECURRENT_MESSAGE_TIME_MIN || '0');
 
 let previousMessage = '';
+
+const messageActionsHandler = async (chat: tmi.Client, message: string) => {
+  const actionsConfig = {
+    [CHANGE_CHANNEL_INFORMATION_KEY]: async (actionValue: string) => {
+      if (!GAMES_KEYS.includes(actionValue)) {
+        chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
+        return;
+      }
+
+      const gameData = GAMES[actionValue];
+      const token = await getTokens({ avoidLogin: true });
+
+      if (!token || !token.access_token) return;
+
+      try {
+        await updateChannelInfo(token.access_token, gameData);
+        chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_SUCCESS);
+      } catch {
+        chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_ERROR);
+      }
+    },
+  };
+
+  const [command, value] = message.split(' ');
+
+  await actionsConfig[command as keyof typeof actionsConfig](value);
+};
 
 const responsesKeysHandler = async (message: string): Promise<string | undefined> => {
   try {
@@ -51,7 +86,10 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
         return `${isPositive ? 'Gané' : 'Perdí'} ${Math.abs(valorantInfo.mmr_change_to_last_game)} puntos ${isPositive ? '🏆' : '😭'}`;
       },
       [JOKES_KEY]: fetchJokes,
-      [COMMANDS_RESPONSE_KEY]: async () => Object.keys(MESSAGES_CONFIG).sort().join(', '),
+      [COMMANDS_RESPONSE_KEY]: async () => [
+        ...Object.keys(MESSAGES_CONFIG),
+        ...ACTION_MESSAGES_CONFIG,
+      ].sort().join(', '),
     };
 
     const keyValue = await (keysConfig[formattedKey]!)();
@@ -62,9 +100,23 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
   }
 };
 
-const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, self }) => {
+const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, tags, self }) => {
   const formattedMessage = message.toLowerCase().trim();
   previousMessage = formattedMessage;
+
+  const canDispatchActions = !!tags.badges?.broadcaster || tags.mod;
+
+  // message action structure: '!command VALUE'
+  if (ACTION_MESSAGES_CONFIG.includes(formattedMessage.split(' ')[0])) {
+    if (!canDispatchActions) {
+      chat.say(channel, ACTION_NOT_ALLOWED);
+      logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
+      return;
+    }
+    messageActionsHandler(chat, formattedMessage);
+  
+    return;
+  }
 
   if (self) return;
 
@@ -119,6 +171,8 @@ const onBits = (chat: tmi.Client) => async (user?: string, bits?: number) => {
 
 const startBot = async () => {
   const token = await getTokens();
+
+  if (!token) return;
 
   const chat = await connectToChat(BOT_USERNAME, token.access_token, ACCOUNT_CHAT_USERNAME, (params) => {
     messageHandler(chat)(params);

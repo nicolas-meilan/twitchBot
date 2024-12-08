@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import http from 'http';
 import url from 'url';
-import { BASE_URL } from '../configuration/constants';
+import { BASE_AUTH_URL } from '../configuration/constants';
 import { openBrowser } from '../utils/system';
 import { loadTokens, saveTokens, type Tokens } from '../utils/db';
 import logger from '../utils/logger';
@@ -16,8 +16,8 @@ const TOKENS_GENERATION_ENDPOINT = '/oauth2/token';
 const TOKEN_VALIDATION_ENDPOINT = '/oauth2/validate';
 
 const LOCAL_ENVIRONMENT = 'local';
-const SCOPE = 'chat:read chat:edit moderator:read:followers channel:read:subscriptions bits:read';
-const LOGIN_URL = `${BASE_URL}/oauth2/authorize?client_id=${encodeURIComponent(CLIENT_ID)}&redirect_uri=${encodeURIComponent(LOGIN_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}`;
+const SCOPE = 'chat:read chat:edit channel:manage:broadcast moderator:read:followers channel:read:subscriptions bits:read';
+const LOGIN_URL = `${BASE_AUTH_URL}/oauth2/authorize?client_id=${encodeURIComponent(CLIENT_ID)}&redirect_uri=${encodeURIComponent(LOGIN_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}`;
 
 const dispatchLogin = () => {
   logger.info('Awaiting login...');
@@ -48,7 +48,7 @@ const obtaionLoginCodeFromRedirect = () => new Promise<string>((resolve) => {
 const fetchTokens = async (code: string): Promise<Tokens> => {
   try {
     logger.info('Requesting new tokens...');
-    const response = await axios.post<Tokens>(`${BASE_URL}${TOKENS_GENERATION_ENDPOINT}`, null, {
+    const response = await axios.post<Tokens>(`${BASE_AUTH_URL}${TOKENS_GENERATION_ENDPOINT}`, null, {
       params: {
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
@@ -69,7 +69,7 @@ const fetchTokens = async (code: string): Promise<Tokens> => {
 const validateAccessToken = async (accessToken: string): Promise<boolean> => {
   try {
     logger.info('Validating tokens...');
-    await axios.get(`${BASE_URL}${TOKEN_VALIDATION_ENDPOINT}`, {
+    await axios.get(`${BASE_AUTH_URL}${TOKEN_VALIDATION_ENDPOINT}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -86,7 +86,7 @@ const validateAccessToken = async (accessToken: string): Promise<boolean> => {
 const refreshTokens = async (refreshToken: string) => {
   try {
     logger.info('Refreshing tokens...');
-    const response = await axios.post<Tokens>(`${BASE_URL}${TOKENS_GENERATION_ENDPOINT}`, null, {
+    const response = await axios.post<Tokens>(`${BASE_AUTH_URL}${TOKENS_GENERATION_ENDPOINT}`, null, {
       params: {
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
@@ -116,7 +116,13 @@ const login = async () => {
   return tokens;
 };
 
-const getTokens = async () => {
+const getTokens = async ({
+  avoidLogin,
+}: {
+  avoidLogin: boolean;
+} = {
+  avoidLogin: false,
+}) => {
   const tokens = await loadTokens();
 
   if (tokens) {
@@ -134,12 +140,16 @@ const getTokens = async () => {
       const axiosError = error as AxiosError<{ error: string }>;
       if (axiosError.response && axiosError.response.data && axiosError.response.data.error === 'invalid_grant') {
         logger.info('Tokens expireds');
+        if (avoidLogin) return;
+
         return await login();
       }
 
       throw error;
     }
   }
+
+  if (avoidLogin) return;
 
   return await login();
 };

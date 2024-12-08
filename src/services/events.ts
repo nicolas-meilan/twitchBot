@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import logger from '../utils/logger';
 import axios from 'axios';
 import getTokens from './auth';
+import { BASE_URL } from '../configuration/constants';
 
 export type EventCallback = (principalData?: string, extraData?: any) => void;
 
@@ -13,8 +14,8 @@ const RECONNECTION_TIME = 1000;
 const RECONNECTION_RETRIES = 3;
 let reconnectionCurrentRetries = 0;
 
-const REGISTER_EVENT_SUBSCRIPTION_URL = 'https://api.twitch.tv/helix/eventsub/subscriptions';
-const LIST_EVENT_SUBSCRIPTIONS_URL = 'https://api.twitch.tv/helix/eventsub/subscriptions';
+const REGISTER_EVENT_SUBSCRIPTION_URL = `${BASE_URL}/helix/eventsub/subscriptions`;
+const LIST_EVENT_SUBSCRIPTIONS_URL = `${BASE_URL}/helix/eventsub/subscriptions`;
 const WEB_SOCKET_URL = 'wss://eventsub.wss.twitch.tv/ws';
 
 const EVENT_SUB_SUBSCRIPTIONS: {
@@ -168,7 +169,9 @@ const connectToEvents = async (
     if (code === 4004) {
       logger.error('Token expired');
       try {
-        const newTokens = await getTokens();
+        const newTokens = await getTokens({ avoidLogin: true });
+        if (!newTokens) return;
+
         eventsReconnection(newTokens.access_token, onNewFollower, onNewSub, onBits); 
       } catch {
         logger.error('Unavailable tokens');

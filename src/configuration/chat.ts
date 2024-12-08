@@ -13,6 +13,11 @@ export const RESPONSES_KEYS = [
   JOKES_KEY,
 ];
 
+export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
+
+export const ACTION_MESSAGES_CONFIG = [
+  CHANGE_CHANNEL_INFORMATION_KEY,
+];
 
 export const MESSAGES_CONFIG: {
     [message: string]: string;
@@ -40,3 +45,9 @@ export const NEW_SUB_MESSAGE = `🎉 ¡Muchísimas gracias @${STRING_PARAM}1 por
 export const BITS_MESSAGE = `🎉 ¡Muchísimas gracias @${STRING_PARAM}1 por esos ${STRING_PARAM}2 bits! 💎✨`;
 
 export const SPAM_MESSAGE = '🎮 ¡Gracias por estar aquí! 🔔 Sígueme para no perderte nada. 💜 Si te gusta el contenido, suscríbete y apóyame. 🔥 ¡También sígueme en Kick! https://kick.com/rungekutta93';
+
+export const ACTION_NOT_ALLOWED = 'No puedes realizar esa acción';
+
+export const CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE = 'Juego no configurado';
+export const CHANNEL_INFO_ACTION_SUCCESS = 'Información del canal actualizada';
+export const CHANNEL_INFO_ACTION_ERROR = 'No se pudo cambiar la información del canal';
