@@ -31,6 +31,7 @@ import {
   CHANNEL_INFO_ACTION_ERROR,
   ACTION_NOT_ALLOWED,
   COMMAND_DELIMITER,
+  MOD_COMMANDS_RESPONSE_KEY,
 } from './configuration/chat';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
@@ -118,10 +119,8 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
         return `${isPositive ? 'Gané' : 'Perdí'} ${Math.abs(valorantInfo.mmr_change_to_last_game)} puntos ${isPositive ? '🏆' : '😭'}`;
       },
       [JOKES_KEY]: fetchJokes,
-      [COMMANDS_RESPONSE_KEY]: async () => [
-        ...Object.keys(MESSAGES_CONFIG),
-        ...ACTION_MESSAGES_CONFIG,
-      ].sort().join(', '),
+      [COMMANDS_RESPONSE_KEY]: async () => Object.keys(MESSAGES_CONFIG).sort().join(', '),
+      [MOD_COMMANDS_RESPONSE_KEY]: async () => ACTION_MESSAGES_CONFIG.sort().join(', '),
     };
 
     const keyValue = await (keysConfig[formattedKey]!)();
