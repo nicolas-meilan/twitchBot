@@ -3,12 +3,12 @@ import tmi from 'tmi.js';
 import getTokens from './services/twitch/auth';
 import connectToChat, { OnNewMessage } from './services/twitch/chat';
 import connectToEvents, { isOnline } from './services/twitch/events';
-import { updateChannelInfo } from './services/twitch/channel';
+import { getGameId, updateChannelInfo } from './services/twitch/channel';
 
 import { fetchCurrentRank } from './services/valorant';
 import { fetchJokes } from './services/jokes';
 
-import { GAMES, GAMES_KEYS } from './configuration/games';
+import { BASE_TAGS, Game, GAMES } from './configuration/games';
 import logger from './utils/logger';
 
 import {
@@ -30,6 +30,7 @@ import {
   CHANNEL_INFO_ACTION_SUCCESS,
   CHANNEL_INFO_ACTION_ERROR,
   ACTION_NOT_ALLOWED,
+  COMMAND_DELIMITER,
 } from './configuration/chat';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
@@ -41,15 +42,43 @@ let previousMessage = '';
 const messageActionsHandler = async (chat: tmi.Client, message: string) => {
   const actionsConfig = {
     [CHANGE_CHANNEL_INFORMATION_KEY]: async (actionValue: string) => {
-      if (!GAMES_KEYS.includes(actionValue)) {
-        chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
-        return;
-      }
-
-      const gameData = GAMES[actionValue];
       const token = await getTokens({ avoidLogin: true });
-
       if (!token || !token.access_token) return;
+
+      let gameData: Game | undefined = GAMES[actionValue];
+
+      if (!gameData) {
+        try {
+          const [
+            gameName,
+            gameTitle,
+            gameTags,
+          ] = actionValue.split(COMMAND_DELIMITER);
+
+          const game = await getGameId(token.access_token, gameName.trim());
+
+          if (!game) {
+            chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
+            return;
+          }
+
+          const extraTags = gameTags?.trim()
+            ? gameTags?.split(' ')
+              .filter((currentTag) => currentTag)
+              .map((currentTag) => currentTag.trim())
+            : [gameName.split(' ').join('')];
+
+          gameData = {
+            title: (gameTitle || game.name).trim(),
+            gameId: game.id,
+            tags: [...BASE_TAGS, ...extraTags],
+          };
+
+        } catch {
+          chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
+          return;
+        } 
+      }
 
       try {
         await updateChannelInfo(token.access_token, gameData);
@@ -60,9 +89,9 @@ const messageActionsHandler = async (chat: tmi.Client, message: string) => {
     },
   };
 
-  const [command, value] = message.split(' ');
+  const command = message.split(' ')[0];
 
-  await actionsConfig[command as keyof typeof actionsConfig](value);
+  await actionsConfig[command as keyof typeof actionsConfig](message.replace(command, '').trim());
 };
 
 const responsesKeysHandler = async (message: string): Promise<string | undefined> => {

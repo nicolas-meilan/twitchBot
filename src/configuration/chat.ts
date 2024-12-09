@@ -13,6 +13,8 @@ export const RESPONSES_KEYS = [
   JOKES_KEY,
 ];
 
+export const COMMAND_DELIMITER = '/';
+
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
 
 export const ACTION_MESSAGES_CONFIG = [
@@ -48,6 +50,6 @@ export const SPAM_MESSAGE = '🎮 ¡Gracias por estar aquí! 🔔 Sígueme para 
 
 export const ACTION_NOT_ALLOWED = 'No puedes realizar esa acción';
 
-export const CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE = 'Juego no configurado';
+export const CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE = 'Juego no encontrado';
 export const CHANNEL_INFO_ACTION_SUCCESS = 'Información del canal actualizada';
 export const CHANNEL_INFO_ACTION_ERROR = 'No se pudo cambiar la información del canal';

@@ -18,12 +18,12 @@ export const GAMES_KEYS = [
   DESARROLLO,
 ];
 
-const BASE_TAGS = [
-  'Español',
-  'Argentina',
+export const BASE_TAGS = [
+  'spanish',
   'chill',
   'gaming',
-  'risas',
+  'fun',
+  'funny',
 ];
 
 export const GAMES: {
@@ -34,10 +34,10 @@ export const GAMES: {
     gameId: '516575',
     tags: [
       ...BASE_TAGS,
-      'manqueando',
-      'competitivo',
+      'funnygameplay',
+      'competitive',
       'valorant',
-      'Valo',
+      'shooter',
       'valorantchill',
     ],
   },
@@ -46,11 +46,11 @@ export const GAMES: {
     gameId: '400407464',
     tags: [
       ...BASE_TAGS,
-      'manqueando',
+      'noobplays',
       'DRAGONBALLSPARKINGZERO',
       'dragonball',
       'dragonballz',
-      'dragonballespañol',
+      'animegames',
     ],
   },
   [PHASMOPHOBIA]: {
@@ -59,10 +59,10 @@ export const GAMES: {
     tags: [
       ...BASE_TAGS,
       'Phasmophobia',
-      'fantasmas',
-      'miedo',
-      'sustos',
-      'Sustosyrisas',
+      'ghosthunting',
+      'horror',
+      'funnyhorrormoments',
+      'jumpscares',
     ],
   },
   [FORTNITE]: {
@@ -70,11 +70,11 @@ export const GAMES: {
     gameId: '33214',
     tags: [
       ...BASE_TAGS,
-      'manqueando',
+      'casualgaming',
       'Fortnite',
       'fortnitechill',
-      'construccion',
-      'ZeroBuildFortnite',
+      'funnyplays',
+      'royale',
     ],
   },
   [DESARROLLO]: {
@@ -82,11 +82,11 @@ export const GAMES: {
     gameId: '1469308723',
     tags: [
       ...BASE_TAGS,
-      'desarrollo',
-      'programacion',
-      'informatica',
-      'software',
-      'ingenieria',
+      'coding',
+      'softwaredevelopment',
+      'programming',
+      'tech',
+      'developer',
     ],
   },
 };
