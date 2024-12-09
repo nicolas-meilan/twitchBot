@@ -1,6 +1,7 @@
 export const KEY_DELIMITER = '__';
 export const STRING_PARAM = '__PARAM_';
 
+export const COMMANDS_SEPARATOR = ' 💻 ';
 export const COMMANDS_RESPONSE_KEY = `${KEY_DELIMITER}COMMANDS${KEY_DELIMITER}`;
 export const MOD_COMMANDS_RESPONSE_KEY = `${KEY_DELIMITER}MOD_COMMANDS${KEY_DELIMITER}`;
 
@@ -40,8 +41,8 @@ export const MESSAGES_CONFIG: {
   ['!ultimarankedvalo']: `🎮 ${VALORANT_LAST_RANKED_RESPONSE_KEY}`,
   ['!ultimarankedvalorant']: `🎮 ${VALORANT_LAST_RANKED_RESPONSE_KEY}`,
   ['!ultimapartida']: `🎮 ${VALORANT_LAST_RANKED_RESPONSE_KEY}`,
-  ['!comandos']: `💻 ${COMMANDS_RESPONSE_KEY}`,
-  ['!comandosmod']: `💻 ${MOD_COMMANDS_RESPONSE_KEY}`,
+  ['!comandos']: `Lista de comandos:${COMMANDS_SEPARATOR}${COMMANDS_RESPONSE_KEY}`,
+  ['!comandosmod']: `Lista de comandos para mods:${COMMANDS_SEPARATOR}${MOD_COMMANDS_RESPONSE_KEY}`,
   ['!chiste']: `🤡 ${JOKES_KEY}`,
   ['!chistes']: `🤡 ${JOKES_KEY}`,
 };
