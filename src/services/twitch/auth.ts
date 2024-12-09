@@ -1,10 +1,10 @@
 import axios, { AxiosError } from 'axios';
 import http from 'http';
 import url from 'url';
-import { BASE_AUTH_URL } from '../configuration/constants';
-import { openBrowser } from '../utils/system';
-import { loadTokens, saveTokens, type Tokens } from '../utils/db';
-import logger from '../utils/logger';
+import { BASE_AUTH_URL } from '../../configuration/constants';
+import { openBrowser } from '../../utils/system';
+import { loadTokens, saveTokens, type Tokens } from '../../utils/db';
+import logger from '../../utils/logger';
 
 const CLIENT_ID = process.env.CLIENT_ID || '';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || '';

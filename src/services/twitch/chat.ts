@@ -1,5 +1,5 @@
 import tmi from 'tmi.js';
-import logger from '../utils/logger';
+import logger from '../../utils/logger';
 import getTokens from './auth';
 
 export type OnNewMessage = (props: {

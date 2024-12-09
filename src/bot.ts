@@ -1,7 +1,16 @@
 import tmi from 'tmi.js';
 
-import getTokens from './services/auth';
-import connectToChat, { OnNewMessage } from './services/chat';
+import getTokens from './services/twitch/auth';
+import connectToChat, { OnNewMessage } from './services/twitch/chat';
+import connectToEvents, { isOnline } from './services/twitch/events';
+import { updateChannelInfo } from './services/twitch/channel';
+
+import { fetchCurrentRank } from './services/valorant';
+import { fetchJokes } from './services/jokes';
+
+import { GAMES, GAMES_KEYS } from './configuration/games';
+import logger from './utils/logger';
+
 import {
   MESSAGES_CONFIG,
   RESPONSES_KEYS,
@@ -22,12 +31,6 @@ import {
   CHANNEL_INFO_ACTION_ERROR,
   ACTION_NOT_ALLOWED,
 } from './configuration/chat';
-import logger from './utils/logger';
-import { fetchCurrentRank } from './services/valorant';
-import { fetchJokes } from './services/jokes';
-import connectToEvents, { isOnline } from './services/events';
-import { GAMES, GAMES_KEYS } from './configuration/games';
-import { updateChannelInfo } from './services/twitchActions';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';

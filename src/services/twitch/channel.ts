@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { BASE_URL } from '../configuration/constants';
-import { Game } from '../configuration/games';
-import logger from '../utils/logger';
+import { BASE_URL } from '../../configuration/constants';
+import { Game } from '../../configuration/games';
+import logger from '../../utils/logger';
 
 const ACCOUNT_TRACK_ID = process.env.ACCOUNT_TRACK_ID || '';
 const CLIENT_ID = process.env.CLIENT_ID || '';

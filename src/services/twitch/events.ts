@@ -1,8 +1,8 @@
 import WebSocket from 'ws';
-import logger from '../utils/logger';
+import logger from '../../utils/logger';
 import axios from 'axios';
 import getTokens from './auth';
-import { BASE_URL } from '../configuration/constants';
+import { BASE_URL } from '../../configuration/constants';
 
 export type EventCallback = (principalData?: string, extraData?: any) => void;
 
