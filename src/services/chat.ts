@@ -1,5 +1,6 @@
 import tmi from 'tmi.js';
 import logger from '../utils/logger';
+import getTokens from './auth';
 
 export type OnNewMessage = (props: {
     channel: string;
@@ -10,17 +11,20 @@ export type OnNewMessage = (props: {
 
 const connectToChat = async (
   botUsername: string,
-  token: string,
   accountChatUsername: string,
   onNewMessage: OnNewMessage,
 ) => {
   try {
+    const token = await getTokens({ avoidLogin: true });
+
+    if (!token) return;
+
     logger.info(`Connecting to Twitch chat for channel: ${accountChatUsername}...`);
 
     const client = new tmi.Client({
       identity: {
         username: botUsername,
-        password: `oauth:${token}`,
+        password: `oauth:${token.access_token}`,
       },
       channels: [accountChatUsername],
     });

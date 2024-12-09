@@ -170,15 +170,17 @@ const onBits = (chat: tmi.Client) => async (user?: string, bits?: number) => {
 };
 
 const startBot = async () => {
-  const token = await getTokens();
+  await getTokens();
 
-  if (!token) return;
+  const chat = await connectToChat(BOT_USERNAME, ACCOUNT_CHAT_USERNAME, (params) => {
+    if (!chat) return;
 
-  const chat = await connectToChat(BOT_USERNAME, token.access_token, ACCOUNT_CHAT_USERNAME, (params) => {
     messageHandler(chat)(params);
   });
 
-  await connectToEvents(token.access_token, onNewFollower(chat), onNewSub(chat), onBits(chat));
+  if (!chat) return;
+
+  await connectToEvents(onNewFollower(chat), onNewSub(chat), onBits(chat));
 
   spamMessage(chat);
 };

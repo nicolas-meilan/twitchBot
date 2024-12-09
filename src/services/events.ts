@@ -112,7 +112,6 @@ const registerEventSubSubscriptions = async (accessToken: string, sessionId: str
 let isOnline = false;
 
 const connectToEvents = async (
-  accessToken: string,
   onNewFollower: EventCallback,
   onNewSub: EventCallback,
   onBits: EventCallback,
@@ -133,7 +132,10 @@ const connectToEvents = async (
     action();
   };
 
-  await deleteExistingSubscriptions(accessToken);
+  const token = await getTokens({ avoidLogin: true });
+  if (!token) return;
+
+  await deleteExistingSubscriptions(token.access_token);
   const ws = new WebSocket(WEB_SOCKET_URL);
 
   ws.on('open', () => {
@@ -151,7 +153,7 @@ const connectToEvents = async (
         const sessionId = data.payload.session.id;
         logger.info('Session ID received:', sessionId);
 
-        await registerEventSubSubscriptions(accessToken, sessionId);
+        await registerEventSubSubscriptions(token.access_token, sessionId);
       }
 
       const event = data?.payload?.event;
@@ -166,26 +168,13 @@ const connectToEvents = async (
   });
 
   ws.on('close', async (code) => {
-    if (code === 4004) {
-      logger.error('Token expired');
-      try {
-        const newTokens = await getTokens({ avoidLogin: true });
-        if (!newTokens) return;
+    if (code === 4004) logger.error('Token expired');
 
-        eventsReconnection(newTokens.access_token, onNewFollower, onNewSub, onBits); 
-      } catch {
-        logger.error('Unavailable tokens');
-      }
-
-      return;
-    }
-
-    eventsReconnection(accessToken, onNewFollower, onNewSub, onBits);
+    eventsReconnection(onNewFollower, onNewSub, onBits);
   });
 };
 
 const eventsReconnection = (
-  accessToken: string,
   onNewFollower: EventCallback,
   onNewSub: EventCallback,
   onBits: EventCallback,
@@ -197,7 +186,7 @@ const eventsReconnection = (
     }
 
     logger.info('Reconnecting websocket...');
-    connectToEvents(accessToken, onNewFollower, onNewSub, onBits);
+    connectToEvents(onNewFollower, onNewSub, onBits);
     reconnectionCurrentRetries += 1;
   }, RECONNECTION_TIME);
 };
