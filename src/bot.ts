@@ -64,18 +64,21 @@ const messageActionsHandler = async (chat: tmi.Client, message: string) => {
             return;
           }
 
-          const extraTags = gameTags?.trim()
-            ? gameTags?.split(' ')
-              .filter((currentTag) => currentTag)
-              .map((currentTag) => currentTag.trim())
-            : [gameName.split(' ').join('')];
+          gameData = Object.values(GAMES).find(({ gameId }) => game.id === gameId);
 
-          gameData = {
-            title: (gameTitle || game.name).trim(),
-            gameId: game.id,
-            tags: [...BASE_TAGS, ...extraTags],
-          };
+          if (!gameData) {
+            const extraTags = gameTags?.trim()
+              ? gameTags?.split(' ')
+                .filter((currentTag) => currentTag)
+                .map((currentTag) => currentTag.trim())
+              : [gameName.split(' ').join('')];
 
+            gameData = {
+              title: (gameTitle || game.name).trim(),
+              gameId: game.id,
+              tags: [...BASE_TAGS, ...extraTags],
+            }; 
+          }
         } catch {
           chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
           return;
