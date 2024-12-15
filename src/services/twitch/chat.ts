@@ -1,6 +1,9 @@
 import tmi from 'tmi.js';
 import logger from '../../utils/logger';
-import getTokens from './auth';
+import getTokens, { refreshTokens } from './auth';
+
+const RECONNECTION_RETRIES = 3;
+let reconnectionCurrentRetries = 0;
 
 export type OnNewMessage = (props: {
     channel: string;
@@ -35,12 +38,24 @@ const connectToChat = async (
     logger.info('Successfully connected to Twitch chat.');
 
     client.on('message', (channel, tags, message, self) => {
+      reconnectionCurrentRetries = 0;
       onNewMessage({
         channel,
         tags,
         message,
         self,
       });
+    });
+
+    client.on('disconnected', async () => {
+      if (reconnectionCurrentRetries >= RECONNECTION_RETRIES) {
+        logger.error('Error connecting chat');
+        return;
+      }
+
+      reconnectionCurrentRetries += 1;
+      await refreshTokens(token.refresh_token);
+      await connectToChat(botUsername, accountChatUsername, onNewMessage);
     });
 
     return client;

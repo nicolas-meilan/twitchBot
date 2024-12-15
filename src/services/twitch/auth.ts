@@ -83,7 +83,7 @@ const validateAccessToken = async (accessToken: string): Promise<boolean> => {
   }
 };
 
-const refreshTokens = async (refreshToken: string) => {
+export const refreshTokens = async (refreshToken: string) => {
   try {
     logger.info('Refreshing tokens...');
     const response = await axios.post<Tokens>(`${BASE_AUTH_URL}${TOKENS_GENERATION_ENDPOINT}`, null, {
@@ -97,10 +97,14 @@ const refreshTokens = async (refreshToken: string) => {
 
     logger.info('Tokens retrieved successfully.');
 
-    return {
+    const newTokens = {
       access_token: response.data.access_token,
       refresh_token: response.data.refresh_token,
     };
+
+    saveTokens(newTokens);
+
+    return newTokens;
   } catch {
     logger.error('Error fetching tokens');
     throw new Error('Error fetching tokens');
@@ -132,7 +136,6 @@ const getTokens = async ({
 
     try {
       const newTokens = await refreshTokens(tokens.refresh_token);
-      saveTokens(newTokens);
 
       return newTokens;
     } catch (error) {

@@ -1,6 +1,6 @@
 import tmi from 'tmi.js';
 
-import getTokens from './services/twitch/auth';
+import getTokens, { refreshTokens } from './services/twitch/auth';
 import connectToChat, { OnNewMessage } from './services/twitch/chat';
 import connectToEvents, { isOnline } from './services/twitch/events';
 import { getGameId, updateChannelInfo } from './services/twitch/channel';
@@ -60,7 +60,10 @@ const messageActionsHandler = async (chat: tmi.Client, message: string) => {
             gameTags,
           ] = actionValue.split(COMMAND_DELIMITER);
 
-          const game = await getGameId(token.access_token, gameName.trim());
+          const game = await getGameId(token.access_token, gameName.trim(), async () => {
+            const newToken = await refreshTokens(token.refresh_token);
+            getGameId(newToken.access_token, gameName.trim());
+          });
 
           if (!game) {
             chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
@@ -89,7 +92,11 @@ const messageActionsHandler = async (chat: tmi.Client, message: string) => {
       }
 
       try {
-        await updateChannelInfo(token.access_token, gameData);
+        await updateChannelInfo(token.access_token, gameData, async () => {
+          const newToken = await refreshTokens(token.refresh_token);
+          updateChannelInfo(newToken.access_token, gameData);
+        });
+
         chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_SUCCESS);
       } catch {
         chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_ERROR);

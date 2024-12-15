@@ -9,7 +9,7 @@ const CLIENT_ID = process.env.CLIENT_ID || '';
 const updateChannelInfoUrl = `${BASE_URL}/helix/channels?broadcaster_id=${ACCOUNT_TRACK_ID}`;
 const searchGameIdUrl = `${BASE_URL}/helix/search/categories`;
 
-export const getGameId = async (accessToken: string, gameName: string) => {
+export const getGameId = async (accessToken: string, gameName: string, onAccessTokenExpired?: () => void) => {
   try {
     logger.info('Searching game category ...');
     const url = `${searchGameIdUrl}?query=${encodeURIComponent(gameName)}`;
@@ -36,13 +36,18 @@ export const getGameId = async (accessToken: string, gameName: string) => {
     logger.info('Game category finded');
     return categories[0];
 
-  } catch {
+  } catch (error){
+    if (axios.isAxiosError(error) && error?.response?.status === 401) {
+      onAccessTokenExpired?.();
+
+      return;
+    }
     logger.error('Error Searching game category');
     throw new Error('Error Searching game category');
   }
 };
 
-export const updateChannelInfo = async (accessToken: string, game: Game) => {
+export const updateChannelInfo = async (accessToken: string, game: Game, onAccessTokenExpired?: () => void) => {
   try {
     logger.info('Sending new channel information ...');
 
@@ -62,7 +67,12 @@ export const updateChannelInfo = async (accessToken: string, game: Game) => {
 
     logger.info('Channel information changed successfull');
 
-  } catch {
+  } catch (error) {
+    if (axios.isAxiosError(error) && error?.response?.status === 401) {
+      onAccessTokenExpired?.();
+
+      return;
+    }
     logger.error('Error changing channel information');
     throw new Error('Error changing channel information');
   }
