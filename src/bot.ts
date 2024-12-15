@@ -19,7 +19,6 @@ import {
   COMMANDS_RESPONSE_KEY,
   JOKES_KEY,
   VALORANT_LAST_RANKED_RESPONSE_KEY,
-  SPAM_MESSAGE,
   NEW_FOLLOWER_MESSAGE,
   STRING_PARAM,
   NEW_SUB_MESSAGE,
@@ -33,11 +32,15 @@ import {
   COMMAND_DELIMITER,
   MOD_COMMANDS_RESPONSE_KEY,
   COMMANDS_SEPARATOR,
+  FOLLOW_SPAM_MESSAGES,
+  PRIME_SPAM_MESSAGES,
 } from './configuration/chat';
+import { random } from './utils/numbers';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
-const RECURRENT_MESSAGE_TIME_MIN = Number(process.env.RECURRENT_MESSAGE_TIME_MIN || '0');
+const FOLLOW_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.FOLLOW_RECURRENT_MESSAGE_TIME_MIN || '0');
+const PRIME_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.PRIME_RECURRENT_MESSAGE_TIME_MIN || '0');
 
 let previousMessage = '';
 
@@ -164,8 +167,8 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   chat.say(channel, formattedResponse);
 };
 
-const spamMessage = (chat: tmi.Client) => {
-  const time = RECURRENT_MESSAGE_TIME_MIN * 60 * 1000; // ms
+const spamFollowMessage = (chat: tmi.Client) => {
+  const time = FOLLOW_RECURRENT_MESSAGE_TIME_MIN * 60 * 1000; // ms
 
   setInterval(() => {
     if (!isOnline) {
@@ -173,10 +176,28 @@ const spamMessage = (chat: tmi.Client) => {
       return;
     }
 
-    if (previousMessage === SPAM_MESSAGE.toLowerCase().trim()) return;
+    const followMessages = FOLLOW_SPAM_MESSAGES.map((current) => current.toLowerCase().trim());
+    if (followMessages.includes(previousMessage)) return;
 
-    logger.info(SPAM_MESSAGE);
-    chat.say(ACCOUNT_CHAT_USERNAME, SPAM_MESSAGE);
+    logger.info(FOLLOW_SPAM_MESSAGES);
+    chat.say(ACCOUNT_CHAT_USERNAME, FOLLOW_SPAM_MESSAGES[random(0, FOLLOW_SPAM_MESSAGES.length)]);
+  }, time);
+};
+
+const spamPrimeMessage = (chat: tmi.Client) => {
+  const time = PRIME_RECURRENT_MESSAGE_TIME_MIN * 60 * 1000; // ms
+
+  setInterval(() => {
+    if (!isOnline) {
+      previousMessage = '';
+      return;
+    }
+
+    const primeMessages = PRIME_SPAM_MESSAGES.map((current) => current.toLowerCase().trim());
+    if (primeMessages.includes(previousMessage)) return;
+
+    logger.info(PRIME_SPAM_MESSAGES);
+    chat.say(ACCOUNT_CHAT_USERNAME, PRIME_SPAM_MESSAGES[random(0, PRIME_SPAM_MESSAGES.length)]);
   }, time);
 };
 
@@ -217,7 +238,8 @@ const startBot = async () => {
 
   await connectToEvents(onNewFollower(chat), onNewSub(chat), onBits(chat));
 
-  spamMessage(chat);
+  spamFollowMessage(chat);
+  spamPrimeMessage(chat);
 };
 
 export default startBot;

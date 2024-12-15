@@ -51,7 +51,20 @@ export const NEW_FOLLOWER_MESSAGE = `🎉 ¡Muchas gracias @${STRING_PARAM}1 por
 export const NEW_SUB_MESSAGE = `🎉 ¡Muchísimas gracias @${STRING_PARAM}1 por suscribirte! 🙏✨ ¡Bienvenido/a a la comunidad de subs! 🎮🚀 ¡Ahora eres parte de la familia! 💜`;
 export const BITS_MESSAGE = `🎉 ¡Muchísimas gracias @${STRING_PARAM}1 por esos ${STRING_PARAM}2 bits! 💎✨`;
 
-export const SPAM_MESSAGE = '🎮 ¡Gracias por estar aquí! 🔔 Sígueme para no perderte nada. 💜 Si te gusta el contenido, suscríbete y apóyame. 🔥 ¡También sígueme en Kick! https://kick.com/rungekutta93';
+export const FOLLOW_SPAM_MESSAGES = [
+  '🎮 ¡Gracias por estar aquí! 🔔 Sígueme para no perderte nada. 💜 Si te gusta el contenido, suscríbete y apóyame. 🔥 ¡También sígueme en Kick! https://kick.com/rungekutta93',
+  '🎮 ¡Bienvenido al stream! 🔔 No olvides seguirme para estar al tanto de futuras transmisiones. 💜 ¿Te gusta el contenido? ¡Suscríbete y sé parte de esta comunidad! 🔥 También estoy en Kick: https://kick.com/rungekutta93.',
+  '🔥 ¡Gracias por acompañarme! 💜 Tu apoyo es increíble. Dale a seguir y suscríbete si disfrutas del contenido. 🎮 ¿Sabías que también estoy en Kick? Sígueme por allá: https://kick.com/rungekutta93.',
+  '🔔 ¡No te pierdas nada! 🎮 Dale follow y acompáñame en todas mis transmisiones. 💜 Si te gusta el contenido, tu suscripción hace la diferencia. 🔥 Estoy en Kick también: https://kick.com/rungekutta93.',
+];
+
+export const PRIME_SPAM_MESSAGES = [
+  '💜 ¿Tienes Amazon Prime? 🎁 ¡Con Prime Gaming puedes suscribirte GRATIS a este canal cada mes! ✨ Aprovecha tu suscripción Prime para apoyar el contenido que te gusta.',
+  '📦 ¿Eres usuario de Amazon Prime? 💜 ¡Prime Gaming te da una sub mensual GRATIS! ✨ Úsala aquí y sé parte de esta increíble comunidad.',
+  '🎮 ¿Conoces Prime Gaming? 💜 Si tienes Amazon Prime, puedes suscribirte GRATIS a tu canal favorito. 🔥 ¡Apoya este canal con tu suscripción Prime y sé un crack!',
+  '✨ ¡Saca el máximo provecho de Amazon Prime! 📦 Recuerda que Prime Gaming incluye una sub GRATIS cada mes. 💜 Si disfrutas del contenido, considera usarla aquí. ¡Es muy fácil!',
+  '💡 ¿Sabías esto sobre Amazon Prime? 🎁 Con Prime Gaming tienes una sub mensual GRATIS en Twitch. 💜 ¿Qué esperas? ¡Apóyame y forma parte de esta comunidad!',
+];
 
 export const ACTION_NOT_ALLOWED = 'No puedes realizar esa acción';
 
