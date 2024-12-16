@@ -23,7 +23,7 @@ import {
   STRING_PARAM,
   NEW_SUB_MESSAGE,
   BITS_MESSAGE,
-  ACTION_MESSAGES_CONFIG,
+  MODS_MESSAGES_CONFIG,
   CHANGE_CHANNEL_INFORMATION_KEY,
   CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE,
   CHANNEL_INFO_ACTION_SUCCESS,
@@ -34,8 +34,11 @@ import {
   COMMANDS_SEPARATOR,
   FOLLOW_SPAM_MESSAGES,
   PRIME_SPAM_MESSAGES,
+  TTS_KEY,
+  TTS_MOD_SENDER,
 } from './configuration/chat';
 import { random } from './utils/numbers';
+import { sendEventTTS } from './services/botEvents';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
@@ -44,8 +47,9 @@ const PRIME_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.PRIME_RECURRENT_MESS
 
 let previousMessage = '';
 
-const messageActionsHandler = async (chat: tmi.Client, message: string) => {
+const messageModsHandler = async (chat: tmi.Client, message: string) => {
   const actionsConfig = {
+    [TTS_KEY]: (value: string) => sendEventTTS(value, TTS_MOD_SENDER),
     [CHANGE_CHANNEL_INFORMATION_KEY]: async (actionValue: string) => {
       const token = await getTokens({ avoidLogin: true });
       if (!token || !token.access_token) return;
@@ -134,7 +138,7 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
       },
       [JOKES_KEY]: fetchJokes,
       [COMMANDS_RESPONSE_KEY]: async () => Object.keys(MESSAGES_CONFIG).sort().join(COMMANDS_SEPARATOR),
-      [MOD_COMMANDS_RESPONSE_KEY]: async () => ACTION_MESSAGES_CONFIG.sort().join(COMMANDS_SEPARATOR),
+      [MOD_COMMANDS_RESPONSE_KEY]: async () => MODS_MESSAGES_CONFIG.sort().join(COMMANDS_SEPARATOR),
     };
 
     const keyValue = await (keysConfig[formattedKey]!)();
@@ -152,13 +156,13 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   const canDispatchActions = !!tags.badges?.broadcaster || tags.mod;
 
   // message action structure: '!command VALUE'
-  if (ACTION_MESSAGES_CONFIG.includes(formattedMessage.split(' ')[0])) {
+  if (MODS_MESSAGES_CONFIG.includes(formattedMessage.split(' ')[0])) {
     if (!canDispatchActions) {
       chat.say(channel, ACTION_NOT_ALLOWED);
       logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
       return;
     }
-    messageActionsHandler(chat, formattedMessage);
+    messageModsHandler(chat, formattedMessage);
   
     return;
   }

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket TTS</title>
+  <script>
+    const WEBSOCKET_URL = "WEBSOCKET_URL";
+    const PASSWORD = "PASSWORD";
+    let ws;
+    let voices = [];
+
+    window.speechSynthesis.onvoiceschanged = () => {
+      voices = window.speechSynthesis.getVoices();
+    };
+
+    function connectWebSocket() {
+      ws = new WebSocket(WEBSOCKET_URL);
+      ws.onopen = function() {
+        ws.send(PASSWORD);
+      };
+      ws.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        if (data.type === "TTS" && data.message) {
+          const utterance = new SpeechSynthesisUtterance(data.message);
+          utterance.voice = voices.find(voice => voice.name.includes("Sabina")) || voices[0];
+          window.speechSynthesis.speak(utterance);
+        }
+      };
+      ws.onclose = function() {};
+      ws.onerror = function(error) {};
+    }
+    window.onload = function() {
+      connectWebSocket();
+    };
+  </script>
+</head>
+<body>
+</body>
+</html>

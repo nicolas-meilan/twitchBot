@@ -21,8 +21,13 @@ export const COMMAND_DELIMITER = '/';
 
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
 
-export const ACTION_MESSAGES_CONFIG = [
+export const TTS_KEY = '!tts';
+export const TTS_MOD_SENDER = 'Un moderador';
+export const TTS_MESSAGE = `${STRING_PARAM}1 dijo: ${STRING_PARAM}2`;
+
+export const MODS_MESSAGES_CONFIG = [
   CHANGE_CHANNEL_INFORMATION_KEY,
+  TTS_KEY,
 ];
 
 export const MESSAGES_CONFIG: {

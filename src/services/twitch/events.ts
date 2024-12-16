@@ -3,6 +3,8 @@ import logger from '../../utils/logger';
 import axios from 'axios';
 import getTokens from './auth';
 import { BASE_URL } from '../../configuration/constants';
+import { sendEventTTS } from '../botEvents';
+import { TWITCH_POWER_UP_TTS } from '../../configuration/botEvents';
 
 export type EventCallback = (principalData?: string, extraData?: any) => void;
 
@@ -29,6 +31,9 @@ const EVENT_SUB_SUBSCRIPTIONS: {
   version: '1',
 }, {
   type: 'channel.cheer',
+  version: '1',
+}, {
+  type: 'channel.channel_points_custom_reward_redemption.add',
   version: '1',
 }, {
   type: 'stream.online',
@@ -121,6 +126,21 @@ const connectToEvents = async (
       ['channel.follow']: () => onNewFollower(principalData),
       ['channel.subscribe']: () => onNewSub(principalData),
       ['channel.cheer']: () => onBits(principalData, extraData?.bits),
+      ['channel.channel_points_custom_reward_redemption.add']: () => {
+        if (!isOnline) return;
+
+        const isTTS = extraData?.reward?.title?.toLowerCase().trim()
+          === TWITCH_POWER_UP_TTS.toLowerCase().trim();
+
+        if (isTTS) {
+          const userInput = extraData?.user_input?.trim();
+          if (!userInput) return;
+
+          sendEventTTS(userInput, principalData);
+          return;
+        }
+
+      },
       ['stream.online']: () => { isOnline = true; },
       ['stream.offline']: () => { isOnline = false; },
     };
