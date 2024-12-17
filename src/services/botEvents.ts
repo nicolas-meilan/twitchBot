@@ -1,6 +1,11 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import logger from '../utils/logger';
-import { BOT_EVENT_PASSWORD, BOT_EVENT_TTS, BOT_EVENT_WRONG_PASSWORD } from '../configuration/botEvents';
+import {
+  BOT_EVENT_PASSWORD,
+  BOT_EVENT_TTS,
+  BOT_EVENT_WRONG_PASSWORD,
+  TTS_MAX_CHARACTERS,
+} from '../configuration/botEvents';
 import { STRING_PARAM, TTS_MESSAGE } from '../configuration/chat';
 
 const BOT_EVENTS_PASSWORD = process.env.BOT_EVENTS_PASSWORD || '';
@@ -49,7 +54,7 @@ export const sendEventTTS = (message: string, user?: string) => {
       ? TTS_MESSAGE.replace(`${STRING_PARAM}1`, user).replace(`${STRING_PARAM}2`, message)
       : message;
 
-    const payload = { type: BOT_EVENT_TTS, message: parsedMessage };
+    const payload = { type: BOT_EVENT_TTS, message: parsedMessage.substring(0, TTS_MAX_CHARACTERS) };
     activeSocket.send(JSON.stringify(payload));
     logger.info('TTS message sent:', payload);
   } else {
