@@ -1,6 +1,7 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import logger from '../utils/logger';
 import {
+  BOT_EVENT_CLIP,
   BOT_EVENT_PASSWORD,
   BOT_EVENT_TTS,
   BOT_EVENT_WRONG_PASSWORD,
@@ -57,6 +58,18 @@ export const sendEventTTS = (message: string, user?: string) => {
     const payload = { type: BOT_EVENT_TTS, message: parsedMessage.substring(0, TTS_MAX_CHARACTERS) };
     activeSocket.send(JSON.stringify(payload));
     logger.info('TTS message sent:', payload);
+  } else {
+    logger.error('No active WebSocket connection. Message not sent.');
+  }
+};
+
+export const sendEventClip = (url: string) => {
+  logger.info('Sending CLIP event ...');
+  if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
+
+    const payload = { type: BOT_EVENT_CLIP, message: url };
+    activeSocket.send(JSON.stringify(payload));
+    logger.info('CLIP message sent:', payload);
   } else {
     logger.error('No active WebSocket connection. Message not sent.');
   }

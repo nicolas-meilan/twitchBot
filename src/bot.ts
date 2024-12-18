@@ -36,9 +36,15 @@ import {
   PRIME_SPAM_MESSAGES,
   TTS_KEY,
   TTS_MOD_SENDER,
+  CREATE_CLIP_KEY,
+  CLIP_ACTION_SUCCESS,
+  CLIP_ACTION_ERROR,
+  LAST_CLIP_KEY,
 } from './configuration/chat';
 import { random } from './utils/numbers';
-import { sendEventTTS } from './services/botEvents';
+import { sendEventClip, sendEventTTS } from './services/botEvents';
+import { createClip, getLastClipLink } from './services/twitch/clip';
+import { BASE_CLIP_OFFSET, BASE_CLIP_TIME } from './configuration/constants';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
@@ -50,6 +56,67 @@ let previousMessage = '';
 const messageModsHandler = async (chat: tmi.Client, message: string) => {
   const actionsConfig = {
     [TTS_KEY]: (value: string) => sendEventTTS(value, TTS_MOD_SENDER),
+    [LAST_CLIP_KEY]: async () => {
+      try {
+        const token = await getTokens({ avoidLogin: true });
+        if (!token || !token.access_token) return;
+
+        const clip = await getLastClipLink(
+          token.access_token,
+          async () => {
+            const newToken = await refreshTokens(token.refresh_token);
+            return await getLastClipLink(newToken.access_token);
+          },
+        );
+
+        if (!clip) throw new Error(CLIP_ACTION_ERROR);
+
+        chat.say(
+          ACCOUNT_CHAT_USERNAME,
+          CLIP_ACTION_SUCCESS.replace(STRING_PARAM, clip.url),
+        );
+
+        sendEventClip(clip.embed_url);
+      } catch {
+        chat.say(ACCOUNT_CHAT_USERNAME, CLIP_ACTION_ERROR);     
+      }
+    },
+    [CREATE_CLIP_KEY]: async (value: string) => {
+      try {
+        if (!isOnline) throw new Error('offline');
+
+        const token = await getTokens({ avoidLogin: true });
+        if (!token || !token.access_token) return;
+  
+        const [startTime, timeLimit] = value.split(COMMAND_DELIMITER)
+          .map((item) => Number(item.trim()));
+  
+        const clip = await createClip(
+          token.access_token,
+          Number.isInteger(startTime) ? startTime : BASE_CLIP_OFFSET,
+          Number.isInteger(timeLimit) ? startTime : BASE_CLIP_TIME,
+          async () => {
+            const newToken = await refreshTokens(token.refresh_token);
+            return await createClip(
+              newToken.access_token,
+              Number.isInteger(startTime) ? startTime : BASE_CLIP_OFFSET,
+              Number.isInteger(timeLimit) ? startTime : BASE_CLIP_TIME,
+            );
+          },
+        );
+  
+        if (!clip) throw new Error(CLIP_ACTION_ERROR);
+
+        chat.say(
+          ACCOUNT_CHAT_USERNAME,
+          CLIP_ACTION_SUCCESS.replace(STRING_PARAM, clip.url),
+        );
+
+        sendEventClip(clip.embed_url);
+      } catch {
+        chat.say(ACCOUNT_CHAT_USERNAME, CLIP_ACTION_ERROR);
+      }
+    },
     [CHANGE_CHANNEL_INFORMATION_KEY]: async (actionValue: string) => {
       const token = await getTokens({ avoidLogin: true });
       if (!token || !token.access_token) return;
@@ -66,7 +133,7 @@ const messageModsHandler = async (chat: tmi.Client, message: string) => {
 
           const game = await getGameId(token.access_token, gameName.trim(), async () => {
             const newToken = await refreshTokens(token.refresh_token);
-            getGameId(newToken.access_token, gameName.trim());
+            return await getGameId(newToken.access_token, gameName.trim());
           });
 
           if (!game) {

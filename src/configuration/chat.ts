@@ -20,6 +20,8 @@ export const RESPONSES_KEYS = [
 export const COMMAND_DELIMITER = '/';
 
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
+export const CREATE_CLIP_KEY = '!clip';
+export const LAST_CLIP_KEY = '!ultimoclip';
 
 export const TTS_KEY = '!tts';
 export const TTS_MOD_SENDER = 'Un moderador';
@@ -28,6 +30,8 @@ export const TTS_MESSAGE = `${STRING_PARAM}1 dijo: ${STRING_PARAM}2`;
 export const MODS_MESSAGES_CONFIG = [
   CHANGE_CHANNEL_INFORMATION_KEY,
   TTS_KEY,
+  CREATE_CLIP_KEY,
+  LAST_CLIP_KEY,
 ];
 
 export const MESSAGES_CONFIG: {
@@ -78,3 +82,6 @@ export const ACTION_NOT_ALLOWED = 'No podés hacer eso, papá';
 export const CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE = 'El juego no está disponible';
 export const CHANNEL_INFO_ACTION_SUCCESS = '¡Información del canal actualizada con éxito!';
 export const CHANNEL_INFO_ACTION_ERROR = 'No pudimos actualizar la info del canal';
+
+export const CLIP_ACTION_ERROR = 'Error con el clip';
+export const CLIP_ACTION_SUCCESS = `🎥 ¡Acá tenés el clip, papá! 👉 ${STRING_PARAM}`;

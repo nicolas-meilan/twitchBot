@@ -9,16 +9,22 @@ const CLIENT_ID = process.env.CLIENT_ID || '';
 const updateChannelInfoUrl = `${BASE_URL}/helix/channels?broadcaster_id=${ACCOUNT_TRACK_ID}`;
 const searchGameIdUrl = `${BASE_URL}/helix/search/categories`;
 
-export const getGameId = async (accessToken: string, gameName: string, onAccessTokenExpired?: () => void) => {
+type BaseGame = {
+  id: string;
+  name: string;
+};
+
+export const getGameId = async (
+  accessToken: string,
+  gameName: string,
+  onAccessTokenExpired?: () => Promise<BaseGame | null>,
+) => {
   try {
     logger.info('Searching game category ...');
     const url = `${searchGameIdUrl}?query=${encodeURIComponent(gameName)}`;
 
     const response = await axios.get<{
-      data: {
-        id: string;
-        name: string;
-      }[];
+      data: BaseGame[];
     }>(url, {
       headers: {
         'Client-Id': CLIENT_ID,
@@ -37,17 +43,19 @@ export const getGameId = async (accessToken: string, gameName: string, onAccessT
     return categories[0];
 
   } catch (error){
-    if (axios.isAxiosError(error) && error?.response?.status === 401) {
-      onAccessTokenExpired?.();
+    if (axios.isAxiosError(error)
+      && error?.response?.status === 401) return await onAccessTokenExpired?.() || null;
 
-      return;
-    }
     logger.error('Error Searching game category');
     throw new Error('Error Searching game category');
   }
 };
 
-export const updateChannelInfo = async (accessToken: string, game: Game, onAccessTokenExpired?: () => void) => {
+export const updateChannelInfo = async (
+  accessToken: string,
+  game: Game,
+  onAccessTokenExpired?: () => void,
+) => {
   try {
     logger.info('Sending new channel information ...');
 
