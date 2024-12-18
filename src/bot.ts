@@ -190,8 +190,9 @@ const spamFollowMessage = (chat: tmi.Client) => {
     const followMessages = FOLLOW_SPAM_MESSAGES.map((current) => current.toLowerCase().trim());
     if (followMessages.includes(previousMessage)) return;
 
-    logger.info(FOLLOW_SPAM_MESSAGES);
-    chat.say(ACCOUNT_CHAT_USERNAME, FOLLOW_SPAM_MESSAGES[random(0, FOLLOW_SPAM_MESSAGES.length)]);
+    const currentFollowerMessage = FOLLOW_SPAM_MESSAGES[random(0, FOLLOW_SPAM_MESSAGES.length)];
+    logger.info(currentFollowerMessage);
+    chat.say(ACCOUNT_CHAT_USERNAME, currentFollowerMessage);
   }, time);
 };
 
@@ -207,8 +208,9 @@ const spamPrimeMessage = (chat: tmi.Client) => {
     const primeMessages = PRIME_SPAM_MESSAGES.map((current) => current.toLowerCase().trim());
     if (primeMessages.includes(previousMessage)) return;
 
-    logger.info(PRIME_SPAM_MESSAGES);
-    chat.say(ACCOUNT_CHAT_USERNAME, PRIME_SPAM_MESSAGES[random(0, PRIME_SPAM_MESSAGES.length)]);
+    const currentPrimeMessage = PRIME_SPAM_MESSAGES[random(0, PRIME_SPAM_MESSAGES.length)];
+    logger.info(currentPrimeMessage);
+    chat.say(ACCOUNT_CHAT_USERNAME, currentPrimeMessage);
   }, time);
 };
 
