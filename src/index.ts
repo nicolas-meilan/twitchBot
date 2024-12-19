@@ -3,7 +3,7 @@ dotenv.config();
 
 import startBot from './bot';
 import startObsViewsServer from './services/obsViewsServer';
-import Stream from './services/Stream';
+import Stream from './Stream';
 
 Stream.shared.initialize().then(() => {
   startBot();

@@ -6,3 +6,4 @@ export const TWITCH_POWER_UP_TTS= '🎙️ Texto a Voz (TTS)';
 export const TTS_MAX_CHARACTERS = 144;
 
 export const BOT_EVENT_CLIP = 'CLIP';
+export const TWITCH_POWER_UP_CLIP = '🔥 El Clip Más Épico en Pantalla 🎥👑';

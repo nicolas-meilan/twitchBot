@@ -1,11 +1,11 @@
 import WebSocket from 'ws';
-import logger from '../../utils/logger';
+import tmi from 'tmi.js';
 import axios from 'axios';
+
+import logger from '../../utils/logger';
 import getTokens from './auth';
 import { BASE_URL } from '../../configuration/constants';
-import { sendEventTTS } from '../botEvents';
-import { TWITCH_POWER_UP_TTS } from '../../configuration/botEvents';
-import Stream from '../Stream';
+import EVENT_ACTIONS from '../../actions/eventActions';
 
 export type EventCallback = (principalData?: string, extraData?: any) => void;
 
@@ -116,39 +116,14 @@ const registerEventSubSubscriptions = async (accessToken: string, sessionId: str
 };
 
 const connectToEvents = async (
-  onNewFollower: EventCallback,
-  onNewSub: EventCallback,
-  onBits: EventCallback,
+  chat: tmi.Client,
 ) => {
-  const runHandler = (subscriptionType: string = '', principalData?: string, extraData?: any) => {
-    const websocketConfig = {
-      ['channel.follow']: () => onNewFollower(principalData),
-      ['channel.subscribe']: () => onNewSub(principalData),
-      ['channel.cheer']: () => onBits(principalData, extraData?.bits),
-      ['channel.channel_points_custom_reward_redemption.add']: () => {
-        if (!Stream.shared.isOnline) return;
-
-        const isTTS = extraData?.reward?.title?.toLowerCase().trim()
-          === TWITCH_POWER_UP_TTS.toLowerCase().trim();
-
-        if (isTTS) {
-          const userInput = extraData?.user_input?.trim();
-          if (!userInput) return;
-
-          sendEventTTS(userInput, principalData);
-          return;
-        }
-
-      },
-      ['stream.online']: () => { Stream.shared.isOnline = true; },
-      ['stream.offline']: () => { Stream.shared.isOnline = false; },
-    };
-
-    const action = websocketConfig[subscriptionType as keyof typeof websocketConfig];
+  const runHandler = (subscriptionType: string = '', chat: tmi.Client, event?: any) => {
+    const action = EVENT_ACTIONS[subscriptionType as keyof typeof EVENT_ACTIONS];
     if (!action) return;
 
     logger.info(subscriptionType);
-    action();
+    action({ chat, event });
   };
 
   const token = await getTokens({ avoidLogin: true });
@@ -176,7 +151,7 @@ const connectToEvents = async (
       }
 
       const event = data?.payload?.event;
-      runHandler(data.payload?.subscription?.type, event?.user_name, event);
+      runHandler(data.payload?.subscription?.type, chat, event);
     } catch {
       logger.error('Error processing websocket message');
     }
@@ -189,15 +164,11 @@ const connectToEvents = async (
   ws.on('close', async (code) => {
     if (code === 4004) logger.error('Token expired');
 
-    eventsReconnection(onNewFollower, onNewSub, onBits);
+    eventsReconnection(chat);
   });
 };
 
-const eventsReconnection = (
-  onNewFollower: EventCallback,
-  onNewSub: EventCallback,
-  onBits: EventCallback,
-) => {
+const eventsReconnection = (chat: tmi.Client) => {
   setTimeout(() => {
     if (reconnectionCurrentRetries >= RECONNECTION_RETRIES) {
       logger.error('Error connecting websocket');
@@ -205,7 +176,7 @@ const eventsReconnection = (
     }
 
     logger.info('Reconnecting websocket...');
-    connectToEvents(onNewFollower, onNewSub, onBits);
+    connectToEvents(chat);
     reconnectionCurrentRetries += 1;
   }, RECONNECTION_TIME);
 };

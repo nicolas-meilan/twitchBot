@@ -1,7 +1,7 @@
 import axios from 'axios';
-import logger from '../utils/logger';
-import { BASE_URL } from '../configuration/constants';
-import getTokens from './twitch/auth';
+import logger from './utils/logger';
+import { BASE_URL } from './configuration/constants';
+import getTokens from './services/twitch/auth';
 
 const ACCOUNT_TRACK_ID = process.env.ACCOUNT_TRACK_ID || '';
 const CLIENT_ID = process.env.CLIENT_ID || '';
