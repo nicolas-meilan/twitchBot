@@ -1,15 +1,12 @@
 import axios from 'axios';
 import logger from '../../utils/logger';
-import {
-  BASE_CLIP_OFFSET,
-  BASE_CLIP_TIME,
-  BASE_URL,
-} from '../../configuration/constants';
+import { BASE_URL } from '../../configuration/constants';
+import { delay } from '../../utils/system';
 
 const ACCOUNT_TRACK_ID = process.env.ACCOUNT_TRACK_ID || '';
 const CLIENT_ID = process.env.CLIENT_ID || '';
 
-const getStreamInformation = async (authToken: string) => {
+export const getStreamInformation = async (authToken: string) => {
   logger.info('Obtaining stream info time ...');
 
   try {
@@ -41,10 +38,12 @@ type Clip = {
   id: string;
   url: string;
   embed_url: string;
+  edit_url?: string;
 };
 
-export const getLastClipLink = async (
+export const getClipLink = async (
   accessToken: string,
+  clipId?: string,
   onAccessTokenExpired?: () => Promise<Clip | null>,
 ) => {
   try {
@@ -52,7 +51,9 @@ export const getLastClipLink = async (
     const response = await axios.get<{
       data: Clip[];
     }>(`${BASE_URL}/helix/clips`, {
-      params: {
+      params: clipId ? {
+        id: clipId,
+      } : {
         broadcaster_id: ACCOUNT_TRACK_ID,
         first: 1,
       },
@@ -74,32 +75,19 @@ export const getLastClipLink = async (
   }
 };
 
+const CLIP_CREATION_TIME = 15000;
 export const createClip = async (
   accessToken: string,
-  startOffset: number = BASE_CLIP_OFFSET,
-  duration: number = BASE_CLIP_TIME,
+  withDelay: boolean = false,
   onAccessTokenExpired?: () => Promise<Clip | null>,
 ) => {
   try {
-    const streamInfo = await getStreamInformation(accessToken);
-
-    const currentTime = Math.floor(Date.now() / 1000);
-    const streamStartTime = new Date(streamInfo.started_at).getTime() / 1000;
-    const calculatedStartTime = currentTime - streamStartTime - startOffset;
-    const startTime = calculatedStartTime > 0 ? calculatedStartTime : streamStartTime;
-
-    const clipTitle = `${streamInfo.title} | ${streamInfo?.viewer_count || 0} viewers`;
-    const clipDescription = streamInfo.tags_id?.join(', ') || '';
-
     logger.info('Generating clip ...');
     const response = await axios.post<{
-      data: Clip[];
+      data: { id: string, edit_url: string }[];
     }>(`${BASE_URL}/helix/clips`, {
       broadcaster_id: ACCOUNT_TRACK_ID,
-      start_time: startTime,
-      duration: duration,
-      title: clipTitle,
-      description: clipDescription,
+      has_delay: !!withDelay,
     }, {
       headers: {
         'Client-ID': CLIENT_ID,
@@ -108,7 +96,20 @@ export const createClip = async (
     });
 
     logger.info('Clip generated');
-    return response.data.data[0];
+
+    const { id, edit_url } = response?.data?.data?.[0] || {};
+
+    if (!id) return null;
+
+    await delay(CLIP_CREATION_TIME);
+
+    const clipData = await getClipLink(accessToken, id, onAccessTokenExpired);
+
+    return {
+      id,
+      edit_url,
+      ...(clipData || {}),
+    } as Clip;
   } catch (error){
     if (axios.isAxiosError(error)
       && error?.response?.status === 401) return await onAccessTokenExpired?.() || null;

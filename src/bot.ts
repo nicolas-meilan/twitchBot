@@ -43,8 +43,7 @@ import {
 } from './configuration/chat';
 import { random } from './utils/numbers';
 import { sendEventClip, sendEventTTS } from './services/botEvents';
-import { createClip, getLastClipLink } from './services/twitch/clip';
-import { BASE_CLIP_OFFSET, BASE_CLIP_TIME } from './configuration/constants';
+import { createClip, getClipLink } from './services/twitch/clip';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
@@ -61,11 +60,12 @@ const messageModsHandler = async (chat: tmi.Client, message: string) => {
         const token = await getTokens({ avoidLogin: true });
         if (!token || !token.access_token) return;
 
-        const clip = await getLastClipLink(
+        const clip = await getClipLink(
           token.access_token,
+          '',
           async () => {
             const newToken = await refreshTokens(token.refresh_token);
-            return await getLastClipLink(newToken.access_token);
+            return await getClipLink(newToken.access_token);
           },
         );
 
@@ -81,27 +81,19 @@ const messageModsHandler = async (chat: tmi.Client, message: string) => {
         chat.say(ACCOUNT_CHAT_USERNAME, CLIP_ACTION_ERROR);     
       }
     },
-    [CREATE_CLIP_KEY]: async (value: string) => {
+    [CREATE_CLIP_KEY]: async () => {
       try {
         if (!isOnline) throw new Error('offline');
 
         const token = await getTokens({ avoidLogin: true });
         if (!token || !token.access_token) return;
   
-        const [startTime, timeLimit] = value.split(COMMAND_DELIMITER)
-          .map((item) => Number(item.trim()));
-  
         const clip = await createClip(
           token.access_token,
-          Number.isInteger(startTime) ? startTime : BASE_CLIP_OFFSET,
-          Number.isInteger(timeLimit) ? startTime : BASE_CLIP_TIME,
+          false,
           async () => {
             const newToken = await refreshTokens(token.refresh_token);
-            return await createClip(
-              newToken.access_token,
-              Number.isInteger(startTime) ? startTime : BASE_CLIP_OFFSET,
-              Number.isInteger(timeLimit) ? startTime : BASE_CLIP_TIME,
-            );
+            return await createClip(newToken.access_token);
           },
         );
   
@@ -109,7 +101,9 @@ const messageModsHandler = async (chat: tmi.Client, message: string) => {
 
         chat.say(
           ACCOUNT_CHAT_USERNAME,
-          CLIP_ACTION_SUCCESS.replace(STRING_PARAM, clip.url),
+          CLIP_ACTION_SUCCESS
+            .replace(`${STRING_PARAM}1`, clip.url)
+            .replace(`${STRING_PARAM}2`, clip.edit_url || ''),
         );
 
         sendEventClip(clip.embed_url);
