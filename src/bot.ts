@@ -40,6 +40,7 @@ import {
   CLIP_ACTION_SUCCESS,
   CLIP_ACTION_ERROR,
   LAST_CLIP_KEY,
+  CLIP_ACTION_SUCCESS_EDIT_AVAILABLE,
 } from './configuration/chat';
 import { random } from './utils/numbers';
 import { sendEventClip, sendEventTTS } from './services/botEvents';
@@ -100,12 +101,14 @@ const messageModsHandler = async (chat: tmi.Client, message: string) => {
   
         if (!clip) throw new Error(CLIP_ACTION_ERROR);
 
-        chat.say(
-          ACCOUNT_CHAT_USERNAME,
-          CLIP_ACTION_SUCCESS
-            .replace(`${STRING_PARAM}1`, clip.url)
-            .replace(`${STRING_PARAM}2`, clip.edit_url || ''),
-        );
+        const message = clip.edit_url
+          ? CLIP_ACTION_SUCCESS_EDIT_AVAILABLE
+            .replace(STRING_PARAM, clip.url)
+            .replace(`${STRING_PARAM}2`, clip.edit_url || '')
+          : CLIP_ACTION_SUCCESS
+            .replace(`${STRING_PARAM}1`, clip.url);
+
+        chat.say(ACCOUNT_CHAT_USERNAME, message);
 
         sendEventClip(clip.embed_url);
       } catch {
