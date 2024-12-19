@@ -21,7 +21,7 @@ export const COMMAND_DELIMITER = '/';
 
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
 export const CREATE_CLIP_KEY = '!clip';
-export const LAST_CLIP_KEY = '!ultimoclip';
+export const MOST_POPULAR_CLIP_KEY = '!clipmaspopular';
 
 export const TTS_KEY = '!tts';
 export const TTS_MOD_SENDER = 'Un moderador';
@@ -31,7 +31,7 @@ export const MODS_MESSAGES_CONFIG = [
   CHANGE_CHANNEL_INFORMATION_KEY,
   TTS_KEY,
   CREATE_CLIP_KEY,
-  LAST_CLIP_KEY,
+  MOST_POPULAR_CLIP_KEY,
 ];
 
 export const MESSAGES_CONFIG: {

@@ -39,12 +39,12 @@ import {
   CREATE_CLIP_KEY,
   CLIP_ACTION_SUCCESS,
   CLIP_ACTION_ERROR,
-  LAST_CLIP_KEY,
+  MOST_POPULAR_CLIP_KEY,
   CLIP_ACTION_SUCCESS_EDIT_AVAILABLE,
 } from './configuration/chat';
 import { random } from './utils/numbers';
 import { sendEventClip, sendEventTTS } from './services/botEvents';
-import { createClip, getClipLink } from './services/twitch/clip';
+import { createClip, getClipInformation } from './services/twitch/clip';
 import Stream from './services/Stream';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
@@ -57,17 +57,17 @@ let previousMessage = '';
 const messageModsHandler = async (chat: tmi.Client, message: string) => {
   const actionsConfig = {
     [TTS_KEY]: (value: string) => sendEventTTS(value, TTS_MOD_SENDER),
-    [LAST_CLIP_KEY]: async () => {
+    [MOST_POPULAR_CLIP_KEY]: async () => {
       try {
         const token = await getTokens({ avoidLogin: true });
         if (!token || !token.access_token) return;
 
-        const clip = await getClipLink(
+        const clip = await getClipInformation(
           token.access_token,
           '',
           async () => {
             const newToken = await refreshTokens(token.refresh_token);
-            return await getClipLink(newToken.access_token);
+            return await getClipInformation(newToken.access_token);
           },
         );
 
@@ -78,7 +78,7 @@ const messageModsHandler = async (chat: tmi.Client, message: string) => {
           CLIP_ACTION_SUCCESS.replace(STRING_PARAM, clip.url),
         );
 
-        sendEventClip(clip.embed_url);
+        sendEventClip(clip.embed_url, clip.duration);
       } catch {
         chat.say(ACCOUNT_CHAT_USERNAME, CLIP_ACTION_ERROR);     
       }
@@ -110,7 +110,7 @@ const messageModsHandler = async (chat: tmi.Client, message: string) => {
 
         chat.say(ACCOUNT_CHAT_USERNAME, message);
 
-        sendEventClip(clip.embed_url);
+        sendEventClip(clip.embed_url, clip.duration);
       } catch {
         chat.say(ACCOUNT_CHAT_USERNAME, CLIP_ACTION_ERROR);
       }

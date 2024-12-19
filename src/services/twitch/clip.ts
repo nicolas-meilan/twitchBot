@@ -6,48 +6,21 @@ import { delay } from '../../utils/system';
 const ACCOUNT_TRACK_ID = process.env.ACCOUNT_TRACK_ID || '';
 const CLIENT_ID = process.env.CLIENT_ID || '';
 
-export const getStreamInformation = async (authToken: string) => {
-  logger.info('Obtaining stream info time ...');
-
-  try {
-    const response = await axios.get<{
-      data: {
-        title: string;
-        started_at: string;
-        game_id: string;
-        viewer_count: string;
-        tags_id: string[];
-      }[];
-    }>(`${BASE_URL}/helix/streams?user_id=${ACCOUNT_TRACK_ID}`, {
-      headers: {
-        'Client-ID': CLIENT_ID,
-        'Authorization': `Bearer ${authToken}`,
-      },
-    });
-
-    if (!response.data.data.length) return null;
-
-    return response.data.data[0];
-  } catch (error){
-    logger.error('Error obtaining stream info time');
-    throw error;
-  }
-};
-
 type Clip = {
   id: string;
   url: string;
+  duration: string;
   embed_url: string;
   edit_url?: string;
 };
 
-export const getClipLink = async (
+export const getClipInformation = async (
   accessToken: string,
   clipId?: string,
   onAccessTokenExpired?: () => Promise<Clip | null>,
 ) => {
   try {
-    logger.info('Obtaining last clip ...');
+    logger.info('Obtaining clip info...');
     const response = await axios.get<{
       data: Clip[];
     }>(`${BASE_URL}/helix/clips`, {
@@ -65,12 +38,12 @@ export const getClipLink = async (
 
     if (!response.data.data.length) throw new Error('No clip available');;
 
-    logger.info('Last clip obtained');
+    logger.info('Clip info obtained');
     return response.data.data[0];
   } catch (error) {
     if (axios.isAxiosError(error)
       && error?.response?.status === 401) return await onAccessTokenExpired?.() || null;
-    logger.error('Error obtaining last clip');
+    logger.error('Error obtaining clip info');
     return null;
   }
 };
@@ -103,7 +76,7 @@ export const createClip = async (
 
     await delay(CLIP_CREATION_TIME);
 
-    const clipData = await getClipLink(accessToken, id, onAccessTokenExpired);
+    const clipData = await getClipInformation(accessToken, id, onAccessTokenExpired);
 
     return {
       id,

@@ -4,7 +4,8 @@ import path from 'path';
 import logger from '../utils/logger';
 
 const OBS_VIEWS_PORT = process.env.OBS_VIEWS_PORT || '';
-const OBS_VIEWS_HOSTED_URL = process.env.OBS_VIEWS_HOSTED_URL || '';
+const OBS_VIEWS_WS_URL = process.env.OBS_VIEWS_WS_URL || '';
+const OBS_CLIPS_FONT_NAME = process.env.OBS_CLIPS_FONT_NAME || '';
 const BOT_EVENTS_PASSWORD = process.env.BOT_EVENTS_PASSWORD || '';
 const BOT_EVENTS_URL = process.env.BOT_EVENTS_URL || '';
 
@@ -23,8 +24,9 @@ const startObsViewsServer = () => {
           }
           const finalData = data
             .replace('__WEBSOCKET_URL__', BOT_EVENTS_URL)
-            .replace('__PASSWORD__', BOT_EVENTS_PASSWORD)
-            .replace('__OBS_VIEWS_HOSTED_URL__', OBS_VIEWS_HOSTED_URL);
+            .replace('__OBS_VIEWS_WS_URL__', OBS_VIEWS_WS_URL)
+            .replace('__OBS_CLIPS_FONT_NAME__', OBS_CLIPS_FONT_NAME)
+            .replace('__PASSWORD__', BOT_EVENTS_PASSWORD);
 
           res.statusCode = 200;
           res.setHeader('Content-Type', 'text/html');

@@ -57,19 +57,19 @@ export const sendEventTTS = (message: string, user?: string) => {
 
     const payload = { type: BOT_EVENT_TTS, message: parsedMessage.substring(0, TTS_MAX_CHARACTERS) };
     activeSocket.send(JSON.stringify(payload));
-    logger.info('TTS message sent:', payload);
+    logger.info('TTS message sent:', JSON.stringify(payload));
   } else {
     logger.error('No active WebSocket connection. Message not sent.');
   }
 };
 
-export const sendEventClip = (url: string) => {
+export const sendEventClip = (url: string, duration: string = '0') => {
   logger.info('Sending CLIP event ...');
   if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
 
-    const payload = { type: BOT_EVENT_CLIP, message: url };
+    const payload = { type: BOT_EVENT_CLIP, url, duration };
     activeSocket.send(JSON.stringify(payload));
-    logger.info('CLIP message sent:', payload);
+    logger.info('CLIP message sent:', JSON.stringify(payload));
   } else {
     logger.error('No active WebSocket connection. Message not sent.');
   }
