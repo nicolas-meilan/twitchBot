@@ -5,6 +5,7 @@ import getTokens from './auth';
 import { BASE_URL } from '../../configuration/constants';
 import { sendEventTTS } from '../botEvents';
 import { TWITCH_POWER_UP_TTS } from '../../configuration/botEvents';
+import Stream from '../Stream';
 
 export type EventCallback = (principalData?: string, extraData?: any) => void;
 
@@ -114,8 +115,6 @@ const registerEventSubSubscriptions = async (accessToken: string, sessionId: str
   }));
 };
 
-let isOnline = false;
-
 const connectToEvents = async (
   onNewFollower: EventCallback,
   onNewSub: EventCallback,
@@ -127,7 +126,7 @@ const connectToEvents = async (
       ['channel.subscribe']: () => onNewSub(principalData),
       ['channel.cheer']: () => onBits(principalData, extraData?.bits),
       ['channel.channel_points_custom_reward_redemption.add']: () => {
-        if (!isOnline) return;
+        if (!Stream.shared.isOnline) return;
 
         const isTTS = extraData?.reward?.title?.toLowerCase().trim()
           === TWITCH_POWER_UP_TTS.toLowerCase().trim();
@@ -141,8 +140,8 @@ const connectToEvents = async (
         }
 
       },
-      ['stream.online']: () => { isOnline = true; },
-      ['stream.offline']: () => { isOnline = false; },
+      ['stream.online']: () => { Stream.shared.isOnline = true; },
+      ['stream.offline']: () => { Stream.shared.isOnline = false; },
     };
 
     const action = websocketConfig[subscriptionType as keyof typeof websocketConfig];
@@ -211,5 +210,4 @@ const eventsReconnection = (
   }, RECONNECTION_TIME);
 };
 
-export { isOnline };
 export default connectToEvents;

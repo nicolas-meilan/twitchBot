@@ -25,7 +25,7 @@ export const getStreamInformation = async (authToken: string) => {
       },
     });
 
-    if (!response.data.data.length) throw new Error('Error obtaining stream info time');
+    if (!response.data.data.length) return null;
 
     return response.data.data[0];
   } catch (error){

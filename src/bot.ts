@@ -2,7 +2,7 @@ import tmi from 'tmi.js';
 
 import getTokens, { refreshTokens } from './services/twitch/auth';
 import connectToChat, { OnNewMessage } from './services/twitch/chat';
-import connectToEvents, { isOnline } from './services/twitch/events';
+import connectToEvents from './services/twitch/events';
 import { getGameId, updateChannelInfo } from './services/twitch/channel';
 
 import { fetchCurrentRank } from './services/valorant';
@@ -44,6 +44,7 @@ import {
 import { random } from './utils/numbers';
 import { sendEventClip, sendEventTTS } from './services/botEvents';
 import { createClip, getClipLink } from './services/twitch/clip';
+import Stream from './services/Stream';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
@@ -83,7 +84,7 @@ const messageModsHandler = async (chat: tmi.Client, message: string) => {
     },
     [CREATE_CLIP_KEY]: async () => {
       try {
-        if (!isOnline) throw new Error('offline');
+        if (!Stream.shared.isOnline) throw new Error('offline');
 
         const token = await getTokens({ avoidLogin: true });
         if (!token || !token.access_token) return;
@@ -243,7 +244,7 @@ const spamFollowMessage = (chat: tmi.Client) => {
   const time = FOLLOW_RECURRENT_MESSAGE_TIME_MIN * 60 * 1000; // ms
 
   setInterval(() => {
-    if (!isOnline) {
+    if (!Stream.shared.isOnline) {
       previousMessage = '';
       return;
     }
@@ -261,7 +262,7 @@ const spamPrimeMessage = (chat: tmi.Client) => {
   const time = PRIME_RECURRENT_MESSAGE_TIME_MIN * 60 * 1000; // ms
 
   setInterval(() => {
-    if (!isOnline) {
+    if (!Stream.shared.isOnline) {
       previousMessage = '';
       return;
     }
@@ -300,7 +301,7 @@ const onBits = (chat: tmi.Client) => async (user?: string, bits?: number) => {
 };
 
 const startBot = async () => {
-  await getTokens();
+  await getTokens({ avoidLogin: true });
 
   const chat = await connectToChat(BOT_USERNAME, ACCOUNT_CHAT_USERNAME, (params) => {
     if (!chat) return;
