@@ -21,7 +21,7 @@ export const COMMAND_DELIMITER = '/';
 
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
 export const CREATE_CLIP_KEY = '!clip';
-export const MOST_POPULAR_CLIP_KEY = '!clipmaspopular';
+export const MOST_POPULAR_CLIP_KEY = '!topclip';
 
 export const TTS_KEY = '!tts';
 export const TTS_MOD_SENDER = 'Un moderador';
@@ -39,9 +39,11 @@ export const MESSAGES_CONFIG: {
 } = {
   ['!nickvalo']: '🎮 rungekutta93#RK93',
   ['!valorantid']: '🎮 rungekutta93#RK93',
-  ['!plataformas']: '🌐¡Seguí mis aventuras en todas las plataformas!🌐 🎮https://www.twitch.tv/rungekutta93 🎮https://kick.com/rungekutta93',
-  ['!redes']: '🌐¡Seguí mis aventuras en todas las plataformas!🌐 🎮https://www.twitch.tv/rungekutta93 🎮https://kick.com/rungekutta93',
-  ['!horarios']: '🎮Mi horario de streams🎮 🗓️ Todos los días a las 10:30 PM ❌ Los jueves se descansa',
+  ['!plataformas']: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 💬 https://discord.gg/bHePmGSXVm',
+  ['!redes']: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 💬 https://discord.gg/bHePmGSXVm',
+  ['!discord']: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
+  ['!kick']: '🚀 ¡Seguime también en Kick! Pasate a la verde para más streams copados 👉 https://kick.com/rungekutta93 🎮 ¡Nos vemos ahí, papá!',
+  ['!horarios']: '🎮 Mi horario de streams 🎮 🗓️ Generalmente estoy en vivo a las 10:30 PM y a veces también a las 6:00 PM. Todo sujeto a mi disponibilidad, siempre en horario de Argentina 🇦🇷. ¡Activá las notis para no perderte nada!',
   ['!risas']: '😂 ¡Se descontroló el chat! Jajaja, qué nivel de risas, gente. 🤣 ¡Los quiero ver a todos spameando el jajajaja! 😂🔥',
   ['!perdon']: '😅 ¡Uh, me mandé una! Perdón, gente. 🙏 Espero que me perdonen... o no. 😂💜',
   ['!rangovalorant']: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
