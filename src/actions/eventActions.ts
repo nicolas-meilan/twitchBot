@@ -62,7 +62,7 @@ const EVENT_ACTIONS: {
       const userInput = event?.user_input?.trim();
       if (!userInput) return;
 
-      sendEventTTS(userInput, event);
+      sendEventTTS(userInput, event?.user_name || '');
       return;
     }
 
