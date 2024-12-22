@@ -27,6 +27,12 @@ export const TTS_KEY = '!tts';
 export const TTS_MOD_SENDER = 'Un moderador';
 export const TTS_MESSAGE = `${STRING_PARAM}1 dijo: ${STRING_PARAM}2`;
 
+export const START_STREAM_KEY = '!online';
+
+export const BROADCASTER_MESSAGES_CONFIG = [
+  START_STREAM_KEY,
+];
+
 export const MODS_MESSAGES_CONFIG = [
   CHANGE_CHANNEL_INFORMATION_KEY,
   TTS_KEY,
@@ -88,3 +94,7 @@ export const CHANNEL_INFO_ACTION_ERROR = 'No pudimos actualizar la info del cana
 export const CLIP_ACTION_ERROR = 'Error con el clip';
 export const CLIP_ACTION_SUCCESS = `🎥 ¡Acá tenés el clip, papá! 👉 ${STRING_PARAM}`;
 export const CLIP_ACTION_SUCCESS_EDIT_AVAILABLE = `🎥 ¡Acá tenés el clip, papá! 👉 ${STRING_PARAM}1 | 📝 Editá el clip acá: ${STRING_PARAM}2`;
+
+export const START_ACTION_ERROR = `¡Eh, che! Ya estás online, no hace falta que lo digas de nuevo. 😎`;
+export const START_ACTION_SUCCESS = `¡Faltan solo ${STRING_PARAM} minutos para arrancar! 🎮⏰ ¡Prepará el mate y ponete cómodo que se viene lo mejor! 🚀`;
+export const START_70_PERCENT = `¡Falta poquito, ya estamos a full! 😎💥 ¡El stream está por arrancar, no te lo podés perder! 🔥`;

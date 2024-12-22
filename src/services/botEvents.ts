@@ -1,13 +1,16 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import logger from '../utils/logger';
 import {
+  BASE_STREAM_START_TIME_MIN,
   BOT_EVENT_CLIP,
   BOT_EVENT_PASSWORD,
   BOT_EVENT_TTS,
   BOT_EVENT_WRONG_PASSWORD,
+  START_STREAM_EVENT,
   TTS_MAX_CHARACTERS,
 } from '../configuration/botEvents';
 import { STRING_PARAM, TTS_MESSAGE } from '../configuration/chat';
+import { Clip } from './twitch/clip';
 
 const BOT_EVENTS_PASSWORD = process.env.BOT_EVENTS_PASSWORD || '';
 const BOT_EVENTS_PORT = process.env.BOT_EVENTS_PORT || '';
@@ -70,6 +73,23 @@ export const sendEventClip = (url: string, duration: string = '0') => {
     const payload = { type: BOT_EVENT_CLIP, url, duration };
     activeSocket.send(JSON.stringify(payload));
     logger.info('CLIP message sent:', JSON.stringify(payload));
+  } else {
+    logger.error('No active WebSocket connection. Message not sent.');
+  }
+};
+
+export const sendEventStartStream = (background: string, clips: Clip[], startTimeMin: number = BASE_STREAM_START_TIME_MIN) => {
+  logger.info('Sending START_STREAM event ...');
+  if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
+
+    const payload = {
+      type: START_STREAM_EVENT,
+      background,
+      clips,
+      startTimeMin,
+    };
+    activeSocket.send(JSON.stringify(payload));
+    logger.info('START_STREAM message sent:', JSON.stringify(payload));
   } else {
     logger.error('No active WebSocket connection. Message not sent.');
   }

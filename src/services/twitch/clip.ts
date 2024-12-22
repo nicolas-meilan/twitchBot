@@ -6,7 +6,7 @@ import { delay } from '../../utils/system';
 const ACCOUNT_TRACK_ID = process.env.ACCOUNT_TRACK_ID || '';
 const CLIENT_ID = process.env.CLIENT_ID || '';
 
-type Clip = {
+export type Clip = {
   id: string;
   url: string;
   duration: string;
@@ -48,6 +48,39 @@ export const getClipInformation = async (
   }
 };
 
+export const getClipsFromNow = async (
+  accessToken: string,
+  onAccessTokenExpired?: () => Promise<Clip[] | null>,
+): Promise<Clip[]> => {
+  try {
+    logger.info('Obtaining clips from current date ...');
+    const response = await axios.get<{
+      data: Clip[];
+      pagination: { cursor?: string };
+    }>(`${BASE_URL}/helix/clips`, {
+      params: {
+        broadcaster_id: ACCOUNT_TRACK_ID,
+        first: 100,
+      },
+      headers: {
+        'Client-ID': CLIENT_ID,
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.data.data.length) throw new Error('No clips available');
+
+    logger.info('Clips obtained successfully');
+    return response.data.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error?.response?.status === 401) {
+      return (await onAccessTokenExpired?.()) || [];
+    }
+    logger.error('Error obtaining clips');
+    throw error;
+  }
+};
+
 const CLIP_CREATION_TIME = 15000;
 export const createClip = async (
   accessToken: string,
@@ -83,7 +116,7 @@ export const createClip = async (
       edit_url,
       ...(clipData || {}),
     } as Clip;
-  } catch (error){
+  } catch (error) {
     if (axios.isAxiosError(error)
       && error?.response?.status === 401) return await onAccessTokenExpired?.() || null;
     logger.error('Error generating clip');

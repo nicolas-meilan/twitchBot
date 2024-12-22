@@ -10,10 +10,14 @@
     const WEBSOCKET_URL = "__WEBSOCKET_URL__";
     const OBS_VIEWS_WS_URL = "__OBS_VIEWS_WS_URL__";
     const OBS_CLIPS_FONT_NAME = "__OBS_CLIPS_FONT_NAME__";
+    const OFFLINE_SCENE_NAME = "__OFFLINE_SCENE_NAME__";
     const PASSWORD = "__PASSWORD__";
 
+    const OFFLINE_CLIPS_ITEM_NAME = "OfflineClips";
+    const OFFLINE_BACKGROUND_ITEM_NAME = "BackgroundOffline";
     const DEFAULT_CLIP_TIME = 30000;
-    const CLIP_PLUS_TIME = 2100;
+    const CLIP_PLUS_TIME = 2200;
+    const OFFLINE_CLIP_PLUS_TIME = 3000;
 
     let ws;
     let obs;
@@ -32,6 +36,123 @@
       }
     }
 
+    async function ensureSceneExists(sceneName) {
+      try {
+        const { scenes } = await obs.call('GetSceneList');
+        const sceneExists = scenes.some(scene => scene.sceneName === sceneName);
+
+        if (!sceneExists) {
+          await obs.call('CreateScene', { sceneName });
+        }
+
+        await obs.call('SetCurrentProgramScene', { sceneName });
+      } catch (error) {
+        console.error('Error ensuring scene exists', error);
+      }
+    }
+
+    async function ensureBrowserItemExists(sceneName, itemName, url = '') {
+      try {
+        const { sceneItems } = await obs.call('GetSceneItemList', { sceneName });
+        const item = sceneItems.find(item => item.sourceName === itemName);
+
+        if (!item) {
+          await obs.call('CreateInput', {
+            sceneName,
+            inputName: itemName,
+            inputKind: 'browser_source',
+            inputSettings: {
+              url,
+              width: 1920,
+              height: 1080,
+            }
+          });
+        }
+
+        return item;
+      } catch (error) {
+        console.error('Error ensuring item exists', error);
+      }
+    }
+
+    async function setSceneItemEnabled(sceneName, itemId, enabled) {
+      try {
+        await obs.call('SetSceneItemEnabled', {
+          sceneName,
+          sceneItemId: itemId,
+          sceneItemEnabled: enabled
+        });
+      } catch (error) {
+        console.error(`Error setting enabled state for item "${itemId}" in scene "${sceneName}":`, error);
+      }
+    }
+
+    async function setSceneItemIndex(sceneName, itemId, index = 0) {
+      try {
+        await obs.call('SetSceneItemIndex', {
+          sceneName,
+          sceneItemId: itemId,
+          sceneItemIndex: index,
+        });
+      } catch (error) {
+        console.error(`Error setting index for item "${itemId}" in scene "${sceneName}":`, error);
+      }
+    }
+
+    async function setMuteState(inputName, mute) {
+      if (!obs) {
+        console.error('OBS is not connected.');
+        return;
+      }
+
+      try {
+        await obs.call('SetInputMute', {
+          inputName: inputName,
+          inputMuted: mute,
+        });
+      } catch (error) {
+        console.error(`Error setting mute state for ${inputName}:`, error);
+      }
+    }
+
+    async function playClipsInLoop(sceneName, itemName, clips) {
+      if (!obs || !clips || !clips.length) {
+        console.error('OBS is not connected or clips array is empty.');
+        return;
+      }
+
+      let index = 0;
+
+      async function playNextClip() {
+        const clip = clips[index];
+
+        if (!clip || !clip.embed_url) {
+          console.error(`Invalid clip data at index ${index}`);
+          return;
+        }
+
+        try {
+          await obs.call('SetInputSettings', {
+            inputName: itemName,
+            inputSettings: {
+              url: `${clip.embed_url}&parent=localhost&autoplay=true&controls=false`,
+              is_local_file: false,
+            }
+          });
+
+          const videoTimeMs = (Number(clip.duration || '0') * 1000) || DEFAULT_CLIP_TIME;
+          await new Promise(resolve => setTimeout(resolve, videoTimeMs + OFFLINE_CLIP_PLUS_TIME));
+
+          index = (index + 1) % clips.length;
+          playNextClip();
+        } catch (error) {
+          console.error(`Error playing clip at index ${index}:`, error);
+        }
+      }
+
+      playNextClip();
+    }
+
     function connectBotWebSocket() {
       ws = new WebSocket(WEBSOCKET_URL);
       ws.onopen = function () {
@@ -46,6 +167,7 @@
           window.speechSynthesis.speak(utterance);
           return;
         }
+
         if (type === "CLIP" && data.url) {
           if (!obs) return;
 
@@ -70,9 +192,42 @@
             });
             }, videoTimeMs + CLIP_PLUS_TIME);
           } catch (error) {
-            console.error('Error changing obs font', error);
+            console.error('Error changing obs font for clips', error);
           }
           return;
+        }
+
+        if (type === "START_STREAM") {
+          if (!obs) return;
+
+          const { background, clips, startTimeMin } = data;
+          try {
+            await ensureSceneExists(OFFLINE_SCENE_NAME);
+
+            const offlineBackground = await ensureBrowserItemExists(
+              OFFLINE_SCENE_NAME,
+              OFFLINE_BACKGROUND_ITEM_NAME,
+              background,
+            );
+
+            const offlineClips = await ensureBrowserItemExists(OFFLINE_SCENE_NAME, OFFLINE_CLIPS_ITEM_NAME);
+            await setSceneItemEnabled(OFFLINE_SCENE_NAME, offlineClips, false);
+
+            await setSceneItemIndex(OFFLINE_SCENE_NAME, offlineClips.sceneItemId, 1);
+            await setSceneItemIndex(OFFLINE_SCENE_NAME, offlineBackground.sceneItemId, 0);
+            await setSceneItemEnabled(OFFLINE_SCENE_NAME, offlineBackground, true);
+
+            if (clips && clips.length) {
+              await setSceneItemEnabled(OFFLINE_SCENE_NAME, offlineClips, true);
+              playClipsInLoop(OFFLINE_SCENE_NAME, OFFLINE_CLIPS_ITEM_NAME, clips);
+            }
+
+            await setMuteState('Mic/Aux', true);
+            await obs.call('StartStream');
+            return;
+          } catch (error) {
+            console.error('Error changing obs to offline mode', error);
+          }
         }
       };
       ws.onclose = function () { };

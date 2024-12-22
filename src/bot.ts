@@ -16,7 +16,9 @@ import {
   ACTION_NOT_ALLOWED,
   FOLLOW_SPAM_MESSAGES,
   PRIME_SPAM_MESSAGES,
+  BROADCASTER_MESSAGES_CONFIG,
 } from './configuration/chat';
+import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
@@ -24,15 +26,6 @@ const FOLLOW_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.FOLLOW_RECURRENT_ME
 const PRIME_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.PRIME_RECURRENT_MESSAGE_TIME_MIN || '0');
 
 let previousMessage = '';
-
-const messageModsHandler = async (chat: tmi.Client, message: string) => {
-  const command = message.split(' ')[0];
-
-  await MOD_ACTIONS[command as keyof typeof MOD_ACTIONS]({
-    chat,
-    value: message.replace(command, '').trim(),
-  });
-};
 
 const responsesKeysHandler = async (message: string): Promise<string | undefined> => {
   try {
@@ -55,15 +48,34 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   const formattedMessage = message.toLowerCase().trim();
   previousMessage = formattedMessage;
 
-  const canDispatchActions = !!tags.badges?.broadcaster || tags.mod;
+  const canDispatchModActions = !!tags.badges?.broadcaster || tags.mod;
 
-  if (MODS_MESSAGES_CONFIG.includes(formattedMessage.split(' ')[0])) {
-    if (!canDispatchActions) {
+  const command = formattedMessage.split(' ')[0]?.trim();
+  if (BROADCASTER_MESSAGES_CONFIG.includes(command)) {
+    if (!tags.badges?.broadcaster) {
+      chat.say(channel, ACTION_NOT_ALLOWED);
+      logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
+      return;
+    };
+
+    await BROADCASTER_ACTIONS[command as keyof typeof BROADCASTER_ACTIONS]({
+      chat,
+      value: formattedMessage.replace(command, '').trim(),
+    });
+
+    return;
+  }
+  if (MODS_MESSAGES_CONFIG.includes(command)) {
+    if (!canDispatchModActions) {
       chat.say(channel, ACTION_NOT_ALLOWED);
       logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
       return;
     }
-    messageModsHandler(chat, formattedMessage);
+
+    await MOD_ACTIONS[command as keyof typeof MOD_ACTIONS]({
+      chat,
+      value: formattedMessage.replace(command, '').trim(),
+    });
 
     return;
   }
