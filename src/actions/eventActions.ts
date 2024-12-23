@@ -2,10 +2,15 @@ import tmi from 'tmi.js';
 
 import logger from '../utils/logger';
 import Stream from '../Stream';
-import { TWITCH_POWER_UP_CLIP, TWITCH_POWER_UP_TTS } from '../configuration/botEvents';
 import { sendEventTTS } from '../services/botEvents';
 import {
+  TWITCH_POWER_UP_CLIP,
+  TWITCH_POWER_UP_MAKE_CLIP,
+  TWITCH_POWER_UP_TTS,
+} from '../configuration/botEvents';
+import {
   BITS_MESSAGE,
+  CREATE_CLIP_KEY,
   MOST_POPULAR_CLIP_KEY,
   NEW_FOLLOWER_MESSAGE,
   NEW_SUB_MESSAGE,
@@ -71,6 +76,14 @@ const EVENT_ACTIONS: {
 
     if (isClip) {
       MOD_ACTIONS[MOST_POPULAR_CLIP_KEY]({ chat });
+      return;
+    }
+
+    const isMakeClip = event?.reward?.title?.toLowerCase().trim()
+      === TWITCH_POWER_UP_MAKE_CLIP.toLowerCase().trim();
+
+    if (isMakeClip) {
+      MOD_ACTIONS[CREATE_CLIP_KEY]({ chat });
       return;
     }
   },
