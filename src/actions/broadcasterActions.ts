@@ -4,7 +4,7 @@ import { sendEventStartStream } from '../services/botEvents';
 import getTokens, { refreshTokens } from '../services/twitch/auth';
 import { Clip, getClipsFromNow } from '../services/twitch/clip';
 import {
-  START_70_PERCENT,
+  STREAM_START_ALERT_LONG,
   START_ACTION_ERROR,
   START_ACTION_SUCCESS,
   START_STREAM_KEY,
@@ -55,10 +55,10 @@ const BROADCASTER_ACTIONS: {
     chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
     logger.info(chatMessage);
 
-    await delay(timeToStartMin * 60 * 1000 * 0.7); // 70% of min to ms
+    await delay(timeToStartMin * 60 * 1000 * 0.8); // 80% of min to ms
 
-    chat.say(ACCOUNT_CHAT_USERNAME, START_70_PERCENT);
-    logger.info(START_70_PERCENT);
+    chat.say(ACCOUNT_CHAT_USERNAME, STREAM_START_ALERT_LONG);
+    logger.info(STREAM_START_ALERT_LONG);
   },
 };
 

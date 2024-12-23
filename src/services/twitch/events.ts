@@ -67,7 +67,6 @@ const deleteExistingSubscriptions = async (accessToken: string) => {
         sub.condition.moderator_user_id === ACCOUNT_BOT_ID
     );
 
-    // Eliminar cada suscripción que coincida
     for (const sub of subscriptionsToDelete) {
       await axios.delete(`${REGISTER_EVENT_SUBSCRIPTION_URL}?id=${sub.id}`, {
         headers: {

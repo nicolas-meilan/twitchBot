@@ -2,11 +2,16 @@ import http, { IncomingMessage, ServerResponse } from 'http';
 import fs from 'fs';
 import path from 'path';
 import logger from '../utils/logger';
+import {
+  STREAM_START_ALERT_SHORT,
+  STRING_PARAM,
+} from '../configuration/chat';
 
 const OBS_VIEWS_PORT = process.env.OBS_VIEWS_PORT || '';
 const OBS_VIEWS_WS_URL = process.env.OBS_VIEWS_WS_URL || '';
 const OBS_CLIPS_FONT_NAME = process.env.OBS_CLIPS_FONT_NAME || '';
-const OFFLINE_SCENE_NAME = process.env.OFFLINE_SCENE_NAME || '';
+const OBS_OFFLINE_SCENE_NAME = process.env.OBS_OFFLINE_SCENE_NAME || '';
+const OBS_COUNTDOWN_URL = process.env.OBS_COUNTDOWN_URL || '';
 const BOT_EVENTS_PASSWORD = process.env.BOT_EVENTS_PASSWORD || '';
 const BOT_EVENTS_URL = process.env.BOT_EVENTS_URL || '';
 
@@ -27,7 +32,10 @@ const startObsViewsServer = () => {
             .replace('__WEBSOCKET_URL__', BOT_EVENTS_URL)
             .replace('__OBS_VIEWS_WS_URL__', OBS_VIEWS_WS_URL)
             .replace('__OBS_CLIPS_FONT_NAME__', OBS_CLIPS_FONT_NAME)
-            .replace('__OFFLINE_SCENE_NAME__', OFFLINE_SCENE_NAME)
+            .replace('__OBS_OFFLINE_SCENE_NAME__', OBS_OFFLINE_SCENE_NAME)
+            .replace('__OBS_COUNTDOWN_URL__', OBS_COUNTDOWN_URL)
+            .replace('__OBS_COUNTDOWN_STRING_PARAM__', STRING_PARAM)
+            .replace('__OBS_COUNTDOWN_MESSAGE__', STREAM_START_ALERT_SHORT)
             .replace('__PASSWORD__', BOT_EVENTS_PASSWORD);
 
           res.statusCode = 200;

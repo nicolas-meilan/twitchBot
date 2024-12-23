@@ -1,5 +1,5 @@
 export const KEY_DELIMITER = '__';
-export const STRING_PARAM = '__PARAM_';
+export const STRING_PARAM = '__PARAM__';
 
 export const COMMANDS_SEPARATOR = ' 💻 ';
 export const COMMANDS_RESPONSE_KEY = `${KEY_DELIMITER}COMMANDS${KEY_DELIMITER}`;
@@ -97,4 +97,5 @@ export const CLIP_ACTION_SUCCESS_EDIT_AVAILABLE = `🎥 ¡Acá tenés el clip, p
 
 export const START_ACTION_ERROR = `¡Eh, che! Ya estás online, no hace falta que lo digas de nuevo. 😎`;
 export const START_ACTION_SUCCESS = `¡Faltan solo ${STRING_PARAM} minutos para arrancar! 🎮⏰ ¡Prepará el mate y ponete cómodo que se viene lo mejor! 🚀`;
-export const START_70_PERCENT = `¡Falta poquito, ya estamos a full! 😎💥 ¡El stream está por arrancar, no te lo podés perder! 🔥`;
+export const STREAM_START_ALERT_LONG = `¡Falta poquito, ya estamos a full! 😎💥 ¡El stream está por arrancar, no te lo podés perder! 🔥`;
+export const STREAM_START_ALERT_SHORT = '¡Ya está por arrancar, no te lo pierdas! 🚀🔥';

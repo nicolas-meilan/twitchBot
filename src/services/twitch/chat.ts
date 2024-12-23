@@ -32,7 +32,6 @@ const connectToChat = async (
       channels: [accountChatUsername],
     });
 
-    // Conectar al chat
     await client.connect();
 
     logger.info('Successfully connected to Twitch chat.');

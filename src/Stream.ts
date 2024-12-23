@@ -8,7 +8,7 @@ const CLIENT_ID = process.env.CLIENT_ID || '';
 
 class Stream {
   static shared = new Stream();
-  static offlineImage = 'https://static-cdn.jtvnw.net/jtv_user_pictures/fceefc46-fb1f-40bd-b855-92d5aa7dbec4-channel_offline_image-1920x1080.png';
+  static offlineImage = 'https://static-cdn.jtvnw.net/jtv_user_pictures/82ffab06-9c72-4a6f-b12c-101a0b2dec59-channel_offline_image-1920x1080.png';
   isOnline: boolean = false;
 
   private constructor() {}
