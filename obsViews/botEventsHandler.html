@@ -111,19 +111,18 @@
       }
     }
 
-    async function setMuteState(inputName, mute) {
-      if (!obs) {
-        console.error('OBS is not connected.');
-        return;
-      }
+    async function muteGlobalAudioSources() {
+      if (!obs) return;
 
       try {
-        await obs.call('SetInputMute', {
-          inputName: inputName,
-          inputMuted: mute,
-        });
+          const { desktop1, desktop2, mic1, mic2, mic3 } = await obs.call('GetSpecialSources');
+          const globalAudioSources = [desktop1, desktop2, mic1, mic2, mic3].filter(Boolean);
+
+          for (const sourceName of globalAudioSources) {
+              await obs.call('SetInputMute', { inputName: sourceName, inputMuted: true });
+          }
       } catch (error) {
-        console.error(`Error setting mute state for ${inputName}:`, error);
+          console.error('Error muting global audio sources:', error);
       }
     }
 
@@ -255,7 +254,7 @@
               playClipsInLoop(OBS_OFFLINE_SCENE_NAME, OFFLINE_CLIPS_ITEM_NAME, clips);
             }
 
-            await setMuteState('Mic/Aux', true);
+            await muteGlobalAudioSources(OBS_OFFLINE_SCENE_NAME);
             await obs.call('StartStream');
             return;
           } catch (error) {
