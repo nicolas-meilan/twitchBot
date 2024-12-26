@@ -83,10 +83,10 @@ const MOD_ACTIONS: {
 
       const message = clip.edit_url
         ? CLIP_ACTION_SUCCESS_EDIT_AVAILABLE
-          .replace(STRING_PARAM, clip.url)
+          .replace(`${STRING_PARAM}1`, clip.url)
           .replace(`${STRING_PARAM}2`, clip.edit_url || '')
         : CLIP_ACTION_SUCCESS
-          .replace(`${STRING_PARAM}1`, clip.url);
+          .replace(STRING_PARAM, clip.url);
 
       chat.say(ACCOUNT_CHAT_USERNAME, message);
 

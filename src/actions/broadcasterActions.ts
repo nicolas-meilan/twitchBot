@@ -1,8 +1,8 @@
 import tmi from 'tmi.js';
 
 import { sendEventStartStream } from '../services/botEvents';
-import getTokens, { refreshTokens } from '../services/twitch/auth';
-import { Clip, getClipsFromNow } from '../services/twitch/clip';
+import getTokens from '../services/twitch/auth';
+import { Clip, getLatestClips } from '../services/twitch/clip';
 import {
   STREAM_START_ALERT_LONG,
   START_ACTION_ERROR,
@@ -38,11 +38,7 @@ const BROADCASTER_ACTIONS: {
     try {
       const token = await getTokens({ avoidLogin: true });
       if (!token?.access_token) return;
-      clips = await getClipsFromNow(token.access_token, async () => {
-        const newTokens = await refreshTokens(token.refresh_token);
-
-        return await getClipsFromNow(newTokens.refresh_token);
-      });
+      clips = await getLatestClips(token.access_token);
     } catch { /* empty */ }
 
     const timeToStartMinFromMessage = Number(value?.trim()) || BASE_STREAM_START_TIME_MIN;

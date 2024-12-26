@@ -11,6 +11,7 @@ export type Clip = {
   url: string;
   duration: string;
   embed_url: string;
+  created_at: string;
   edit_url?: string;
 };
 
@@ -48,7 +49,7 @@ export const getClipInformation = async (
   }
 };
 
-export const getClipsFromNow = async (
+export const getClips = async (
   accessToken: string,
   onAccessTokenExpired?: () => Promise<Clip[] | null>,
 ): Promise<Clip[]> => {
@@ -79,6 +80,14 @@ export const getClipsFromNow = async (
     logger.error('Error obtaining clips');
     throw error;
   }
+};
+
+export const getLatestClips = async (accessToken: string) => {
+  const clips = await getClips(accessToken);
+
+  return clips.sort((itemA, itemB) => (
+    new Date(itemB.created_at).getTime() - new Date(itemA.created_at).getTime()
+  ));
 };
 
 const CLIP_CREATION_TIME = 15000;
