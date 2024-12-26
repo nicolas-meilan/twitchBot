@@ -115,7 +115,7 @@
       if (!obs) return;
 
       try {
-          const { desktop1, desktop2, mic1, mic2, mic3 } = await obs.call('GetSpecialSources');
+          const { desktop1, desktop2, mic1, mic2, mic3 } = await obs.call('GetSpecialInputs');
           const globalAudioSources = [desktop1, desktop2, mic1, mic2, mic3].filter(Boolean);
 
           for (const sourceName of globalAudioSources) {

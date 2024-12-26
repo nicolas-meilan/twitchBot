@@ -53,6 +53,8 @@ const BROADCASTER_ACTIONS: {
 
     await delay(timeToStartMin * 60 * 1000 * 0.8); // 80% of min to ms
 
+    if (Stream.shared.isOnline) return;
+
     chat.say(ACCOUNT_CHAT_USERNAME, STREAM_START_ALERT_LONG);
     logger.info(STREAM_START_ALERT_LONG);
   },
