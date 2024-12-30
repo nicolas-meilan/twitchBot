@@ -69,6 +69,7 @@ export const MESSAGES_CONFIG: {
 export const NEW_FOLLOWER_MESSAGE = `🎉 ¡Mil Gracias @${STRING_PARAM}1, por la buena onda y el follow! 🙌✨ ¡Bienvenido/a a la comunidad! 🎮🚀 ¡Se vienen cosas piolas!`;
 export const NEW_SUB_MESSAGE = `🎉 ¡Mil gracias @${STRING_PARAM}1 por esa suscripción! 🙌✨ ¡Bienvenido/a a la banda de subs! 🎮🚀 ¡Ahora sos parte de la familia! 💜 ¡Alta facha!`;
 export const BITS_MESSAGE = `🎉 ¡Mil Gracias @${STRING_PARAM}1 por tirar esos ${STRING_PARAM}2 bits! 💎✨ ¡Se re valora, amigo/a! 🔥`;
+export const RAID_MESSAGE = `🚀 ¡Tremenda raid de parte de ${STRING_PARAM}1! 🙌🔥 Bienvenidos a todos los ${STRING_PARAM}2 que vienen con la manada. 🐺❤️ Soy rungekutta93, hacemos streams chill y risas aseguradas. 😄 🎮 ¡También estoy en Kick! 👉 https://kick.com/rungekutta93 💬 Unite al Discord de la comunidad para charlas y memes 👉 https://discord.gg/bHePmGSXVm ✨ Si tenés Prime, podés suscribirte gratis para bancar el canal. ¡Gracias por estar acá! 💜`;
 
 export const FOLLOW_SPAM_MESSAGES = [
   '🎮 ¡Gracias por coparte con el stream! 🔔 Mandale follow así no te perdés nada. 💜 ¿Te gusta la movida? Suscribite y bancá el contenido. 🔥 ¡También estoy en Kick, pasate! https://kick.com/rungekutta93',

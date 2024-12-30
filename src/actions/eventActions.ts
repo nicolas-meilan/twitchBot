@@ -14,6 +14,7 @@ import {
   MOST_POPULAR_CLIP_KEY,
   NEW_FOLLOWER_MESSAGE,
   NEW_SUB_MESSAGE,
+  RAID_MESSAGE,
   STRING_PARAM,
 } from '../configuration/chat';
 import MOD_ACTIONS from './modActions';
@@ -42,6 +43,18 @@ const EVENT_ACTIONS: {
     if (!username) return;
 
     const chatMessage = NEW_SUB_MESSAGE.replace(`${STRING_PARAM}1`, username);
+    logger.info(chatMessage);
+    chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
+  },
+  ['channel.raid']: ({ chat, event }) => {
+    const username: string = event?.from_broadcaster_user_name;
+    const viewers: string = event?.viewers;
+
+    if (!username || !viewers) return;
+
+    const chatMessage = RAID_MESSAGE.replace(`${STRING_PARAM}1`, username)
+      .replace(`${STRING_PARAM}2`, viewers);
+
     logger.info(chatMessage);
     chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
   },

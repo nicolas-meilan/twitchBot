@@ -37,6 +37,9 @@ const EVENT_SUB_SUBSCRIPTIONS: {
   type: 'channel.channel_points_custom_reward_redemption.add',
   version: '1',
 }, {
+  type: 'channel.raid',
+  version: '1',
+}, {
   type: 'stream.online',
   version: '1',
 }, {
@@ -60,11 +63,14 @@ const deleteExistingSubscriptions = async (accessToken: string) => {
         condition: {
           broadcaster_user_id: string;
           moderator_user_id: string;
+          to_broadcaster_user_id: string;
         };
       }) =>
-        EVENT_SUB_SUBSCRIPTIONS.map(({ type }) => type).includes(sub.type) &&
-        sub.condition.broadcaster_user_id === ACCOUNT_TRACK_ID &&
-        sub.condition.moderator_user_id === ACCOUNT_BOT_ID
+        EVENT_SUB_SUBSCRIPTIONS.map(({ type }) => type).includes(sub.type) && (
+          sub.condition.broadcaster_user_id === ACCOUNT_TRACK_ID ||
+          sub.condition.moderator_user_id === ACCOUNT_BOT_ID ||
+          sub.condition.to_broadcaster_user_id === ACCOUNT_BOT_ID
+        ),
     );
 
     for (const sub of subscriptionsToDelete) {
@@ -92,6 +98,7 @@ const registerEventSubSubscriptions = async (accessToken: string, sessionId: str
     type: '',
     version: '',
     condition: {
+      to_broadcaster_user_id: ACCOUNT_TRACK_ID,
       broadcaster_user_id: ACCOUNT_TRACK_ID,
       moderator_user_id: ACCOUNT_BOT_ID,
     },
