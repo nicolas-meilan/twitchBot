@@ -25,6 +25,7 @@ import {
 type ModActionsType = (params: {
   chat: tmi.Client
   value?: string;
+  username?: string;
 }) => void | Promise<void>;
 
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
@@ -32,10 +33,10 @@ const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
 const MOD_ACTIONS: {
   [command: string]: ModActionsType;
 } = {
-  [TTS_KEY]: ({ value }) => {
+  [TTS_KEY]: ({ value, username }) => {
     if (!value) return;
 
-    sendEventTTS(value, TTS_MOD_SENDER);
+    sendEventTTS(value, username || TTS_MOD_SENDER);
   },
   [MOST_POPULAR_CLIP_KEY]: async ({ chat }) =>  {
     try {

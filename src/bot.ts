@@ -75,6 +75,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
     await MOD_ACTIONS[command as keyof typeof MOD_ACTIONS]({
       chat,
       value: formattedMessage.replace(command, '').trim(),
+      username: tags.username,
     });
 
     return;
