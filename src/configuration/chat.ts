@@ -93,6 +93,7 @@ export const CHANNEL_INFO_ACTION_SUCCESS = '¡Información del canal actualizada
 export const CHANNEL_INFO_ACTION_ERROR = 'No pudimos actualizar la info del canal';
 
 export const CLIP_ACTION_ERROR = 'Error con el clip';
+export const PROCESSING_CLIP_ERROR = '⏳ Estamos procesando el clip, bancanos un toque...';
 export const CLIP_ACTION_SUCCESS = `🎥 ¡Acá tenés el clip, papá! 👉 ${STRING_PARAM}`;
 export const CLIP_ACTION_SUCCESS_EDIT_AVAILABLE = `🎥 ¡Acá tenés el clip, papá! 👉 ${STRING_PARAM}1 | 📝 Editá el clip acá: ${STRING_PARAM}2`;
 

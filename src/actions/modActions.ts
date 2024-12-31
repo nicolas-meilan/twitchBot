@@ -17,6 +17,7 @@ import {
   COMMAND_DELIMITER,
   CREATE_CLIP_KEY,
   MOST_POPULAR_CLIP_KEY,
+  PROCESSING_CLIP_ERROR,
   STRING_PARAM,
   TTS_KEY,
   TTS_MOD_SENDER,
@@ -29,6 +30,8 @@ type ModActionsType = (params: {
 }) => void | Promise<void>;
 
 const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
+
+let processingClip = false;
 
 const MOD_ACTIONS: {
   [command: string]: ModActionsType;
@@ -68,6 +71,12 @@ const MOD_ACTIONS: {
     try {
       if (!Stream.shared.isOnline) throw new Error('offline');
 
+      if (processingClip) {
+        chat.say(ACCOUNT_CHAT_USERNAME, PROCESSING_CLIP_ERROR);
+        return;
+      }
+      processingClip = true;
+
       const token = await getTokens({ avoidLogin: true });
       if (!token || !token.access_token) return;
 
@@ -92,8 +101,10 @@ const MOD_ACTIONS: {
       chat.say(ACCOUNT_CHAT_USERNAME, message);
 
       sendEventClip(clip.embed_url, clip.duration);
+      processingClip = false;
     } catch {
       chat.say(ACCOUNT_CHAT_USERNAME, CLIP_ACTION_ERROR);
+      processingClip = false;
     }
   },
   [CHANGE_CHANNEL_INFORMATION_KEY]: async ({ chat, value }) => {
