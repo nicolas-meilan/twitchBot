@@ -51,9 +51,14 @@ export const getClipInformation = async (
 
 export const getClips = async (
   accessToken: string,
+  thisWeek: boolean = false,
   onAccessTokenExpired?: () => Promise<Clip[] | null>,
 ): Promise<Clip[]> => {
   try {
+    const now = new Date();
+    const week = new Date();
+    week.setDate(now.getDate() - 7);
+
     logger.info('Obtaining clips from current date ...');
     const response = await axios.get<{
       data: Clip[];
@@ -62,6 +67,10 @@ export const getClips = async (
       params: {
         broadcaster_id: ACCOUNT_TRACK_ID,
         first: 100,
+        ...(thisWeek ? {
+          started_at: week.toISOString(),
+          ended_at: now.toISOString(),
+        }: {}),
       },
       headers: {
         'Client-ID': CLIENT_ID,
@@ -82,10 +91,16 @@ export const getClips = async (
   }
 };
 
-export const getLatestClips = async (accessToken: string) => {
-  const clips = await getClips(accessToken);
+export const getLatestClips = async (
+  accessToken: string,
+  minClipsLength: number = 10,
+) => {
+  const weeklyClips = await getClips(accessToken, true);
+  const extraClips = weeklyClips.length < minClipsLength
+    ? await getClips(accessToken)
+    : [];
 
-  return clips.sort((itemA, itemB) => (
+  return [...weeklyClips, ...extraClips].sort((itemA, itemB) => (
     new Date(itemB.created_at).getTime() - new Date(itemA.created_at).getTime()
   ));
 };
