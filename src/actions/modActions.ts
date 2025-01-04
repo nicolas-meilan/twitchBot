@@ -1,11 +1,8 @@
-import tmi from 'tmi.js';
-
 import { sendEventClip, sendEventTTS } from '../services/botEvents';
 import { BASE_TAGS, Game, GAMES } from '../configuration/games';
 import { getGameId, updateChannelInfo } from '../services/twitch/channel';
-import getTokens, { refreshTokens } from '../services/twitch/auth';
-import { createClip, getClipInformation } from '../services/twitch/clip';
-import Stream from '../Stream';
+import { getBroadcastTokens, refreshBroadcastTokens } from '../services/twitch/auth';
+import { getClipInformation } from '../services/twitch/clip';
 import {
   CHANGE_CHANNEL_INFORMATION_KEY,
   CHANNEL_INFO_ACTION_ERROR,
@@ -13,28 +10,18 @@ import {
   CHANNEL_INFO_ACTION_SUCCESS,
   CLIP_ACTION_ERROR,
   CLIP_ACTION_SUCCESS,
-  CLIP_ACTION_SUCCESS_EDIT_AVAILABLE,
   COMMAND_DELIMITER,
-  CREATE_CLIP_KEY,
   MOST_POPULAR_CLIP_KEY,
-  PROCESSING_CLIP_ERROR,
   STRING_PARAM,
   TTS_KEY,
   TTS_MOD_SENDER,
 } from '../configuration/chat';
+import { ActionsType } from './type';
 
-type ModActionsType = (params: {
-  chat: tmi.Client
-  value?: string;
-  username?: string;
-}) => void | Promise<void>;
-
-const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
-
-let processingClip = false;
+const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
 const MOD_ACTIONS: {
-  [command: string]: ModActionsType;
+  [command: string]: ActionsType;
 } = {
   [TTS_KEY]: ({ value, username }) => {
     if (!value) return;
@@ -43,14 +30,14 @@ const MOD_ACTIONS: {
   },
   [MOST_POPULAR_CLIP_KEY]: async ({ chat }) =>  {
     try {
-      const token = await getTokens({ avoidLogin: true });
+      const token = await getBroadcastTokens({ avoidLogin: true });
       if (!token || !token.access_token) return;
 
       const clip = await getClipInformation(
         token.access_token,
         '',
         async () => {
-          const newToken = await refreshTokens(token.refresh_token);
+          const newToken = await refreshBroadcastTokens(token.refresh_token);
           return await getClipInformation(newToken.access_token);
         },
       );
@@ -58,59 +45,19 @@ const MOD_ACTIONS: {
       if (!clip) throw new Error(CLIP_ACTION_ERROR);
 
       chat.say(
-        ACCOUNT_CHAT_USERNAME,
+        BROADCAST_USERNAME,
         CLIP_ACTION_SUCCESS.replace(STRING_PARAM, clip.url),
       );
 
       sendEventClip(clip.embed_url, clip.duration);
     } catch {
-      chat.say(ACCOUNT_CHAT_USERNAME, CLIP_ACTION_ERROR);
-    }
-  },
-  [CREATE_CLIP_KEY]: async ({ chat }) => {
-    try {
-      if (!Stream.shared.isOnline) throw new Error('offline');
-
-      if (processingClip) {
-        chat.say(ACCOUNT_CHAT_USERNAME, PROCESSING_CLIP_ERROR);
-        return;
-      }
-      processingClip = true;
-
-      const token = await getTokens({ avoidLogin: true });
-      if (!token || !token.access_token) return;
-
-      const clip = await createClip(
-        token.access_token,
-        false,
-        async () => {
-          const newToken = await refreshTokens(token.refresh_token);
-          return await createClip(newToken.access_token);
-        },
-      );
-
-      if (!clip) throw new Error(CLIP_ACTION_ERROR);
-
-      const message = clip.edit_url
-        ? CLIP_ACTION_SUCCESS_EDIT_AVAILABLE
-          .replace(`${STRING_PARAM}1`, clip.url)
-          .replace(`${STRING_PARAM}2`, clip.edit_url || '')
-        : CLIP_ACTION_SUCCESS
-          .replace(STRING_PARAM, clip.url);
-
-      chat.say(ACCOUNT_CHAT_USERNAME, message);
-
-      sendEventClip(clip.embed_url, clip.duration);
-      processingClip = false;
-    } catch {
-      chat.say(ACCOUNT_CHAT_USERNAME, CLIP_ACTION_ERROR);
-      processingClip = false;
+      chat.say(BROADCAST_USERNAME, CLIP_ACTION_ERROR);
     }
   },
   [CHANGE_CHANNEL_INFORMATION_KEY]: async ({ chat, value }) => {
     if (!value) return;
 
-    const token = await getTokens({ avoidLogin: true });
+    const token = await getBroadcastTokens({ avoidLogin: true });
     if (!token || !token.access_token) return;
 
     let gameData: Game | undefined = GAMES[value];
@@ -124,12 +71,12 @@ const MOD_ACTIONS: {
         ] = value.split(COMMAND_DELIMITER);
 
         const game = await getGameId(token.access_token, gameName.trim(), async () => {
-          const newToken = await refreshTokens(token.refresh_token);
+          const newToken = await refreshBroadcastTokens(token.refresh_token);
           return await getGameId(newToken.access_token, gameName.trim());
         });
 
         if (!game) {
-          chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
+          chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
           return;
         }
 
@@ -149,20 +96,20 @@ const MOD_ACTIONS: {
           };
         }
       } catch {
-        chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
+        chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
         return;
       }
     }
 
     try {
       await updateChannelInfo(token.access_token, gameData, async () => {
-        const newToken = await refreshTokens(token.refresh_token);
+        const newToken = await refreshBroadcastTokens(token.refresh_token);
         updateChannelInfo(newToken.access_token, gameData);
       });
 
-      chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_SUCCESS);
+      chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_SUCCESS);
     } catch {
-      chat.say(ACCOUNT_CHAT_USERNAME, CHANNEL_INFO_ACTION_ERROR);
+      chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_ERROR);
     }
   },
 };

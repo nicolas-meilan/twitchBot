@@ -12,16 +12,18 @@ import {
   MESSAGES_CONFIG,
   RESPONSES_KEYS,
   KEY_DELIMITER,
-  MODS_MESSAGES_CONFIG,
+  MODS_ACTIONS_CONFIG,
   ACTION_NOT_ALLOWED,
   FOLLOW_SPAM_MESSAGES,
   PRIME_SPAM_MESSAGES,
   BROADCASTER_MESSAGES_CONFIG,
+  USERS_ACTIONS_CONFIG,
 } from './configuration/chat';
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
+import USER_ACTIONS from './actions/userActions';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
-const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
+const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 const FOLLOW_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.FOLLOW_RECURRENT_MESSAGE_TIME_MIN || '0');
 const PRIME_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.PRIME_RECURRENT_MESSAGE_TIME_MIN || '0');
 
@@ -44,28 +46,25 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
   }
 };
 
-const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, tags, self }) => {
+const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, tags }) => {
   const formattedMessage = message.toLowerCase().trim();
   previousMessage = formattedMessage;
 
   const canDispatchModActions = !!tags.badges?.broadcaster || tags.mod;
 
   const command = formattedMessage.split(' ')[0]?.trim();
-  if (BROADCASTER_MESSAGES_CONFIG.includes(command)) {
-    if (!tags.badges?.broadcaster) {
-      chat.say(channel, ACTION_NOT_ALLOWED);
-      logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
-      return;
-    };
 
-    await BROADCASTER_ACTIONS[command as keyof typeof BROADCASTER_ACTIONS]({
+  if (USERS_ACTIONS_CONFIG.includes(command)) {
+    await USER_ACTIONS[command as keyof typeof USER_ACTIONS]({
       chat,
       value: formattedMessage.replace(command, '').trim(),
+      username: tags.username,
     });
 
     return;
   }
-  if (MODS_MESSAGES_CONFIG.includes(command)) {
+
+  if (MODS_ACTIONS_CONFIG.includes(command)) {
     if (!canDispatchModActions) {
       chat.say(channel, ACTION_NOT_ALLOWED);
       logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
@@ -81,7 +80,20 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
     return;
   }
 
-  if (self) return;
+  if (BROADCASTER_MESSAGES_CONFIG.includes(command)) {
+    if (!tags.badges?.broadcaster) {
+      chat.say(channel, ACTION_NOT_ALLOWED);
+      logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
+      return;
+    };
+
+    await BROADCASTER_ACTIONS[command as keyof typeof BROADCASTER_ACTIONS]({
+      chat,
+      value: formattedMessage.replace(command, '').trim(),
+    });
+
+    return;
+  }
 
   const currentMessageResponse = MESSAGES_CONFIG[formattedMessage] || '';
   const formattedResponse = await responsesKeysHandler(currentMessageResponse.trim());
@@ -106,7 +118,7 @@ const spamFollowMessage = (chat: tmi.Client) => {
 
     const currentFollowerMessage = FOLLOW_SPAM_MESSAGES[random(0, FOLLOW_SPAM_MESSAGES.length)];
     logger.info(currentFollowerMessage);
-    chat.say(ACCOUNT_CHAT_USERNAME, currentFollowerMessage);
+    chat.say(BROADCAST_USERNAME, currentFollowerMessage);
   }, time);
 };
 
@@ -124,14 +136,14 @@ const spamPrimeMessage = (chat: tmi.Client) => {
 
     const currentPrimeMessage = PRIME_SPAM_MESSAGES[random(0, PRIME_SPAM_MESSAGES.length)];
     logger.info(currentPrimeMessage);
-    chat.say(ACCOUNT_CHAT_USERNAME, currentPrimeMessage);
+    chat.say(BROADCAST_USERNAME, currentPrimeMessage);
   }, time);
 };
 
 const startBot = async () => {
   const chat = await connectToChat(
     BOT_USERNAME,
-    ACCOUNT_CHAT_USERNAME,
+    BROADCAST_USERNAME,
     (params) => {
       if (!chat) return;
 

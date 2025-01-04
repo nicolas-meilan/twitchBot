@@ -4,11 +4,10 @@ import crypto from 'crypto';
 const DATABASE = './tokens.db';
 
 const KEY = crypto.createHash('sha256').update(process.env.ENCRYPTION_KEY || '').digest();
-const IV = crypto.randomBytes(16);
 
 export type Tokens = {
-    access_token: string;
-    refresh_token: string;
+  access_token: string;
+  refresh_token: string;
 };
 
 type EncryptedTokens = {
@@ -26,42 +25,46 @@ db.serialize(() => {
   db.run(`
       CREATE TABLE IF NOT EXISTS oauth_tokens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account TEXT NOT NULL,
         access_token TEXT NOT NULL,
         refresh_token TEXT NOT NULL,
         iv_access_token TEXT NOT NULL,
-        iv_refresh_token TEXT NOT NULL
+        iv_refresh_token TEXT NOT NULL,
+        UNIQUE(account)
       )
     `);
 });
 
-const encrypt = (text: string) => {
-  const cipher = crypto.createCipheriv('aes-256-cbc', KEY, IV);
+const encrypt = (text: string, iv: Buffer) => {
+  const cipher = crypto.createCipheriv('aes-256-cbc', KEY, iv);
   const encrypted = cipher.update(text, 'utf8', 'hex');
-    
   return encrypted + cipher.final('hex');
 };
 
 const decrypt = (encryptedData: string, iv: string) => {
   const decipher = crypto.createDecipheriv('aes-256-cbc', KEY, Buffer.from(iv, 'hex'));
   const decrypted = decipher.update(encryptedData, 'hex', 'utf8');
-
   return decrypted + decipher.final('utf8');
 };
 
-export const saveTokens = ({ access_token, refresh_token }: Tokens) => {
-  const encryptedAccessToken = encrypt(access_token);
-  const encryptedRefreshToken = encrypt(refresh_token);
-
-  const stmtDelete = db.prepare('DELETE FROM oauth_tokens');
-  stmtDelete.run();
+export const saveTokens = (account: string, { access_token, refresh_token }: Tokens) => {
+  const IV = crypto.randomBytes(16);
+  const encryptedAccessToken = encrypt(access_token, IV);
+  const encryptedRefreshToken = encrypt(refresh_token, IV);
 
   const stmt = db.prepare(`
-        INSERT INTO oauth_tokens (access_token, refresh_token, iv_access_token, iv_refresh_token) 
-        VALUES (?, ?, ?, ?)
+        INSERT INTO oauth_tokens (account, access_token, refresh_token, iv_access_token, iv_refresh_token) 
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(account) DO UPDATE SET 
+          access_token = excluded.access_token,
+          refresh_token = excluded.refresh_token,
+          iv_access_token = excluded.iv_access_token,
+          iv_refresh_token = excluded.iv_refresh_token
     `);
 
   stmt.run(
-    encryptedAccessToken,  
+    account,
+    encryptedAccessToken,
     encryptedRefreshToken,
     IV.toString('hex'),
     IV.toString('hex'),
@@ -69,24 +72,28 @@ export const saveTokens = ({ access_token, refresh_token }: Tokens) => {
   stmt.finalize();
 };
 
-export const loadTokens = () => new Promise<Tokens | undefined>((resolve, reject) => {
-  db.get<EncryptedTokens>('SELECT access_token, refresh_token, iv_access_token, iv_refresh_token FROM oauth_tokens', (err, row) => {
-    if (err) {
-      reject(err);
-      return;
+export const loadTokens = (account: string) => new Promise<Tokens | undefined>((resolve, reject) => {
+  db.get<EncryptedTokens>(
+    'SELECT access_token, refresh_token, iv_access_token, iv_refresh_token FROM oauth_tokens WHERE account = ?',
+    [account],
+    (err, row) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      if (!row) {
+        resolve(undefined);
+        return;
+      }
+
+      const decryptedAccessToken = decrypt(row.access_token, row.iv_access_token);
+      const decryptedRefreshToken = decrypt(row.refresh_token, row.iv_refresh_token);
+
+      resolve({
+        access_token: decryptedAccessToken,
+        refresh_token: decryptedRefreshToken,
+      });
     }
-
-    if (!row) {
-      resolve(undefined);
-      return;
-    }
-
-    const decryptedAccessToken = decrypt(row.access_token, row.iv_access_token);
-    const decryptedRefreshToken = decrypt(row.refresh_token, row.iv_refresh_token);
-
-    resolve({
-      access_token: decryptedAccessToken,
-      refresh_token: decryptedRefreshToken,
-    });
-  });
+  );
 });

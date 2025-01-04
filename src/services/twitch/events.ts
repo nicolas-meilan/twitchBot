@@ -3,15 +3,14 @@ import tmi from 'tmi.js';
 import axios from 'axios';
 
 import logger from '../../utils/logger';
-import getTokens from './auth';
+import { getBroadcastTokens } from './auth';
 import { BASE_URL } from '../../configuration/constants';
 import EVENT_ACTIONS from '../../actions/eventActions';
 
 export type EventCallback = (principalData?: string, extraData?: any) => void;
 
 const CLIENT_ID = process.env.CLIENT_ID || '';
-const ACCOUNT_TRACK_ID = process.env.ACCOUNT_TRACK_ID || '';
-const ACCOUNT_BOT_ID = process.env.ACCOUNT_BOT_ID || '';
+const BROADCAST_ACCOUNT_ID = process.env.BROADCAST_ACCOUNT_ID || '';
 
 const RECONNECTION_TIME = 1000;
 const RECONNECTION_RETRIES = 3;
@@ -67,9 +66,9 @@ const deleteExistingSubscriptions = async (accessToken: string) => {
         };
       }) =>
         EVENT_SUB_SUBSCRIPTIONS.map(({ type }) => type).includes(sub.type) && (
-          sub.condition.broadcaster_user_id === ACCOUNT_TRACK_ID ||
-          sub.condition.moderator_user_id === ACCOUNT_BOT_ID ||
-          sub.condition.to_broadcaster_user_id === ACCOUNT_BOT_ID
+          sub.condition.broadcaster_user_id === BROADCAST_ACCOUNT_ID ||
+          sub.condition.moderator_user_id === BROADCAST_ACCOUNT_ID ||
+          sub.condition.to_broadcaster_user_id === BROADCAST_ACCOUNT_ID
         ),
     );
 
@@ -98,9 +97,9 @@ const registerEventSubSubscriptions = async (accessToken: string, sessionId: str
     type: '',
     version: '',
     condition: {
-      to_broadcaster_user_id: ACCOUNT_TRACK_ID,
-      broadcaster_user_id: ACCOUNT_TRACK_ID,
-      moderator_user_id: ACCOUNT_BOT_ID,
+      to_broadcaster_user_id: BROADCAST_ACCOUNT_ID,
+      broadcaster_user_id: BROADCAST_ACCOUNT_ID,
+      moderator_user_id: BROADCAST_ACCOUNT_ID,
     },
     transport: {
       method: 'websocket',
@@ -132,7 +131,7 @@ const connectToEvents = async (
     action({ chat, event });
   };
 
-  const token = await getTokens({ avoidLogin: true });
+  const token = await getBroadcastTokens({ avoidLogin: true });
   if (!token) return;
 
   await deleteExistingSubscriptions(token.access_token);

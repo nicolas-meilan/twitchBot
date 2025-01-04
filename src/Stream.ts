@@ -1,9 +1,9 @@
 import axios from 'axios';
 import logger from './utils/logger';
 import { BASE_URL } from './configuration/constants';
-import getTokens from './services/twitch/auth';
+import { getBroadcastTokens, getBotTokens } from './services/twitch/auth';
 
-const ACCOUNT_TRACK_ID = process.env.ACCOUNT_TRACK_ID || '';
+const BROADCAST_ACCOUNT_ID = process.env.BROADCAST_ACCOUNT_ID || '';
 const CLIENT_ID = process.env.CLIENT_ID || '';
 
 class Stream {
@@ -14,14 +14,16 @@ class Stream {
   private constructor() {}
 
   async initialize() {
-    const tokens = await getTokens();
+    const tokens = await getBroadcastTokens();
+    await getBotTokens();
+
     if (!tokens) return;
 
     logger.info('Validating stream status...');
     try {
       const response = await axios.get<{
         data: { started_at: string }[];
-      }>(`${BASE_URL}/helix/streams?user_id=${ACCOUNT_TRACK_ID}`, {
+      }>(`${BASE_URL}/helix/streams?user_id=${BROADCAST_ACCOUNT_ID}`, {
         headers: {
           'Client-ID': CLIENT_ID,
           'Authorization': `Bearer ${tokens.access_token}`,

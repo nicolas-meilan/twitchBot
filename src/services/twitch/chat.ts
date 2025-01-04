@@ -1,6 +1,6 @@
 import tmi from 'tmi.js';
 import logger from '../../utils/logger';
-import getTokens, { refreshTokens } from './auth';
+import { getBotTokens, refreshBotTokens } from './auth';
 
 const RECONNECTION_RETRIES = 3;
 let reconnectionCurrentRetries = 0;
@@ -18,7 +18,7 @@ const connectToChat = async (
   onNewMessage: OnNewMessage,
 ) => {
   try {
-    const token = await getTokens({ avoidLogin: true });
+    const token = await getBotTokens({ avoidLogin: true });
 
     if (!token) return;
 
@@ -53,7 +53,7 @@ const connectToChat = async (
       }
 
       reconnectionCurrentRetries += 1;
-      await refreshTokens(token.refresh_token);
+      await refreshBotTokens(token.refresh_token);
       await connectToChat(botUsername, accountChatUsername, onNewMessage);
     });
 

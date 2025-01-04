@@ -25,5 +25,5 @@ Solo se debe agregar un .env con los siguientes datos
 CLIENT_ID // client_id de tu aplicacion de twitch development
 CLIENT_SECRET // secret de tu aplicacion de twitch development
 BOT_USERNAME // username de la cuenta bot
-ACCOUNT_CHAT_USERNAME // username de la cuenta con el chat
+BROADCAST_USERNAME // username de la cuenta con el chat
 ```

@@ -18,8 +18,9 @@ import {
   STRING_PARAM,
 } from '../configuration/chat';
 import MOD_ACTIONS from './modActions';
+import USER_ACTIONS from './userActions';
 
-const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
+const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
 type EventActionsType = (params: {
   chat: tmi.Client
@@ -35,7 +36,7 @@ const EVENT_ACTIONS: {
 
     const chatMessage = NEW_FOLLOWER_MESSAGE.replace(`${STRING_PARAM}1`, newFollower);
     logger.info(chatMessage);
-    chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
+    chat.say(BROADCAST_USERNAME, chatMessage);
   },
   ['channel.subscribe']: ({ chat, event }) => {
     const username = event?.user_name;
@@ -44,7 +45,7 @@ const EVENT_ACTIONS: {
 
     const chatMessage = NEW_SUB_MESSAGE.replace(`${STRING_PARAM}1`, username);
     logger.info(chatMessage);
-    chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
+    chat.say(BROADCAST_USERNAME, chatMessage);
   },
   ['channel.raid']: ({ chat, event }) => {
     const username: string = event?.from_broadcaster_user_name;
@@ -56,7 +57,7 @@ const EVENT_ACTIONS: {
       .replace(`${STRING_PARAM}2`, viewers);
 
     logger.info(chatMessage);
-    chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
+    chat.say(BROADCAST_USERNAME, chatMessage);
   },
   ['channel.cheer']: ({ chat, event }) => {
     const username = event?.user_name;
@@ -68,7 +69,7 @@ const EVENT_ACTIONS: {
       .replace(`${STRING_PARAM}2`, bits.toString());
 
     logger.info(chatMessage);
-    chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
+    chat.say(BROADCAST_USERNAME, chatMessage);
   },
   ['channel.channel_points_custom_reward_redemption.add']: ({ chat, event }) => {
     if (!Stream.shared.isOnline) return;
@@ -96,7 +97,7 @@ const EVENT_ACTIONS: {
       === TWITCH_POWER_UP_MAKE_CLIP.toLowerCase().trim();
 
     if (isMakeClip) {
-      MOD_ACTIONS[CREATE_CLIP_KEY]({ chat });
+      USER_ACTIONS[CREATE_CLIP_KEY]({ chat });
       return;
     }
   },

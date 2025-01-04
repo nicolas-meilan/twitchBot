@@ -3,7 +3,7 @@ import logger from '../../utils/logger';
 import { BASE_URL } from '../../configuration/constants';
 import { delay } from '../../utils/system';
 
-const ACCOUNT_TRACK_ID = process.env.ACCOUNT_TRACK_ID || '';
+const BROADCAST_ACCOUNT_ID = process.env.BROADCAST_ACCOUNT_ID || '';
 const CLIENT_ID = process.env.CLIENT_ID || '';
 
 export type Clip = {
@@ -28,7 +28,7 @@ export const getClipInformation = async (
       params: clipId ? {
         id: clipId,
       } : {
-        broadcaster_id: ACCOUNT_TRACK_ID,
+        broadcaster_id: BROADCAST_ACCOUNT_ID,
         first: 1,
       },
       headers: {
@@ -65,7 +65,7 @@ export const getClips = async (
       pagination: { cursor?: string };
     }>(`${BASE_URL}/helix/clips`, {
       params: {
-        broadcaster_id: ACCOUNT_TRACK_ID,
+        broadcaster_id: BROADCAST_ACCOUNT_ID,
         first: 100,
         ...(thisWeek ? {
           started_at: week.toISOString(),
@@ -116,7 +116,7 @@ export const createClip = async (
     const response = await axios.post<{
       data: { id: string, edit_url: string }[];
     }>(`${BASE_URL}/helix/clips`, {
-      broadcaster_id: ACCOUNT_TRACK_ID,
+      broadcaster_id: BROADCAST_ACCOUNT_ID,
       has_delay: !!withDelay,
     }, {
       headers: {

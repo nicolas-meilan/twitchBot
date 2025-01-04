@@ -1,7 +1,5 @@
-import tmi from 'tmi.js';
-
 import { sendEventStartStream } from '../services/botEvents';
-import getTokens from '../services/twitch/auth';
+import { getBroadcastTokens } from '../services/twitch/auth';
 import { Clip, getLatestClips } from '../services/twitch/clip';
 import {
   STREAM_START_ALERT_LONG,
@@ -14,20 +12,16 @@ import logger from '../utils/logger';
 import Stream from '../Stream';
 import { BASE_STREAM_START_TIME_MIN } from '../configuration/botEvents';
 import { delay } from '../utils/system';
+import { ActionsType } from './type';
 
-type BroadcasterActionsType = (params: {
-  chat: tmi.Client
-  value?: string;
-}) => void | Promise<void>;
-
-const ACCOUNT_CHAT_USERNAME = process.env.ACCOUNT_CHAT_USERNAME || '';
+const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
 const BROADCASTER_ACTIONS: {
-  [command: string]: BroadcasterActionsType;
+  [command: string]: ActionsType;
 } = {
   [START_STREAM_KEY]: async ({ chat, value }) => {
     if (Stream.shared.isOnline) {
-      chat.say(ACCOUNT_CHAT_USERNAME, START_ACTION_ERROR);
+      chat.say(BROADCAST_USERNAME, START_ACTION_ERROR);
 
       return;
     }
@@ -36,7 +30,7 @@ const BROADCASTER_ACTIONS: {
     let clips: Clip[] = [];
 
     try {
-      const token = await getTokens({ avoidLogin: true });
+      const token = await getBroadcastTokens({ avoidLogin: true });
       if (!token?.access_token) return;
       clips = await getLatestClips(token.access_token);
     } catch { /* empty */ }
@@ -48,14 +42,14 @@ const BROADCASTER_ACTIONS: {
 
     sendEventStartStream(offlineBackground, clips || [], timeToStartMin);
     const chatMessage = START_ACTION_SUCCESS.replace(STRING_PARAM, timeToStartMin.toString());
-    chat.say(ACCOUNT_CHAT_USERNAME, chatMessage);
+    chat.say(BROADCAST_USERNAME, chatMessage);
     logger.info(chatMessage);
 
     await delay(timeToStartMin * 60 * 1000 * 0.8); // 80% of min to ms
 
     if (Stream.shared.isOnline) return;
 
-    chat.say(ACCOUNT_CHAT_USERNAME, STREAM_START_ALERT_LONG);
+    chat.say(BROADCAST_USERNAME, STREAM_START_ALERT_LONG);
     logger.info(STREAM_START_ALERT_LONG);
   },
 };

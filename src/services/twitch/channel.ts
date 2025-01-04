@@ -3,10 +3,10 @@ import { BASE_URL } from '../../configuration/constants';
 import { Game } from '../../configuration/games';
 import logger from '../../utils/logger';
 
-const ACCOUNT_TRACK_ID = process.env.ACCOUNT_TRACK_ID || '';
+const BROADCAST_ACCOUNT_ID = process.env.BROADCAST_ACCOUNT_ID || '';
 const CLIENT_ID = process.env.CLIENT_ID || '';
 
-const updateChannelInfoUrl = `${BASE_URL}/helix/channels?broadcaster_id=${ACCOUNT_TRACK_ID}`;
+const updateChannelInfoUrl = `${BASE_URL}/helix/channels?broadcaster_id=${BROADCAST_ACCOUNT_ID}`;
 const searchGameIdUrl = `${BASE_URL}/helix/search/categories`;
 
 type BaseGame = {
