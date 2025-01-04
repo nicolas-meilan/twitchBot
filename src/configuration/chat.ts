@@ -19,26 +19,23 @@ export const RESPONSES_KEYS = [
 
 export const COMMAND_DELIMITER = '/';
 
-export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
-export const CREATE_CLIP_KEY = '!clip';
-export const MOST_POPULAR_CLIP_KEY = '!topclip';
-
-export const TTS_KEY = '!tts';
-export const TTS_MOD_SENDER = 'Un moderador';
-export const TTS_MESSAGE = `${STRING_PARAM}1 dijo: ${STRING_PARAM}2`;
-
 export const START_STREAM_KEY = '!online';
 
 export const BROADCASTER_MESSAGES_CONFIG = [
   START_STREAM_KEY,
 ];
 
+export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
+export const MOST_POPULAR_CLIP_KEY = '!topclip';
+export const TTS_KEY = '!tts';
+
 export const MODS_ACTIONS_CONFIG = [
   CHANGE_CHANNEL_INFORMATION_KEY,
   TTS_KEY,
-  CREATE_CLIP_KEY,
   MOST_POPULAR_CLIP_KEY,
 ];
+
+export const CREATE_CLIP_KEY = '!clip';
 
 export const USERS_ACTIONS_CONFIG = [
   CREATE_CLIP_KEY,
@@ -73,7 +70,7 @@ export const MESSAGES_CONFIG: {
 export const NEW_FOLLOWER_MESSAGE = `🎉 ¡Mil Gracias @${STRING_PARAM}1, por la buena onda y el follow! 🙌✨ ¡Bienvenido/a a la comunidad! 🎮🚀 ¡Se vienen cosas piolas!`;
 export const NEW_SUB_MESSAGE = `🎉 ¡Mil gracias @${STRING_PARAM}1 por esa suscripción! 🙌✨ ¡Bienvenido/a a la banda de subs! 🎮🚀 ¡Ahora sos parte de la familia! 💜 ¡Alta facha!`;
 export const BITS_MESSAGE = `🎉 ¡Mil Gracias @${STRING_PARAM}1 por tirar esos ${STRING_PARAM}2 bits! 💎✨ ¡Se re valora, amigo/a! 🔥`;
-export const RAID_MESSAGE = `🚀 ¡Tremenda raid de parte de ${STRING_PARAM}1! 🙌🔥 Bienvenidos a todos los ${STRING_PARAM}2 que vienen con la manada. 🐺❤️ Soy rungekutta93, hacemos streams chill y risas aseguradas. 😄 🎮 ¡También estoy en Kick! 👉 https://kick.com/rungekutta93 💬 Unite al Discord de la comunidad para charlas y memes 👉 https://discord.gg/bHePmGSXVm ✨ Si tenés Prime, podés suscribirte gratis para bancar el canal. ¡Gracias por estar acá! 💜`;
+export const RAID_MESSAGE = `🚀 ¡Tremenda raid de parte de @${STRING_PARAM}1 ! 🙌🔥 Bienvenidos a todos los ${STRING_PARAM}2 que vienen con la manada. 🐺❤️ Soy rungekutta93, hacemos streams chill y risas aseguradas. 😄 🎮 ¡También estoy en Kick! 👉 https://kick.com/rungekutta93 💬 Unite al Discord de la comunidad para charlas y memes 👉 https://discord.gg/bHePmGSXVm ✨ Si tenés Prime, podés suscribirte gratis para bancar el canal. ¡Gracias por estar acá! 💜`;
 
 export const FOLLOW_SPAM_MESSAGES = [
   '🎮 ¡Gracias por coparte con el stream! 🔔 Mandale follow así no te perdés nada. 💜 ¿Te gusta la movida? Suscribite y bancá el contenido. 🔥 ¡También estoy en Kick, pasate! https://kick.com/rungekutta93',
@@ -91,6 +88,9 @@ export const PRIME_SPAM_MESSAGES = [
 ];
 
 export const ACTION_NOT_ALLOWED = 'No podés hacer eso, papá';
+
+export const TTS_MOD_SENDER = 'Un moderador';
+export const TTS_MESSAGE = `${STRING_PARAM}1 dijo: ${STRING_PARAM}2`;
 
 export const CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE = 'El juego no está disponible';
 export const CHANNEL_INFO_ACTION_SUCCESS = '¡Información del canal actualizada con éxito!';
