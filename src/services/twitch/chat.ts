@@ -1,6 +1,6 @@
 import tmi from 'tmi.js';
 import logger from '../../utils/logger';
-import { getBotTokens, refreshBotTokens } from './auth';
+import { getBotTokens } from './auth';
 
 const RECONNECTION_RETRIES = 3;
 let reconnectionCurrentRetries = 0;
@@ -53,7 +53,6 @@ const connectToChat = async (
       }
 
       reconnectionCurrentRetries += 1;
-      await refreshBotTokens(token.refresh_token);
       await connectToChat(botUsername, accountChatUsername, onNewMessage);
     });
 
