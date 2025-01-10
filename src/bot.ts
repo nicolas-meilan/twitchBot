@@ -47,17 +47,18 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
 };
 
 const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, tags }) => {
-  const formattedMessage = message.toLowerCase().trim();
+  const formattedMessage = message.trim();
   previousMessage = formattedMessage;
 
   const canDispatchModActions = !!tags.badges?.broadcaster || tags.mod;
 
-  const command = formattedMessage.split(' ')[0]?.trim();
+  const originalCommand = formattedMessage.split(' ')[0]?.trim();
+  const command = originalCommand.toLowerCase();
 
   if (USERS_ACTIONS_CONFIG.includes(command)) {
     await USER_ACTIONS[command as keyof typeof USER_ACTIONS]({
       chat,
-      value: formattedMessage.replace(command, '').trim(),
+      value: formattedMessage.replace(originalCommand, '').trim(),
       username: tags.username,
     });
 
@@ -73,7 +74,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
 
     await MOD_ACTIONS[command as keyof typeof MOD_ACTIONS]({
       chat,
-      value: formattedMessage.replace(command, '').trim(),
+      value: formattedMessage.replace(originalCommand, '').trim(),
       username: tags.username,
     });
 
@@ -89,13 +90,13 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
 
     await BROADCASTER_ACTIONS[command as keyof typeof BROADCASTER_ACTIONS]({
       chat,
-      value: formattedMessage.replace(command, '').trim(),
+      value: formattedMessage.replace(originalCommand, '').trim(),
     });
 
     return;
   }
 
-  const currentMessageResponse = MESSAGES_CONFIG[formattedMessage] || '';
+  const currentMessageResponse = MESSAGES_CONFIG[command] || '';
   const formattedResponse = await responsesKeysHandler(currentMessageResponse.trim());
 
   if (!formattedResponse) return;
