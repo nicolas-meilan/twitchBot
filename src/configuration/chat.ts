@@ -112,3 +112,5 @@ export const START_ACTION_ERROR = `¡Eh, che! Ya estás online, no hace falta qu
 export const START_ACTION_SUCCESS = `¡Faltan solo ${STRING_PARAM} minutos para arrancar! 🎮⏰ ¡Prepará el mate y ponete cómodo que se viene lo mejor! 🚀`;
 export const STREAM_START_ALERT_LONG = `¡Falta poquito, ya estamos a full! 😎💥 ¡El stream está por arrancar, no te lo podés perder! 🔥`;
 export const STREAM_START_ALERT_SHORT = '¡Ya está por arrancar, no te lo pierdas! 🚀🔥';
+
+export const REWARD_CLAIMED = `💰 ${STRING_PARAM}1 canjeó: ${STRING_PARAM}2`;

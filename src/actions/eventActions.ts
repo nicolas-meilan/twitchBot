@@ -15,6 +15,7 @@ import {
   NEW_FOLLOWER_MESSAGE,
   NEW_SUB_MESSAGE,
   RAID_MESSAGE,
+  REWARD_CLAIMED,
   STRING_PARAM,
 } from '../configuration/chat';
 import MOD_ACTIONS from './modActions';
@@ -72,20 +73,25 @@ const EVENT_ACTIONS: {
     chat.say(BROADCAST_USERNAME, chatMessage);
   },
   ['channel.channel_points_custom_reward_redemption.add']: ({ chat, event }) => {
+    chat.say(BROADCAST_USERNAME, REWARD_CLAIMED
+      .replace(`${STRING_PARAM}1`, event.user_name)
+      .replace(`${STRING_PARAM}2`, event.reward.title)
+    );
+
     if (!Stream.shared.isOnline) return;
 
-    const isTTS = event?.reward?.title?.toLowerCase().trim()
+    const isTTS = event.reward.title.toLowerCase().trim()
       === TWITCH_POWER_UP_TTS.toLowerCase().trim();
 
     if (isTTS) {
-      const userInput = event?.user_input?.trim();
+      const userInput = event.user_input?.trim();
       if (!userInput) return;
 
-      sendEventTTS(userInput, event?.user_name || '');
+      sendEventTTS(userInput, event.user_name);
       return;
     }
 
-    const isClip = event?.reward?.title?.toLowerCase().trim()
+    const isClip = event.reward.title.toLowerCase().trim()
       === TWITCH_POWER_UP_CLIP.toLowerCase().trim();
 
     if (isClip) {
@@ -93,7 +99,7 @@ const EVENT_ACTIONS: {
       return;
     }
 
-    const isMakeClip = event?.reward?.title?.toLowerCase().trim()
+    const isMakeClip = event.reward.title.toLowerCase().trim()
       === TWITCH_POWER_UP_MAKE_CLIP.toLowerCase().trim();
 
     if (isMakeClip) {
