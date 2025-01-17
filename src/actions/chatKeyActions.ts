@@ -11,6 +11,8 @@ import {
   USERS_ACTIONS_CONFIG,
   VALORANT_LAST_RANKED_RESPONSE_KEY,
   VALORANT_RANK_RESPONSE_KEY,
+  VIP_ACTIONS_CONFIG,
+  VIP_COMMANDS_RESPONSE_KEY,
 } from "../configuration/chat";
 
 type ChatKeyActionsType = () => string | Promise<string>;
@@ -35,6 +37,7 @@ const CHAT_KEY_ACTIONS: {
     ...USERS_ACTIONS_CONFIG,
   ].sort().join(COMMANDS_SEPARATOR),
   [MOD_COMMANDS_RESPONSE_KEY]: async () => MODS_ACTIONS_CONFIG.sort().join(COMMANDS_SEPARATOR),
+  [VIP_COMMANDS_RESPONSE_KEY]: async () => VIP_ACTIONS_CONFIG.sort().join(COMMANDS_SEPARATOR),
 };
 
 export default CHAT_KEY_ACTIONS;

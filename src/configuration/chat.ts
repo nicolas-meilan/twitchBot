@@ -4,6 +4,7 @@ export const STRING_PARAM = '__PARAM__';
 export const COMMANDS_SEPARATOR = ' 💻 ';
 export const COMMANDS_RESPONSE_KEY = `${KEY_DELIMITER}COMMANDS${KEY_DELIMITER}`;
 export const MOD_COMMANDS_RESPONSE_KEY = `${KEY_DELIMITER}MOD_COMMANDS${KEY_DELIMITER}`;
+export const VIP_COMMANDS_RESPONSE_KEY = `${KEY_DELIMITER}VIP_COMMANDS${KEY_DELIMITER}`;
 
 export const VALORANT_RANK_RESPONSE_KEY = `${KEY_DELIMITER}VALORANT_RANK${KEY_DELIMITER}`;
 export const VALORANT_LAST_RANKED_RESPONSE_KEY = `${KEY_DELIMITER}VALORANT_LAST_RANKED${KEY_DELIMITER}`;
@@ -14,6 +15,7 @@ export const RESPONSES_KEYS = [
   VALORANT_LAST_RANKED_RESPONSE_KEY,
   COMMANDS_RESPONSE_KEY,
   MOD_COMMANDS_RESPONSE_KEY,
+  VIP_COMMANDS_RESPONSE_KEY,
   JOKES_KEY,
 ];
 
@@ -28,17 +30,20 @@ export const BROADCASTER_MESSAGES_CONFIG = [
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
 export const MOST_POPULAR_CLIP_KEY = '!topclip';
 export const TTS_KEY = '!tts';
+export const CREATE_CLIP_KEY = '!clip';
+
+export const USERS_ACTIONS_CONFIG = [
+  CREATE_CLIP_KEY,
+];
+
+export const VIP_ACTIONS_CONFIG = [
+  TTS_KEY,
+];
 
 export const MODS_ACTIONS_CONFIG = [
   CHANGE_CHANNEL_INFORMATION_KEY,
   TTS_KEY,
   MOST_POPULAR_CLIP_KEY,
-];
-
-export const CREATE_CLIP_KEY = '!clip';
-
-export const USERS_ACTIONS_CONFIG = [
-  CREATE_CLIP_KEY,
 ];
 
 export const MESSAGES_CONFIG: {
@@ -49,6 +54,7 @@ export const MESSAGES_CONFIG: {
   ['!plataformas']: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 💬 https://discord.gg/bHePmGSXVm',
   ['!redes']: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 💬 https://discord.gg/bHePmGSXVm',
   ['!discord']: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
+  ['!ds']: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
   ['!kick']: '🚀 ¡Seguime también en Kick! Pasate a la verde para más streams copados 👉 https://kick.com/rungekutta93 🎮 ¡Nos vemos ahí, papá!',
   ['!horarios']: '🎮 Mi horario de streams 🎮 🗓️ Generalmente estoy en vivo a las 10:30 PM y a veces también a las 6:00 PM. Todo sujeto a mi disponibilidad, siempre en horario de Argentina 🇦🇷. ¡Activá las notis para no perderte nada!',
   ['!risas']: '😂 ¡Se descontroló el chat! Jajaja, qué nivel de risas, gente. 🤣 ¡Los quiero ver a todos spameando el jajajaja! 😂🔥',
@@ -63,6 +69,7 @@ export const MESSAGES_CONFIG: {
   ['!ultimapartida']: `🎮 ${VALORANT_LAST_RANKED_RESPONSE_KEY}`,
   ['!comandos']: `Lista de comandos:${COMMANDS_SEPARATOR}${COMMANDS_RESPONSE_KEY}`,
   ['!comandosmod']: `Lista de comandos para mods:${COMMANDS_SEPARATOR}${MOD_COMMANDS_RESPONSE_KEY}`,
+  ['!comandosvip']: `Lista de comandos VIP:${COMMANDS_SEPARATOR}${VIP_COMMANDS_RESPONSE_KEY}`,
   ['!chiste']: `🤡 ${JOKES_KEY}`,
   ['!chistes']: `🤡 ${JOKES_KEY}`,
 };

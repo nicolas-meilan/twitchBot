@@ -18,6 +18,7 @@ import {
   PRIME_SPAM_MESSAGES,
   BROADCASTER_MESSAGES_CONFIG,
   USERS_ACTIONS_CONFIG,
+  VIP_ACTIONS_CONFIG,
 } from './configuration/chat';
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
@@ -50,8 +51,6 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   const formattedMessage = message.trim();
   previousMessage = formattedMessage;
 
-  const canDispatchModActions = !!tags.badges?.broadcaster || tags.mod;
-
   const originalCommand = formattedMessage.split(' ')[0]?.trim();
   const command = originalCommand.toLowerCase();
 
@@ -65,7 +64,25 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
     return;
   }
 
+  if (VIP_ACTIONS_CONFIG.includes(command)) {
+    const canDispatchVipActions = !!tags.badges?.vip;
+    if (!canDispatchVipActions) {
+      chat.say(channel, ACTION_NOT_ALLOWED);
+      logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
+      return;
+    }
+
+    await MOD_ACTIONS[command as keyof typeof MOD_ACTIONS]({
+      chat,
+      value: formattedMessage.replace(originalCommand, '').trim(),
+      username: tags.username,
+    });
+
+    return;
+  }
+
   if (MODS_ACTIONS_CONFIG.includes(command)) {
+    const canDispatchModActions = !!tags.badges?.broadcaster || tags.mod;
     if (!canDispatchModActions) {
       chat.say(channel, ACTION_NOT_ALLOWED);
       logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
@@ -82,7 +99,8 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   }
 
   if (BROADCASTER_MESSAGES_CONFIG.includes(command)) {
-    if (!tags.badges?.broadcaster) {
+    const canDispatchBroadcasterActions = !!tags.badges?.broadcaster;
+    if (!canDispatchBroadcasterActions) {
       chat.say(channel, ACTION_NOT_ALLOWED);
       logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
       return;
