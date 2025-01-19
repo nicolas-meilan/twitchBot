@@ -29,7 +29,11 @@ const CHAT_KEY_ACTIONS: {
     const valorantInfo = await fetchCurrentRank();
 
     const isPositive = valorantInfo.mmr_change_to_last_game >= 0;
-    return `${isPositive ? 'Gané' : 'Perdí'} ${Math.abs(valorantInfo.mmr_change_to_last_game)} puntos ${isPositive ? '🏆' : '😭'}`;
+    return `${isPositive
+      ? '🎉 Ahora sí, rungekutta93 Ganó'
+      : '💔 Uh, Rungekutta93 perdió'} ${Math.abs(valorantInfo.mmr_change_to_last_game)} puntos ${isPositive
+        ? '🏆'
+        : '😭'}`;
   },
   [JOKES_KEY]: fetchJokes,
   [COMMANDS_RESPONSE_KEY]: async () => [
