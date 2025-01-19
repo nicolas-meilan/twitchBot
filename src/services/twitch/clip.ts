@@ -117,8 +117,8 @@ export const createClip = async (
       data: { id: string, edit_url: string }[];
     }>(`${BASE_URL}/helix/clips?broadcaster_id=${BROADCAST_ACCOUNT_ID}&has_delay=${withDelay}`, null, {
       headers: {
-        'Client-ID': CLIENT_ID,
         'Authorization': `Bearer ${accessToken}`,
+        'Client-Id': CLIENT_ID,
       },
     });
 
