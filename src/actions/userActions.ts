@@ -14,6 +14,7 @@ import { ActionsType } from './type';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
+const CLIP_AWAITING_TIME = 15000;
 let processingClip = false;
 
 const USER_ACTIONS: {
@@ -53,7 +54,7 @@ const USER_ACTIONS: {
       chat.say(BROADCAST_USERNAME, message);
 
       sendEventClip(clip.embed_url, clip.duration);
-      processingClip = false;
+      setTimeout(() => processingClip = false, CLIP_AWAITING_TIME);
     } catch {
       chat.say(BROADCAST_USERNAME, CLIP_ACTION_ERROR);
       processingClip = false;

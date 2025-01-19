@@ -7,6 +7,7 @@ import { random } from './utils/numbers';
 import Stream from './Stream';
 import MOD_ACTIONS from './actions/modActions';
 import CHAT_KEY_ACTIONS from './actions/chatKeyActions';
+import { UserRole, userHasAccess } from './actions/userRoles';
 
 import {
   MESSAGES_CONFIG,
@@ -66,10 +67,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   }
 
   if (VIP_ACTIONS_CONFIG.includes(command)) {
-    const canDispatchVipActions = !!tags.badges?.broadcaster
-      || tags.mod
-      || tags.badges?.vip;
-    if (!canDispatchVipActions) {
+    if (!userHasAccess(tags, UserRole.VIP)) {
       chat.say(channel, ACTION_NOT_ALLOWED);
       logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
       return;
@@ -85,9 +83,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   }
 
   if (MODS_ACTIONS_CONFIG.includes(command)) {
-    const canDispatchModActions = !!tags.badges?.broadcaster
-      || tags.mod;
-    if (!canDispatchModActions) {
+    if (!userHasAccess(tags, UserRole.MOD)) {
       chat.say(channel, ACTION_NOT_ALLOWED);
       logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
       return;
@@ -103,8 +99,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   }
 
   if (BROADCASTER_MESSAGES_CONFIG.includes(command)) {
-    const canDispatchBroadcasterActions = !!tags.badges?.broadcaster;
-    if (!canDispatchBroadcasterActions) {
+    if (!userHasAccess(tags, UserRole.BROADCASTER)) {
       chat.say(channel, ACTION_NOT_ALLOWED);
       logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
       return;
