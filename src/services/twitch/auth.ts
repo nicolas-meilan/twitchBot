@@ -3,7 +3,7 @@ import http from 'http';
 import url from 'url';
 import { BASE_AUTH_URL } from '../../configuration/constants';
 import { openBrowser } from '../../utils/system';
-import { loadTokens, saveTokens, type Tokens } from '../../utils/db';
+import { loadTokens, saveTokens, type Tokens } from '../../db/tokensdb';
 import logger from '../../utils/logger';
 
 export enum LoginType {

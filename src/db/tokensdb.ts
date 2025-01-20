@@ -1,7 +1,5 @@
-import sqlite3 from 'sqlite3';
+import db from './index';
 import crypto from 'crypto';
-
-const DATABASE = './tokens.db';
 
 const KEY = crypto.createHash('sha256').update(process.env.ENCRYPTION_KEY || '').digest();
 
@@ -16,24 +14,6 @@ type EncryptedTokens = {
   iv_access_token: string;
   iv_refresh_token: string;
 };
-
-const db = new sqlite3.Database(DATABASE, (err) => {
-  if (err) throw err;
-});
-
-db.serialize(() => {
-  db.run(`
-      CREATE TABLE IF NOT EXISTS oauth_tokens (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        account TEXT NOT NULL,
-        access_token TEXT NOT NULL,
-        refresh_token TEXT NOT NULL,
-        iv_access_token TEXT NOT NULL,
-        iv_refresh_token TEXT NOT NULL,
-        UNIQUE(account)
-      )
-    `);
-});
 
 const encrypt = (text: string, iv: Buffer) => {
   const cipher = crypto.createCipheriv('aes-256-cbc', KEY, iv);
@@ -53,14 +33,14 @@ export const saveTokens = (account: string, { access_token, refresh_token }: Tok
   const encryptedRefreshToken = encrypt(refresh_token, IV);
 
   const stmt = db.prepare(`
-        INSERT INTO oauth_tokens (account, access_token, refresh_token, iv_access_token, iv_refresh_token) 
-        VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT(account) DO UPDATE SET 
-          access_token = excluded.access_token,
-          refresh_token = excluded.refresh_token,
-          iv_access_token = excluded.iv_access_token,
-          iv_refresh_token = excluded.iv_refresh_token
-    `);
+    INSERT INTO oauth_tokens (account, access_token, refresh_token, iv_access_token, iv_refresh_token) 
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(account) DO UPDATE SET 
+      access_token = excluded.access_token,
+      refresh_token = excluded.refresh_token,
+      iv_access_token = excluded.iv_access_token,
+      iv_refresh_token = excluded.iv_refresh_token
+  `);
 
   stmt.run(
     account,
