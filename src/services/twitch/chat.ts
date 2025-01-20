@@ -58,8 +58,13 @@ const connectToChat = async (
 
     return client;
   } catch(error) {
-    logger.error('Error connecting to chat');
-    throw error;
+    if (reconnectionCurrentRetries >= RECONNECTION_RETRIES) {
+      logger.error('Error connecting to chat');
+      return;
+    }
+
+    reconnectionCurrentRetries += 1;
+    await connectToChat(botUsername, accountChatUsername, onNewMessage);
   }
 };
 
