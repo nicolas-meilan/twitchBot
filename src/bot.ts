@@ -8,6 +8,7 @@ import Stream from './Stream';
 import MOD_ACTIONS from './actions/modActions';
 import CHAT_KEY_ACTIONS from './actions/chatKeyActions';
 import { UserRole, userHasAccess } from './actions/userRoles';
+import { unvipExpiredRequests } from './utils/unvip';
 
 import {
   MESSAGES_CONFIG,
@@ -170,6 +171,7 @@ const startBot = async () => {
 
   if (!chat) return;
 
+  unvipExpiredRequests(BROADCAST_USERNAME, chat);
   spamFollowMessage(chat);
   spamPrimeMessage(chat);
 

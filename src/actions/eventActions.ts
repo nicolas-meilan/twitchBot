@@ -1,5 +1,7 @@
 import tmi from 'tmi.js';
 
+import db from '../db';
+import { storeVipRequest } from '../db/vipdb';
 import logger from '../utils/logger';
 import Stream from '../Stream';
 import { sendEventTTS } from '../services/botEvents';
@@ -7,6 +9,7 @@ import {
   TWITCH_POWER_UP_CLIP,
   TWITCH_POWER_UP_MAKE_CLIP,
   TWITCH_POWER_UP_TTS,
+  TWITCH_POWER_UP_VIP_REQUEST,
 } from '../configuration/botEvents';
 import {
   BITS_MESSAGE,
@@ -17,6 +20,8 @@ import {
   RAID_MESSAGE,
   REWARD_CLAIMED,
   STRING_PARAM,
+  VIP_REQUEST_ACTION_ERROR,
+  VIP_REQUEST_ACTION_SUCCESS,
 } from '../configuration/chat';
 import MOD_ACTIONS from './modActions';
 import USER_ACTIONS from './userActions';
@@ -104,6 +109,38 @@ const EVENT_ACTIONS: {
 
     if (isMakeClip) {
       USER_ACTIONS[CREATE_CLIP_KEY]({ chat });
+      return;
+    }
+
+    const isVipRequest = event.reward.title.toLowerCase().trim()
+      === TWITCH_POWER_UP_VIP_REQUEST.toLowerCase().trim();
+
+    if (isVipRequest) {
+      const userName = event.user_name;
+
+      if (!userName) return;
+  
+      db.serialize(async () => {
+        db.run('BEGIN TRANSACTION');
+        try {
+          db.run('COMMIT');
+          await chat.say(BROADCAST_USERNAME, `/vip ${userName}`);
+          storeVipRequest(BROADCAST_USERNAME, userName);
+
+          const successMessage = VIP_REQUEST_ACTION_SUCCESS
+            .replace(STRING_PARAM, userName);
+          chat.say(BROADCAST_USERNAME, successMessage);
+
+          logger.info(successMessage);
+        } catch {
+          db.run('ROLLBACK');
+          const errorMessage = VIP_REQUEST_ACTION_ERROR
+            .replace(STRING_PARAM, userName);
+          chat.say(BROADCAST_USERNAME, errorMessage);
+
+          logger.error(errorMessage);
+        }
+      });
       return;
     }
   },
