@@ -27,12 +27,12 @@ const TOKEN_VALIDATION_ENDPOINT = '/oauth2/validate';
 const LOCAL_ENVIRONMENT = 'local';
 
 const SCOPES: Record<LoginType, string> = {
-  [LoginType.BotUser]: 'chat:read chat:edit',
-  [LoginType.BroadcastUser]: 'channel:manage:broadcast moderator:read:followers channel:read:subscriptions bits:read channel:read:redemptions clips:edit',
+  [LoginType.BotUser]: 'chat:read chat:edit clips:edit',
+  [LoginType.BroadcastUser]: 'channel:manage:broadcast moderator:read:followers channel:read:subscriptions bits:read channel:read:redemptions channel:manage:vips',
 };
 
 const buildLoginUrl = (type: LoginType) =>
-  `${BASE_AUTH_URL}/oauth2/authorize?client_id=${encodeURIComponent(CLIENT_ID)}&redirect_uri=${encodeURIComponent(LOGIN_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPES[type])}&state=${encodeURIComponent(type)}`;
+  `${BASE_AUTH_URL}/oauth2/authorize?client_id=${encodeURIComponent(CLIENT_ID)}&redirect_uri=${encodeURIComponent(LOGIN_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPES[type])}`;
 
 const dispatchLogin = (type: LoginType) => {
   logger.info(`Awaiting login for ${type}...`);

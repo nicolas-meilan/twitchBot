@@ -1,5 +1,8 @@
 import { sendEventClip } from '../services/botEvents';
-import { getBroadcastTokens, refreshBroadcastTokens } from '../services/twitch/auth';
+import {
+  getBotTokens,
+  refreshBotTokens,
+} from '../services/twitch/auth';
 import { createClip } from '../services/twitch/clip';
 import Stream from '../Stream';
 import {
@@ -30,14 +33,14 @@ const USER_ACTIONS: {
       }
       processingClip = true;
 
-      const token = await getBroadcastTokens({ avoidLogin: true });
+      const token = await getBotTokens({ avoidLogin: true });
       if (!token || !token.access_token) return;
 
       const clip = await createClip(
         token.access_token,
         false,
         async () => {
-          const newToken = await refreshBroadcastTokens(token.refresh_token);
+          const newToken = await refreshBotTokens(token.refresh_token);
           return await createClip(newToken.access_token);
         },
       );
