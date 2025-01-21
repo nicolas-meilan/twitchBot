@@ -160,6 +160,8 @@ const spamPrimeMessage = (chat: tmi.Client) => {
 };
 
 const startBot = async () => {
+  unvipExpiredRequests(BROADCAST_USERNAME);
+
   const chat = await connectToChat(
     BOT_USERNAME,
     BROADCAST_USERNAME,
@@ -171,7 +173,6 @@ const startBot = async () => {
 
   if (!chat) return;
 
-  unvipExpiredRequests(BROADCAST_USERNAME, chat);
   spamFollowMessage(chat);
   spamPrimeMessage(chat);
 

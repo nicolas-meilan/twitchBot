@@ -32,8 +32,8 @@ const CHAT_KEY_ACTIONS: {
     return `${isPositive
       ? '🎉 Ahora sí, rungekutta93 Ganó'
       : '💔 Uh, Rungekutta93 perdió'} ${Math.abs(valorantInfo.mmr_change_to_last_game)} puntos ${isPositive
-        ? '🏆'
-        : '😭'}`;
+      ? '🏆'
+      : '😭'}`;
   },
   [JOKES_KEY]: fetchJokes,
   [COMMANDS_RESPONSE_KEY]: async () => [

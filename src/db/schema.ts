@@ -18,22 +18,23 @@ db.serialize(() => {
   `);
 
   db.run(`
-    CREATE TABLE IF NOT EXISTS vip_requests (
+    CREATE TABLE IF NOT EXISTS vip_status (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       account TEXT NOT NULL,
-      requester_username TEXT NOT NULL,
+      vip_user_id TEXT NOT NULL,
+      vip_username TEXT NOT NULL,
       timestamp INTEGER NOT NULL,
       is_vip BOOLEAN NOT NULL,
-      FOREIGN KEY (account) REFERENCES oauth_tokens(account)
-      UNIQUE(account, requester_username)
+      FOREIGN KEY (account) REFERENCES oauth_tokens(account),
+      UNIQUE(account, vip_user_id)
     )
   `);
 
   db.run(`
-    CREATE INDEX IF NOT EXISTS idx_account ON vip_requests(account)
+    CREATE INDEX IF NOT EXISTS idx_account ON vip_status(account)
   `);
 
   db.run(`
-    CREATE INDEX IF NOT EXISTS idx_requester_username ON vip_requests(requester_username)
+    CREATE INDEX IF NOT EXISTS idx_vip_user_id ON vip_status(vip_user_id)
   `);
 });

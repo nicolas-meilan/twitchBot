@@ -34,8 +34,7 @@ export const USER_ROLE_ACCESS_CONFIG = {
   [UserRole.BROADCASTER]: [
     UserRole.BROADCASTER,
   ],
-}
-
+};
 
 export const getUserRole = (userTags: tmi.ChatUserstate) => {
   if (!userTags.badges) return UserRole.BASIC;

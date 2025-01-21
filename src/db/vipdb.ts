@@ -1,39 +1,40 @@
 import db from './index';
 
-export const storeVipRequest = (account: string, requesterUsername: string) => {
+export const storeVipRequest = (account: string, vipUserId: string, vipUsername: string) => {
   const timestamp = Date.now();
 
   db.serialize(() => {
     db.run(
-      `INSERT INTO vip_requests (account, requester_username, timestamp, is_vip) 
-         VALUES (?, ?, ?, true) 
-         ON CONFLICT(account, requester_username) DO UPDATE SET 
+      `INSERT INTO vip_status (account, vip_user_id, vip_username, timestamp, is_vip) 
+         VALUES (?, ?, ?, ?, true) 
+         ON CONFLICT(account, vip_user_id) DO UPDATE SET 
            timestamp = excluded.timestamp, 
-           is_vip = true`,
-      [account.toLowerCase(), requesterUsername, timestamp]
+           is_vip = true, 
+           vip_username = excluded.vip_username`,
+      [account.toLowerCase(), vipUserId, vipUsername.toLowerCase(), timestamp]
     );
   });
 };
 
-export const revokeVipRequest = (account: string, requesterUsername: string) => {
+export const revokeVipRequest = (account: string, vipUserId: string) => {
   db.serialize(() => {
     db.run(
-      `UPDATE vip_requests 
+      `UPDATE vip_status 
          SET is_vip = false 
-         WHERE account = ? AND requester_username = ?`,
-      [account.toLowerCase(), requesterUsername]
+         WHERE account = ? AND vip_user_id = ?`,
+      [account.toLowerCase(), vipUserId]
     );
   });
 };
 
-export const getExpiredVipRequests = (account: string, expirationTime: number): Promise<{ requester_username: string }[]> => {
+export const getExpiredVipRequests = (account: string, expirationTime: number): Promise<{ vip_user_id: string, vip_username: string }[]> => {
   return new Promise((resolve, reject) => {
     db.all(
-      `SELECT requester_username 
-       FROM vip_requests 
+      `SELECT vip_user_id, vip_username 
+       FROM vip_status 
        WHERE account = ? AND is_vip = true AND timestamp < ?`,
       [account.toLowerCase(), expirationTime],
-      (err, rows: { requester_username: string }[]) => {
+      (err, rows: { vip_user_id: string, vip_username: string }[]) => {
         if (err) {
           return reject(err);
         }
