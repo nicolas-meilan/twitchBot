@@ -25,6 +25,7 @@ db.serialize(() => {
       timestamp INTEGER NOT NULL,
       is_vip BOOLEAN NOT NULL,
       FOREIGN KEY (account) REFERENCES oauth_tokens(account)
+      UNIQUE(account, requester_username)
     )
   `);
 

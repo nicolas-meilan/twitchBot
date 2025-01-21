@@ -1,6 +1,6 @@
 import db from './index';
 
-const CLEANUP_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+const CLEANUP_INTERVAL = 14 * 24 * 60 * 60 * 1000; // 2 weeks
 
 const cleanupNonVipRequests = () => {
   db.serialize(() => {

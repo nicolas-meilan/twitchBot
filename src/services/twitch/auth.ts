@@ -6,10 +6,14 @@ import { openBrowser } from '../../utils/system';
 import { loadTokens, saveTokens, type Tokens } from '../../db/tokensdb';
 import logger from '../../utils/logger';
 
-export enum LoginType {
-  BotUser = 'BOT_USER',
-  BroadcastUser = 'BROADCAST_USER',
-}
+const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
+
+type LoginType = 'BOT_USER' | typeof BROADCAST_USERNAME;
+
+export const LoginType = {
+  BotUser: 'BOT_USER',
+  BroadcastUser: BROADCAST_USERNAME, // TODO, allow multiple accounts
+};
 
 const CLIENT_ID = process.env.CLIENT_ID || '';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || '';
