@@ -115,10 +115,13 @@ export const createClip = async (
     logger.info('Generating clip ...');
     const response = await axios.post<{
       data: { id: string, edit_url: string }[];
-    }>(`${BASE_URL}/helix/clips?broadcaster_id=${BROADCAST_ACCOUNT_ID}&has_delay=${withDelay}`, null, {
+    }>(`${BASE_URL}/helix/clips`, {
+      broadcaster_id: BROADCAST_ACCOUNT_ID,
+      has_delay: !!withDelay,
+    }, {
       headers: {
+        'Client-ID': CLIENT_ID,
         'Authorization': `Bearer ${accessToken}`,
-        'Client-Id': CLIENT_ID,
       },
     });
 
