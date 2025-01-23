@@ -1,3 +1,4 @@
+import logger from '../utils/logger';
 import db from './index';
 import crypto from 'crypto';
 
@@ -77,3 +78,19 @@ export const loadTokens = (account: string) => new Promise<Tokens | undefined>((
     }
   );
 });
+
+export const deleteTokens = (account: string) => {
+  const stmt = db.prepare(`
+    DELETE FROM oauth_tokens WHERE account = ?
+  `);
+
+  stmt.run(account, (err) => {
+    if (err) {
+      logger.error("Error deleting tokens:", err);
+    } else {
+      logger.info(`Tokens for account ${account} have been deleted.`);
+    }
+  });
+
+  stmt.finalize();
+};
