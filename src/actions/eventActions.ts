@@ -13,7 +13,9 @@ import {
   BITS_MESSAGE,
   CREATE_CLIP_KEY,
   MOST_POPULAR_CLIP_KEY,
+  NEW_COMMUNITY_GIFT_MESSAGE,
   NEW_FOLLOWER_MESSAGE,
+  NEW_GIFT_SUB_MESSAGE,
   NEW_SUB_MESSAGE,
   RAID_MESSAGE,
   REWARD_CLAIMED,
@@ -43,10 +45,41 @@ const EVENT_ACTIONS: {
   },
   ['channel.subscribe']: ({ chat, event }) => {
     const username = event?.user_name;
+    const gifter = event?.gifter_name;
+    const giftCount = event?.gift_count || 1;
+    const isGift = event?.is_gift;
+    const recipient = event?.recipient_user_name;
 
-    if (!username) return;
+    const giftMessage = recipient
+      ? NEW_GIFT_SUB_MESSAGE
+        .replace(`${STRING_PARAM}1`, gifter)
+        .replace(`${STRING_PARAM}2`, recipient)
+      : NEW_COMMUNITY_GIFT_MESSAGE
+        .replace(`${STRING_PARAM}1`, gifter)
+        .replace(`${STRING_PARAM}2`, giftCount.toString());
 
-    const chatMessage = NEW_SUB_MESSAGE.replace(`${STRING_PARAM}1`, username);
+    const chatMessage = isGift
+      ? giftMessage
+      : NEW_SUB_MESSAGE.replace(`${STRING_PARAM}1`, username);
+
+    logger.info(chatMessage);
+    chat.say(BROADCAST_USERNAME, chatMessage);
+  },
+  ['channel.subscription.gift']: ({ chat, event }) => {
+    const gifter = event?.gifter_name;
+    const giftCount = event?.gift_count || 1;
+    const recipient = event?.recipient_user_name;
+
+    if (!gifter) return;
+
+    const chatMessage = recipient
+      ? NEW_GIFT_SUB_MESSAGE
+        .replace(`${STRING_PARAM}1`, gifter)
+        .replace(`${STRING_PARAM}2`, recipient)
+      : NEW_COMMUNITY_GIFT_MESSAGE
+        .replace(`${STRING_PARAM}1`, gifter)
+        .replace(`${STRING_PARAM}2`, giftCount.toString());
+
     logger.info(chatMessage);
     chat.say(BROADCAST_USERNAME, chatMessage);
   },

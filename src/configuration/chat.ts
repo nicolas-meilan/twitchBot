@@ -51,11 +51,12 @@ export const MESSAGES_CONFIG: {
 } = {
   ['!nickvalo']: '🎮 rungekutta93#RK93',
   ['!valorantid']: '🎮 rungekutta93#RK93',
-  ['!plataformas']: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 💬 https://discord.gg/bHePmGSXVm',
-  ['!redes']: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 💬 https://discord.gg/bHePmGSXVm',
+  ['!plataformas']: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 🎮 https://youtube.com/@rungekutta93 💬 https://discord.gg/bHePmGSXVm',
+  ['!redes']: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 🎮 https://youtube.com/@rungekutta93 💬 https://discord.gg/bHePmGSXVm',
   ['!discord']: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
   ['!ds']: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
   ['!kick']: '🚀 ¡Seguime también en Kick! Pasate a la verde para más streams copados 👉 https://kick.com/rungekutta93 🎮 ¡Nos vemos ahí, papá!',
+  ['!youtube']: '📺 ¡No te pierdas mis videos en YouTube! Suscribite para contenido épico y más diversión 👉 https://youtube.com/@rungekutta93 🎮 ¡Dale al botón rojo, papá! 🚀🔥',
   ['!horarios']: '🎮 Mi horario de streams 🎮 🗓️ Generalmente estoy en vivo a las 10:30 PM y a veces también a las 6:00 PM. Todo sujeto a mi disponibilidad, siempre en horario de Argentina 🇦🇷. ¡Activá las notis para no perderte nada!',
   ['!risas']: '😂 ¡Se descontroló el chat! Jajaja, qué nivel de risas, gente. 🤣 ¡Los quiero ver a todos spameando el jajajaja! 😂🔥',
   ['!perdon']: '😅 ¡Uh, me mandé una! Perdón, gente. 🙏 Espero que me perdonen... o no. 😂💜',
@@ -75,15 +76,20 @@ export const MESSAGES_CONFIG: {
 };
 
 export const NEW_FOLLOWER_MESSAGE = `🎉 ¡Mil Gracias @${STRING_PARAM}1, por la buena onda y el follow! 🙌✨ ¡Bienvenido/a a la comunidad! 🎮🚀 ¡Se vienen cosas piolas!`;
+
 export const NEW_SUB_MESSAGE = `🎉 ¡Mil gracias @${STRING_PARAM}1 por esa suscripción! 🙌✨ ¡Bienvenido/a a la banda de subs! 🎮🚀 ¡Ahora sos parte de la familia! 💜 ¡Alta facha!`;
+export const NEW_GIFT_SUB_MESSAGE = `🎁 ¡@${STRING_PARAM}1 le regaló una sub a @${STRING_PARAM}2! 🙌✨ ¡Bienvenido/a a la banda de subs, @${STRING_PARAM}2! 🎮🚀 ¡Gracias por el aguante, @${STRING_PARAM}1! 💜 ¡Alta facha los dos!`;
+export const NEW_COMMUNITY_GIFT_MESSAGE = `🎁 ¡@${STRING_PARAM}1 regaló ${STRING_PARAM}2 sub(s) a la comunidad! 🙌✨ ¡Un capo/capa total! 🎮🚀 ¡Gracias por el aguante y por sumar más gente a la banda de subs! 💜 ¡Alta facha!`;
+
 export const BITS_MESSAGE = `🎉 ¡Mil Gracias @${STRING_PARAM}1 por tirar esos ${STRING_PARAM}2 bits! 💎✨ ¡Se re valora, amigo/a! 🔥`;
-export const RAID_MESSAGE = `🚀 ¡Tremenda raid de parte de @${STRING_PARAM}1 ! 🙌🔥 Bienvenidos a todos los ${STRING_PARAM}2 que vienen con la manada. 🐺❤️ Soy rungekutta93, hacemos streams chill y risas aseguradas. 😄 🎮 ¡También estoy en Kick! 👉 https://kick.com/rungekutta93 💬 Unite al Discord de la comunidad para charlas y memes 👉 https://discord.gg/bHePmGSXVm ✨ Si tenés Prime, podés suscribirte gratis para bancar el canal. ¡Gracias por estar acá! 💜`;
+
+export const RAID_MESSAGE = `🚀 ¡Tremenda raid de parte de @${STRING_PARAM}1 ! 🙌🔥 Bienvenidos a todos los ${STRING_PARAM}2 que vienen con la manada. 🐺❤️ Soy rungekutta93, hacemos streams chill y risas aseguradas. 😄 🎮 ¡También estoy en Kick y Youtube! 👉 https://kick.com/rungekutta93 https://youtube.com/@rungekutta93 💬 Unite al Discord de la comunidad para charlas y memes 👉 https://discord.gg/bHePmGSXVm ✨ Si tenés Prime, podés suscribirte gratis para bancar el canal. ¡Gracias por estar acá! 💜`;
 
 export const FOLLOW_SPAM_MESSAGES = [
-  '🎮 ¡Gracias por coparte con el stream! 🔔 Mandale follow así no te perdés nada. 💜 ¿Te gusta la movida? Suscribite y bancá el contenido. 🔥 ¡También estoy en Kick, pasate! https://kick.com/rungekutta93',
-  '🎮 ¡Bienvenido/a al directo! 🔔 Tirame un follow así estás al tanto de todo lo que se viene. 💜 Si te gusta lo que ves, suscribite y formá parte. 🔥 También ando por Kick: https://kick.com/rungekutta93.',
-  '🔥 ¡Gracias por sumarte al stream! 💜 Tu apoyo suma un montón. Dale follow y, si te pinta, suscribite. 🎮 ¿Sabías que también estoy en Kick? ¡Pasá y seguime!: https://kick.com/rungekutta93.',
-  '🔔 ¡No te colgués! 🎮 Mandale follow así no te perdés ningún stream. 💜 ¿Te gusta la onda? Suscribite y bancame con todo. 🔥 Estoy en Kick también: https://kick.com/rungekutta93.',
+  '🎮 ¡Gracias por coparte con el stream! 🔔 Mandale follow así no te perdés nada. 💜 ¿Te gusta la movida? Suscribite y bancá el contenido. 🔥 ¡También estoy en Kick y Youtube, pasate! https://kick.com/rungekutta93 https://youtube.com/@rungekutta93',
+  '🎮 ¡Bienvenido/a al directo! 🔔 Tirame un follow así estás al tanto de todo lo que se viene. 💜 Si te gusta lo que ves, suscribite y formá parte. 🔥 También ando por Kick y Youtube: https://kick.com/rungekutta93 https://youtube.com/@rungekutta93',
+  '🔥 ¡Gracias por sumarte al stream! 💜 Tu apoyo suma un montón. Dale follow y, si te pinta, suscribite. 🎮 ¿Sabías que también estoy en Kick y Youtube? ¡Pasá y seguime!: https://kick.com/rungekutta93 https://youtube.com/@rungekutta93',
+  '🔔 ¡No te colgués! 🎮 Mandale follow así no te perdés ningún stream. 💜 ¿Te gusta la onda? Suscribite y bancame con todo. 🔥 Estoy en Kick y Youtube también: https://kick.com/rungekutta93 https://youtube.com/@rungekutta93',
 ];
 
 export const PRIME_SPAM_MESSAGES = [

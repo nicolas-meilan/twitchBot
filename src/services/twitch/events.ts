@@ -30,6 +30,9 @@ const EVENT_SUB_SUBSCRIPTIONS: {
   type: 'channel.subscribe',
   version: '1',
 }, {
+  type: 'channel.subscription.gift',
+  version: '1',
+}, {
   type: 'channel.cheer',
   version: '1',
 }, {
