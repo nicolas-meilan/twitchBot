@@ -106,11 +106,15 @@ export const getLatestClips = async (
 };
 
 const CLIP_CREATION_TIME = 15000;
+const CLIP_CREATION_MAX_RETRIES = 3;
+const CLIP_CREATION_RETRY_DELAY = 1000;
+
+let creationAttemps = 0;
 export const createClip = async (
   accessToken: string,
   withDelay: boolean = false,
   onAccessTokenExpired?: () => Promise<Clip | null>,
-) => {
+): Promise<Clip | null> => {
   try {
     logger.info('Generating clip ...');
     const response = await axios.post<{
@@ -131,6 +135,8 @@ export const createClip = async (
 
     if (!id) return null;
 
+    creationAttemps = 0;
+
     await delay(CLIP_CREATION_TIME);
 
     const clipData = await getClipInformation(accessToken, id, onAccessTokenExpired);
@@ -141,8 +147,18 @@ export const createClip = async (
       ...(clipData || {}),
     } as Clip;
   } catch (error) {
-    if (axios.isAxiosError(error)
-      && error?.response?.status === 401) return await onAccessTokenExpired?.() || null;
+    if (axios.isAxiosError(error)) {
+      const errorStatus = error?.response?.status;
+      if (errorStatus === 401) return await onAccessTokenExpired?.() || null;
+      if (errorStatus === 503) {
+        creationAttemps += 1;
+        if (creationAttemps <= CLIP_CREATION_MAX_RETRIES) {
+          await delay(CLIP_CREATION_RETRY_DELAY);
+          return createClip(accessToken, withDelay, onAccessTokenExpired);
+        }
+      }
+    }
+    creationAttemps = 0;
     logger.error('Error generating clip');
     throw new Error('Error generating clip');
   }
