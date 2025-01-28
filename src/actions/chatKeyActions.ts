@@ -30,8 +30,8 @@ const CHAT_KEY_ACTIONS: {
 
     const isPositive = valorantInfo.mmr_change_to_last_game >= 0;
     return `${isPositive
-      ? '🎉 Ahora sí, rungekutta93 Ganó'
-      : '💔 Uh, Rungekutta93 perdió'} ${Math.abs(valorantInfo.mmr_change_to_last_game)} puntos ${isPositive
+      ? '🎉 Ahora sí, RungeKutta93 Ganó'
+      : '💔 Uh, RungeKutta93 perdió'} ${Math.abs(valorantInfo.mmr_change_to_last_game)} puntos ${isPositive
       ? '🏆'
       : '😭'}`;
   },

@@ -70,7 +70,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   if (VIP_ACTIONS_CONFIG.includes(command)) {
     if (!userHasAccess(tags, UserRole.VIP)) {
       chat.say(channel, ACTION_NOT_ALLOWED);
-      logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
+      logger.info(`BOT: ${ACTION_NOT_ALLOWED}`);
       return;
     }
 
@@ -86,7 +86,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   if (MODS_ACTIONS_CONFIG.includes(command)) {
     if (!userHasAccess(tags, UserRole.MOD)) {
       chat.say(channel, ACTION_NOT_ALLOWED);
-      logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
+      logger.info(`BOT: ${ACTION_NOT_ALLOWED}`);
       return;
     }
 
@@ -102,7 +102,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   if (BROADCASTER_MESSAGES_CONFIG.includes(command)) {
     if (!userHasAccess(tags, UserRole.BROADCASTER)) {
       chat.say(channel, ACTION_NOT_ALLOWED);
-      logger.info(`rungekutta93bot: ${ACTION_NOT_ALLOWED}`);
+      logger.info(`BOT: ${ACTION_NOT_ALLOWED}`);
       return;
     };
 
@@ -119,7 +119,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
 
   if (!formattedResponse) return;
 
-  logger.info(`rungekutta93bot: ${formattedResponse}`);
+  logger.info(`BOT: ${formattedResponse}`);
   chat.say(channel, formattedResponse);
 };
 
