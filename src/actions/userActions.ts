@@ -25,7 +25,9 @@ const USER_ACTIONS: {
 } = {
   [CREATE_CLIP_KEY]: async ({ chat }) => {
     try {
-      if (!Stream.shared.isOnline) throw new Error('offline');
+      const isOnline = await Stream.shared.fetchStreamOnline();
+
+      if (!isOnline) throw new Error('offline');
 
       if (processingClip) {
         chat.say(BROADCAST_USERNAME, PROCESSING_CLIP_ERROR);
@@ -58,7 +60,8 @@ const USER_ACTIONS: {
 
       sendEventClip(clip.embed_url, clip.duration);
       setTimeout(() => processingClip = false, CLIP_AWAITING_TIME);
-    } catch {
+    } catch (error){
+      console.log(error)
       chat.say(BROADCAST_USERNAME, CLIP_ACTION_ERROR);
       processingClip = false;
     }

@@ -20,7 +20,8 @@ const BROADCASTER_ACTIONS: {
   [command: string]: ActionsType;
 } = {
   [START_STREAM_KEY]: async ({ chat, value }) => {
-    if (Stream.shared.isOnline) {
+    const isOnline = await Stream.shared.fetchStreamOnline();
+    if (isOnline) {
       chat.say(BROADCAST_USERNAME, START_ACTION_ERROR);
 
       return;

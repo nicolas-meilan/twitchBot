@@ -13,13 +13,13 @@ class Stream {
 
   private constructor() {}
 
-  async initialize() {
-    const tokens = await getBroadcastTokens();
-    await getBotTokens();
+  async fetchStreamOnline() {
+    const tokens = await getBroadcastTokens({ avoidLogin: true });
 
     if (!tokens) return;
 
     logger.info('Validating stream status...');
+
     try {
       const response = await axios.get<{
         data: { started_at: string }[];
@@ -31,9 +31,20 @@ class Stream {
       });
 
       this.isOnline = !!response.data.data.length;
+
+      return this.isOnline;
     } catch {
       logger.error('Error validating stream status');
+      throw new Error('Error validating stream status');
     }
+  }
+
+  async initialize() {
+    try {
+      await getBroadcastTokens();
+      await getBotTokens();
+      Stream.shared.fetchStreamOnline();
+    } catch {}
   }
 }
 
