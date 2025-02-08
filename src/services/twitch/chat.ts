@@ -47,13 +47,17 @@ const connectToChat = async (
     });
 
     client.on('disconnected', async () => {
-      if (reconnectionCurrentRetries >= RECONNECTION_RETRIES) {
-        logger.error('Error connecting chat');
-        return;
-      }
+      try {
+        if (reconnectionCurrentRetries >= RECONNECTION_RETRIES) {
+          logger.error('Error connecting chat');
+          return;
+        }
 
-      reconnectionCurrentRetries += 1;
-      await connectToChat(botUsername, accountChatUsername, onNewMessage);
+        reconnectionCurrentRetries += 1;
+        await connectToChat(botUsername, accountChatUsername, onNewMessage);
+      } catch {
+        logger.error('Unexpected error on reconnection attempt');
+      }
     });
 
     return client;
