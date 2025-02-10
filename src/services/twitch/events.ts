@@ -126,54 +126,58 @@ const registerEventSubSubscriptions = async (accessToken: string, sessionId: str
 const connectToEvents = async (
   chat: tmi.Client,
 ) => {
-  const runHandler = (subscriptionType: string = '', chat: tmi.Client, event?: any) => {
-    const action = EVENT_ACTIONS[subscriptionType as keyof typeof EVENT_ACTIONS];
-    if (!action) return;
+  try {
+    const runHandler = (subscriptionType: string = '', chat: tmi.Client, event?: any) => {
+      const action = EVENT_ACTIONS[subscriptionType as keyof typeof EVENT_ACTIONS];
+      if (!action) return;
 
-    logger.info(subscriptionType);
-    action({ chat, event });
-  };
+      logger.info(subscriptionType);
+      action({ chat, event });
+    };
 
-  const token = await getBroadcastTokens({ avoidLogin: true });
-  if (!token) return;
+    const token = await getBroadcastTokens({ avoidLogin: true });
+    if (!token) return;
 
-  await deleteExistingSubscriptions(token.access_token);
-  const ws = new WebSocket(WEB_SOCKET_URL);
+    await deleteExistingSubscriptions(token.access_token);
+    const ws = new WebSocket(WEB_SOCKET_URL);
 
-  ws.on('open', () => {
-    logger.info('Twitch websocket connected');
-  });
+    ws.on('open', () => {
+      logger.info('Twitch websocket connected');
+    });
 
-  ws.on('message', async (message) => {
-    try {
-      reconnectionCurrentRetries = 0;
-      const data = JSON.parse(message.toString());
+    ws.on('message', async (message) => {
+      try {
+        reconnectionCurrentRetries = 0;
+        const data = JSON.parse(message.toString());
 
-      if (data.type === 'PING') ws.send(JSON.stringify({ type: 'PONG' }));
+        if (data.type === 'PING') ws.send(JSON.stringify({ type: 'PONG' }));
 
-      if (data.metadata && data.metadata.message_type === 'session_welcome') {
-        const sessionId = data.payload.session.id;
-        logger.info('Session ID received:', sessionId);
+        if (data.metadata && data.metadata.message_type === 'session_welcome') {
+          const sessionId = data.payload.session.id;
+          logger.info('Session ID received:', sessionId);
 
-        await registerEventSubSubscriptions(token.access_token, sessionId);
+          await registerEventSubSubscriptions(token.access_token, sessionId);
+        }
+
+        const event = data?.payload?.event;
+        runHandler(data.payload?.subscription?.type, chat, event);
+      } catch {
+        logger.error('Error processing websocket message');
       }
+    });
 
-      const event = data?.payload?.event;
-      runHandler(data.payload?.subscription?.type, chat, event);
-    } catch {
-      logger.error('Error processing websocket message');
-    }
-  });
+    ws.on('error', () => {
+      logger.error('Error in webSocket');
+    });
 
-  ws.on('error', () => {
-    logger.error('Error in webSocket');
-  });
+    ws.on('close', async (code) => {
+      if (code === 4004) logger.error('Token expired');
 
-  ws.on('close', async (code) => {
-    if (code === 4004) logger.error('Token expired');
-
+      eventsReconnection(chat);
+    });
+  } catch {
     eventsReconnection(chat);
-  });
+  }
 };
 
 const eventsReconnection = (chat: tmi.Client) => {
