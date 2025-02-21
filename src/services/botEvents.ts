@@ -15,41 +15,63 @@ import { Clip } from './twitch/clip';
 const BOT_EVENTS_PASSWORD = process.env.BOT_EVENTS_PASSWORD || '';
 const BOT_EVENTS_PORT = process.env.BOT_EVENTS_PORT || '';
 
+const MAX_RETRIES = 5;
+const RETRIES_TIME = 5000;
+
 let activeSocket: WebSocket | null = null;
+let retryCount = 0;
 
-const wss = new WebSocketServer({ port: Number(BOT_EVENTS_PORT) });
+function startWebSocketServer() {
+  try {
+    const wss = new WebSocketServer({ port: Number(BOT_EVENTS_PORT) });
+    logger.info(`WebSocket server started on port ${BOT_EVENTS_PORT}`);
 
-wss.on('connection', (ws: WebSocket) => {
-  logger.info('New connection established.');
+    wss.on('connection', (ws) => {
+      logger.info('New connection established.');
 
-  ws.send(JSON.stringify({ type: BOT_EVENT_PASSWORD }));
+      ws.send(JSON.stringify({ type: BOT_EVENT_PASSWORD }));
 
-  ws.on('message', (data: Buffer) => {
-    const message = data.toString('utf8');
-    if (message === BOT_EVENTS_PASSWORD) {
-      logger.info('Correct password. Storing WebSocket connection.');
+      ws.on('message', (data) => {
+        try {
+          retryCount = 0;
+          const message = data.toString('utf8');
+          if (message === BOT_EVENTS_PASSWORD) {
+            logger.info('Correct password. Storing WebSocket connection.');
+            activeSocket = ws;
+          } else {
+            logger.error('Incorrect password. Disconnecting.');
+            ws.send(JSON.stringify({ type: BOT_EVENT_WRONG_PASSWORD }));
+            ws.close();
+          }
+        } catch (error) {
+          logger.error('Error processing message:', error);
+        }
+      });
 
-      activeSocket = ws;
+      ws.on('close', () => {
+        logger.info('Connection closed.');
+        if (ws === activeSocket) {
+          activeSocket = null;
+        }
+      });
+
+      ws.on('error', (err) => {
+        logger.error('WebSocket error:', err);
+      });
+    });
+  } catch (error) {
+    logger.error('WebSocket server error:');
+    if (retryCount < MAX_RETRIES) {
+      retryCount++;
+      logger.info(`Retrying to start WebSocket server... Attempt ${retryCount}/${MAX_RETRIES}`);
+      setTimeout(startWebSocketServer, RETRIES_TIME);
     } else {
-      logger.error('Incorrect password. Disconnecting.');
-
-      ws.send(JSON.stringify({ type: BOT_EVENT_WRONG_PASSWORD }));
-      ws.close();
+      logger.error('Max retries reached. WebSocket server failed to start.');
     }
-  });
+  }
+}
 
-  ws.on('close', () => {
-    logger.info('Connection closed.');
-
-    if (ws === activeSocket) {
-      activeSocket = null;
-    }
-  });
-
-  ws.on('error', () => {
-    logger.error('WebSocket error:');
-  });
-});
+startWebSocketServer();
 
 export const sendEventTTS = (message: string, user?: string) => {
   logger.info('Sending TTS event ...');
