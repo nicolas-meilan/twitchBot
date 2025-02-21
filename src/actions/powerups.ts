@@ -13,7 +13,7 @@ import {
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
-export const vipRequest = async (chat: tmi.Client, userName?: string) => {
+export const twoWeeksVipRequest = async (chat: tmi.Client, userName?: string) => {
   if (!userName) return;
   try {
     let vipDone = false;
@@ -27,9 +27,10 @@ export const vipRequest = async (chat: tmi.Client, userName?: string) => {
     try {
       if (!tokens || !userId) throw new Error();
 
+      const expirationTimestamp = Date.now() + 2 * 7 * 24 * 60 * 60 * 1000; // 2 weeks
       await giveVip(tokens.access_token, userId);
       vipDone = true;
-      storeVipRequest(BROADCAST_USERNAME, userId, userName);
+      storeVipRequest(BROADCAST_USERNAME, userId, userName, expirationTimestamp);
       vipStored = true;
       const successMessage = VIP_REQUEST_ACTION_SUCCESS
         .replace(STRING_PARAM, userName);

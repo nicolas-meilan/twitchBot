@@ -25,6 +25,7 @@ db.serialize(() => {
       vip_username TEXT NOT NULL,
       timestamp INTEGER NOT NULL,
       is_vip BOOLEAN NOT NULL,
+      expiration_timestamp INTEGER NOT NULL,
       FOREIGN KEY (account) REFERENCES oauth_tokens(account),
       UNIQUE(account, vip_user_id)
     )

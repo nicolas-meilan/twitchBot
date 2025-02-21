@@ -23,7 +23,7 @@ import {
 } from '../configuration/chat';
 import MOD_ACTIONS from './modActions';
 import USER_ACTIONS from './userActions';
-import { vipRequest } from './powerups';
+import { twoWeeksVipRequest } from './powerups';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
@@ -113,11 +113,11 @@ const EVENT_ACTIONS: {
       .replace(`${STRING_PARAM}2`, event.reward.title)
     );
 
-    const isVipRequest = event.reward.title.toLowerCase().trim()
+    const is2WeeksVipRequest = event.reward.title.toLowerCase().trim()
       === TWITCH_POWER_UP_VIP_REQUEST.toLowerCase().trim();
 
-    if (isVipRequest) {
-      await vipRequest(chat, event.user_name);
+    if (is2WeeksVipRequest) {
+      await twoWeeksVipRequest(chat, event.user_name);
       return;
     }
 
