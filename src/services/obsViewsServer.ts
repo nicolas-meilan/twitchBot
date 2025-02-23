@@ -12,6 +12,7 @@ const OBS_VIEWS_WS_URL = process.env.OBS_VIEWS_WS_URL || '';
 const OBS_CLIPS_FONT_NAME = process.env.OBS_CLIPS_FONT_NAME || '';
 const OBS_OFFLINE_SCENE_NAME = process.env.OBS_OFFLINE_SCENE_NAME || '';
 const OBS_COUNTDOWN_URL = process.env.OBS_COUNTDOWN_URL || '';
+const VALORANT_RANDOM_PICKER_URL = process.env.VALORANT_RANDOM_PICKER_URL || '';
 const BOT_EVENTS_PASSWORD = process.env.BOT_EVENTS_PASSWORD || '';
 const BOT_EVENTS_URL = process.env.BOT_EVENTS_URL || '';
 
@@ -36,6 +37,7 @@ const startObsViewsServer = () => {
             .replace('__OBS_COUNTDOWN_URL__', OBS_COUNTDOWN_URL)
             .replace('__OBS_COUNTDOWN_STRING_PARAM__', STRING_PARAM)
             .replace('__OBS_COUNTDOWN_MESSAGE__', STREAM_START_ALERT_SHORT)
+            .replace('__VALORANT_RANDOM_PICKER_URL__', VALORANT_RANDOM_PICKER_URL)
             .replace('__PASSWORD__', BOT_EVENTS_PASSWORD);
 
           res.statusCode = 200;

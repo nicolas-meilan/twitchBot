@@ -15,12 +15,16 @@
     const OBS_COUNTDOWN_MESSAGE = "__OBS_COUNTDOWN_MESSAGE__";
     const OBS_COUNTDOWN_STRING_PARAM = "__OBS_COUNTDOWN_STRING_PARAM__";
     const PASSWORD = "__PASSWORD__";
+    const VALORANT_RANDOM_PICKER_URL = "__VALORANT_RANDOM_PICKER_URL__";
 
     const OFFLINE_CLIPS_ITEM_NAME = "OfflineClips";
     const OFFLINE_BACKGROUND_ITEM_NAME = "BackgroundOffline";
     const OFFLINE_COUNTDOWN_ITEM_NAME = "OfflineCountdown";
     const DEFAULT_CLIP_TIME = 30000;
     const CLIP_PLUS_TIME = 2150;
+
+    const VALORANT_RANDOM_PICKER_ITEM_NAME = "VALORANT_RANDOM_PICKER";
+    const VALORANT_RANDOM_PICKER_VISIBLE_TIME = 8000;
 
     let ws;
     let obs;
@@ -55,7 +59,7 @@
       }
     }
 
-    async function ensureBrowserItemExists(sceneName, itemName, url = '') {
+    async function ensureBrowserItemExists(sceneName, itemName, url = '', options = { width: 1920, height: 1080, centered: false }) {
       try {
         const { sceneItems } = await obs.call('GetSceneItemList', { sceneName });
         const item = sceneItems.find(item => item.sourceName === itemName);
@@ -67,21 +71,28 @@
             inputKind: 'browser_source',
             inputSettings: {
               url,
-              width: 1920,
-              height: 1080,
-            }
+              width: options.width,
+              height: options.height,
+              shutdown: true,
+}           
           });
+
+          const updatedSceneItems = await obs.call('GetSceneItemList', { sceneName });
+          const newItem = updatedSceneItems.sceneItems.find(item => item.sourceName === itemName);
+
+          return newItem;
         } else {
           await obs.call('SetInputSettings', {
             inputName: itemName,
             inputSettings: {
               url,
               is_local_file: false,
-            }
-          });
-        }
+              shutdown: true,
+         }
+});
 
-        return item;
+          return item;
+        }
       } catch (error) {
         console.error('Error ensuring item exists', error);
       }
@@ -211,6 +222,29 @@
             }, videoTimeMs + CLIP_PLUS_TIME);
           } catch (error) {
             console.error('Error changing obs font for clips', error);
+          }
+          return;
+        }
+
+        if (type === "VALORANT_RANDOM_PICKER") {
+          if (!obs) return;
+
+          try {
+            const currentScene = await obs.call('GetCurrentProgramScene');
+            const valorantPicker = await ensureBrowserItemExists(
+              currentScene.currentProgramSceneName,
+              VALORANT_RANDOM_PICKER_ITEM_NAME,
+              VALORANT_RANDOM_PICKER_URL,
+{ width: 600, height: 600, centered: true }
+            );
+
+            await setSceneItemEnabled(currentScene.currentProgramSceneName, valorantPicker.sceneItemId, true);
+
+            setTimeout(async () => {
+              await setSceneItemEnabled(currentScene.currentProgramSceneName, valorantPicker.sceneItemId, false);
+            }, VALORANT_RANDOM_PICKER_VISIBLE_TIME);
+          } catch (error) {
+            console.error('Error handling VALORANT_RANDOM_PICKER', error);
           }
           return;
         }

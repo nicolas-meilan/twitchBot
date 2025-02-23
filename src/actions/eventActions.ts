@@ -7,7 +7,9 @@ import {
   TWITCH_POWER_UP_CLIP,
   TWITCH_POWER_UP_MAKE_CLIP,
   TWITCH_POWER_UP_TTS,
+  TWITCH_POWER_UP_VALORANT_RANDOM_PICKER,
   TWITCH_POWER_UP_VIP_REQUEST,
+  VALORANT_RANDOM_PICKER_EVENT,
 } from '../configuration/botEvents';
 import {
   BITS_MESSAGE,
@@ -20,8 +22,10 @@ import {
   RAID_MESSAGE,
   REWARD_CLAIMED,
   STRING_PARAM,
+  VALORANT_RANDOM_AGENT_ACTION,
 } from '../configuration/chat';
 import MOD_ACTIONS from './modActions';
+import VIP_ACTIONS from './vipActions';
 import USER_ACTIONS from './userActions';
 import { twoWeeksVipRequest } from './powerups';
 
@@ -148,6 +152,14 @@ const EVENT_ACTIONS: {
 
     if (isMakeClip) {
       USER_ACTIONS[CREATE_CLIP_KEY]({ chat });
+      return;
+    }
+
+    const isValorantRandomPicker = event.reward.title.toLowerCase().trim()
+      === TWITCH_POWER_UP_VALORANT_RANDOM_PICKER.toLowerCase().trim();
+
+    if (isValorantRandomPicker) {
+      VIP_ACTIONS[VALORANT_RANDOM_AGENT_ACTION]({ chat });
       return;
     }
   },

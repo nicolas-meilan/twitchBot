@@ -30,6 +30,7 @@ export const BROADCASTER_MESSAGES_CONFIG = [
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
 export const MOST_POPULAR_CLIP_KEY = '!topclip';
 export const TTS_KEY = '!tts';
+export const VALORANT_RANDOM_AGENT_KEY = '!agenterandom';
 export const CREATE_CLIP_KEY = '!clip';
 
 export const USERS_ACTIONS_CONFIG = [
@@ -38,12 +39,14 @@ export const USERS_ACTIONS_CONFIG = [
 
 export const VIP_ACTIONS_CONFIG = [
   TTS_KEY,
+  VALORANT_RANDOM_AGENT_KEY,
 ];
 
 export const MODS_ACTIONS_CONFIG = [
   CHANGE_CHANNEL_INFORMATION_KEY,
   TTS_KEY,
   MOST_POPULAR_CLIP_KEY,
+  VALORANT_RANDOM_AGENT_KEY,
 ];
 
 export const MESSAGES_CONFIG: {
@@ -122,5 +125,7 @@ export const STREAM_START_ALERT_SHORT = '¡Ya está por arrancar, no te lo pierd
 
 export const VIP_REQUEST_ACTION_SUCCESS = `🎉 ¡Felicitaciones @${STRING_PARAM}, ya sos VIP del canal! 🌟`;
 export const VIP_REQUEST_ACTION_ERROR = `😔 @${STRING_PARAM}, hubo un problema al procesar tu solicitud de VIP. Por favor, solicitá el reembolso de tus RungeCoins. 💔`;
+
+export const VALORANT_RANDOM_AGENT_ACTION = '🎰 ¡Girando, girando! 🔥 ¿Quién sale esta vez? 👀 ¡A meterle con todo! 💪🎮';
 
 export const REWARD_CLAIMED = `💰 ${STRING_PARAM}1 canjeó: ${STRING_PARAM}2`;

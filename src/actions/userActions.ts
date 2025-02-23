@@ -60,8 +60,7 @@ const USER_ACTIONS: {
 
       sendEventClip(clip.embed_url, clip.duration);
       setTimeout(() => processingClip = false, CLIP_AWAITING_TIME);
-    } catch (error){
-      console.log(error)
+    } catch {
       chat.say(BROADCAST_USERNAME, CLIP_ACTION_ERROR);
       processingClip = false;
     }

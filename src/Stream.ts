@@ -44,7 +44,7 @@ class Stream {
       await getBroadcastTokens();
       await getBotTokens();
       Stream.shared.fetchStreamOnline();
-    } catch {}
+    } catch {/* empty */}
   }
 }
 

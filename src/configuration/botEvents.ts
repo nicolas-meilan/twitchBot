@@ -13,3 +13,6 @@ export const TWITCH_POWER_UP_VIP_REQUEST = '🎩✨ VIP por 2 semanitas';
 
 export const START_STREAM_EVENT = 'START_STREAM';
 export const BASE_STREAM_START_TIME_MIN = 10;
+
+export const TWITCH_POWER_UP_VALORANT_RANDOM_PICKER = '⚡ Agente Random: ¡A romperla con todo! 💣';
+export const VALORANT_RANDOM_PICKER_EVENT = 'VALORANT_RANDOM_PICKER';

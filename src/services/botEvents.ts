@@ -8,6 +8,7 @@ import {
   BOT_EVENT_WRONG_PASSWORD,
   START_STREAM_EVENT,
   TTS_MAX_CHARACTERS,
+  VALORANT_RANDOM_PICKER_EVENT,
 } from '../configuration/botEvents';
 import { STRING_PARAM, TTS_MESSAGE } from '../configuration/chat';
 import { Clip } from './twitch/clip';
@@ -59,7 +60,7 @@ function startWebSocketServer() {
         logger.error('WebSocket error:', err);
       });
     });
-  } catch (error) {
+  } catch {
     logger.error('WebSocket server error:');
     if (retryCount < MAX_RETRIES) {
       retryCount++;
@@ -112,6 +113,18 @@ export const sendEventStartStream = (background: string, clips: Clip[], startTim
     };
     activeSocket.send(JSON.stringify(payload));
     logger.info('START_STREAM message sent:', JSON.stringify(payload));
+  } else {
+    logger.error('No active WebSocket connection. Message not sent.');
+  }
+};
+
+export const sendEventValorantRandomPicker = () => {
+  logger.info('Sending VALORANT_RANDOM_PICKER_EVENT event ...');
+  if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
+
+    const payload = { type: VALORANT_RANDOM_PICKER_EVENT };
+    activeSocket.send(JSON.stringify(payload));
+    logger.info('VALORANT_RANDOM_PICKER_EVENT message sent');
   } else {
     logger.error('No active WebSocket connection. Message not sent.');
   }
