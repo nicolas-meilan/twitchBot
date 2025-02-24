@@ -74,7 +74,19 @@ function startWebSocketServer() {
 
 startWebSocketServer();
 
-export const sendEventTTS = (message: string, user?: string) => {
+const webSocketErrorHandler = <T extends Array<unknown>>(callback: (...args: T) => Promise<void>) => async (...args: T): Promise<void> => {
+  try {
+    await callback(...args);
+  } catch {
+    logger.error('WebSocket Error');
+    startWebSocketServer();
+  }
+};
+
+export const sendEventTTS = webSocketErrorHandler<[
+  message: string,
+  user?: string,
+]>(async (message, user) => {
   logger.info('Sending TTS event ...');
   if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
     const parsedMessage = user
@@ -87,9 +99,12 @@ export const sendEventTTS = (message: string, user?: string) => {
   } else {
     logger.error('No active WebSocket connection. Message not sent.');
   }
-};
+});
 
-export const sendEventClip = (url: string, duration: string = '0') => {
+export const sendEventClip = webSocketErrorHandler<[
+  url: string,
+  duration?: string,
+]>(async (url, duration = '0') => {
   logger.info('Sending CLIP event ...');
   if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
 
@@ -99,9 +114,13 @@ export const sendEventClip = (url: string, duration: string = '0') => {
   } else {
     logger.error('No active WebSocket connection. Message not sent.');
   }
-};
+});
 
-export const sendEventStartStream = (background: string, clips: Clip[], startTimeMin: number = BASE_STREAM_START_TIME_MIN) => {
+export const sendEventStartStream = webSocketErrorHandler<[
+  background: string,
+  clips: Clip[],
+  startTimeMin?: number,
+]>(async (background, clips, startTimeMin = BASE_STREAM_START_TIME_MIN) => {
   logger.info('Sending START_STREAM event ...');
   if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
 
@@ -116,9 +135,9 @@ export const sendEventStartStream = (background: string, clips: Clip[], startTim
   } else {
     logger.error('No active WebSocket connection. Message not sent.');
   }
-};
+});
 
-export const sendEventValorantRandomPicker = () => {
+export const sendEventValorantRandomPicker = webSocketErrorHandler<[]>(async () => {
   logger.info('Sending VALORANT_RANDOM_PICKER_EVENT event ...');
   if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
 
@@ -128,6 +147,6 @@ export const sendEventValorantRandomPicker = () => {
   } else {
     logger.error('No active WebSocket connection. Message not sent.');
   }
-};
+});
 
 export default activeSocket;

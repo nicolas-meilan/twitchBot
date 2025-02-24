@@ -9,7 +9,6 @@ import {
   TWITCH_POWER_UP_TTS,
   TWITCH_POWER_UP_VALORANT_RANDOM_PICKER,
   TWITCH_POWER_UP_VIP_REQUEST,
-  VALORANT_RANDOM_PICKER_EVENT,
 } from '../configuration/botEvents';
 import {
   BITS_MESSAGE,
@@ -23,6 +22,7 @@ import {
   REWARD_CLAIMED,
   STRING_PARAM,
   VALORANT_RANDOM_AGENT_ACTION,
+  VALORANT_RANDOM_AGENT_KEY,
 } from '../configuration/chat';
 import MOD_ACTIONS from './modActions';
 import VIP_ACTIONS from './vipActions';
@@ -159,7 +159,7 @@ const EVENT_ACTIONS: {
       === TWITCH_POWER_UP_VALORANT_RANDOM_PICKER.toLowerCase().trim();
 
     if (isValorantRandomPicker) {
-      VIP_ACTIONS[VALORANT_RANDOM_AGENT_ACTION]({ chat });
+      VIP_ACTIONS[VALORANT_RANDOM_AGENT_KEY]({ chat });
       return;
     }
   },

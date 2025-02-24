@@ -235,13 +235,14 @@
               currentScene.currentProgramSceneName,
               VALORANT_RANDOM_PICKER_ITEM_NAME,
               VALORANT_RANDOM_PICKER_URL,
-{ width: 600, height: 600, centered: true }
+              { width: 600, height: 600, centered: true }
             );
 
-            await setSceneItemEnabled(currentScene.currentProgramSceneName, valorantPicker.sceneItemId, true);
-
             setTimeout(async () => {
-              await setSceneItemEnabled(currentScene.currentProgramSceneName, valorantPicker.sceneItemId, false);
+              await obs.call('SetInputSettings', {
+                inputName: VALORANT_RANDOM_PICKER_ITEM_NAME,
+                inputSettings: { url: '' }
+              });
             }, VALORANT_RANDOM_PICKER_VISIBLE_TIME);
           } catch (error) {
             console.error('Error handling VALORANT_RANDOM_PICKER', error);
