@@ -70,8 +70,8 @@ const EVENT_ACTIONS: {
     chat.say(BROADCAST_USERNAME, chatMessage);
   },
   ['channel.subscription.gift']: ({ chat, event }) => {
-    const gifter = event?.gifter_name;
-    const giftCount = event?.gift_count || 1;
+    const gifter = event?.user_name;
+    const giftCount = event?.total || 1;
     const recipient = event?.recipient_user_name;
 
     if (!gifter) return;
