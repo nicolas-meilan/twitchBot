@@ -4,21 +4,39 @@ import { getGameId, updateChannelInfo } from '../services/twitch/channel';
 import { getBroadcastTokens, refreshBroadcastTokens } from '../services/twitch/auth';
 import { getClipInformation } from '../services/twitch/clip';
 import {
+  ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY,
   CHANGE_CHANNEL_INFORMATION_KEY,
   CHANNEL_INFO_ACTION_ERROR,
   CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE,
   CHANNEL_INFO_ACTION_SUCCESS,
+  CLEAN_PLAYERS_QUEUE_KEY,
   CLIP_ACTION_ERROR,
   CLIP_ACTION_SUCCESS,
   COMMAND_DELIMITER,
+  DELETE_PLAYER_FROM_QUEUE_KEY,
   MOST_POPULAR_CLIP_KEY,
+  MOVE_PLAYER_FROM_QUEUE_KEY,
+  PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE,
+  PLAYERS_QUEUE_SUCCESS_MESSAGE,
   STRING_PARAM,
   TTS_KEY,
   TTS_MOD_SENDER,
 } from '../configuration/chat';
 import { ActionsType } from './type';
+import {
+  deleteQueue,
+  getOrderedQueue,
+  joinQueueManually,
+  moveToEndFromQueue,
+  removeFromQueue,
+} from '../services/gameQueue';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
+const PLAYERS_QUEUE_PRIORITY_KEY = [
+  'prioritario',
+  'prioridad',
+  'priority',
+];
 
 const MOD_ACTIONS: {
   [command: string]: ActionsType;
@@ -27,6 +45,34 @@ const MOD_ACTIONS: {
     if (!value) return;
 
     sendEventTTS(value, username || TTS_MOD_SENDER);
+  },
+  [ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY]: async ({ chat, value }) =>  {
+    if (!value) return;
+
+    const [username, extraValue] = value.split(' ');
+    const withPriority = PLAYERS_QUEUE_PRIORITY_KEY.includes(extraValue?.trim()?.toLowerCase());
+
+    joinQueueManually(username.trim(), withPriority);
+    const list = getOrderedQueue();
+    chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
+  },
+  [MOVE_PLAYER_FROM_QUEUE_KEY]: async ({ chat, value }) =>  {
+    if (!value) return;
+
+    moveToEndFromQueue(value);
+    const list = getOrderedQueue();
+    chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
+  },
+  [DELETE_PLAYER_FROM_QUEUE_KEY]: async ({ chat, value }) =>  {
+    if (!value) return;
+
+    removeFromQueue(value);
+    const list = getOrderedQueue();
+    chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
+  },
+  [CLEAN_PLAYERS_QUEUE_KEY]: async ({ chat }) =>  {
+    deleteQueue();
+    chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE);
   },
   [MOST_POPULAR_CLIP_KEY]: async ({ chat }) =>  {
     try {

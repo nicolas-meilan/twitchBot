@@ -9,6 +9,7 @@ export const VIP_COMMANDS_RESPONSE_KEY = `${KEY_DELIMITER}VIP_COMMANDS${KEY_DELI
 export const VALORANT_RANK_RESPONSE_KEY = `${KEY_DELIMITER}VALORANT_RANK${KEY_DELIMITER}`;
 export const VALORANT_LAST_RANKED_RESPONSE_KEY = `${KEY_DELIMITER}VALORANT_LAST_RANKED${KEY_DELIMITER}`;
 export const JOKES_KEY = `${KEY_DELIMITER}JOKES${KEY_DELIMITER}`;
+export const PLAYERS_KEY = `${KEY_DELIMITER}PLAYERS${KEY_DELIMITER}`;
 
 export const RESPONSES_KEYS = [
   VALORANT_RANK_RESPONSE_KEY,
@@ -17,6 +18,7 @@ export const RESPONSES_KEYS = [
   MOD_COMMANDS_RESPONSE_KEY,
   VIP_COMMANDS_RESPONSE_KEY,
   JOKES_KEY,
+  PLAYERS_KEY,
 ];
 
 export const COMMAND_DELIMITER = '/';
@@ -32,9 +34,17 @@ export const MOST_POPULAR_CLIP_KEY = '!topclip';
 export const TTS_KEY = '!tts';
 export const VALORANT_RANDOM_AGENT_KEY = '!agenterandom';
 export const CREATE_CLIP_KEY = '!clip';
+export const ADD_TO_PLAYERS_QUEUE_KEY = '!unirme';
+export const MOVE_PLAYER_FROM_QUEUE_KEY = '!mover';
+export const DELETE_PLAYER_FROM_QUEUE_KEY = '!borrar';
+export const ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY = '!agregar';
+export const LEAVE_PLAYERS_QUEUE_KEY = '!salir';
+export const CLEAN_PLAYERS_QUEUE_KEY = '!limpiar';
 
 export const USERS_ACTIONS_CONFIG = [
   CREATE_CLIP_KEY,
+  ADD_TO_PLAYERS_QUEUE_KEY,
+  LEAVE_PLAYERS_QUEUE_KEY,
 ];
 
 export const VIP_ACTIONS_CONFIG = [
@@ -47,6 +57,10 @@ export const MODS_ACTIONS_CONFIG = [
   TTS_KEY,
   MOST_POPULAR_CLIP_KEY,
   VALORANT_RANDOM_AGENT_KEY,
+  MOVE_PLAYER_FROM_QUEUE_KEY,
+  DELETE_PLAYER_FROM_QUEUE_KEY,
+  ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY,
+  CLEAN_PLAYERS_QUEUE_KEY,
 ];
 
 export const MESSAGES_CONFIG: {
@@ -75,6 +89,8 @@ export const MESSAGES_CONFIG: {
   ['!comandos']: `Lista de comandos:${COMMANDS_SEPARATOR}${COMMANDS_RESPONSE_KEY}`,
   ['!comandosmod']: `Lista de comandos para mods:${COMMANDS_SEPARATOR}${MOD_COMMANDS_RESPONSE_KEY}`,
   ['!comandosvip']: `Lista de comandos VIP:${COMMANDS_SEPARATOR}${VIP_COMMANDS_RESPONSE_KEY}`,
+  ['!jugadores']: `🎯 Jugadores listos para la acción: ${PLAYERS_KEY}`,
+  ['!comojugar']: '¡Para unirte a la partida, usá 🖥️ !unirme! | Para ver los jugadores, poné 🖥️ !jugadores | Si no podés seguir, tirá 🖥️ !salir para dejar espacio a otro. ¡No te quedes afuera! 👾',
   ['!chiste']: `🤡 ${JOKES_KEY}`,
   ['!chistes']: `🤡 ${JOKES_KEY}`,
 };
@@ -127,5 +143,8 @@ export const VIP_REQUEST_ACTION_SUCCESS = `🎉 ¡Felicitaciones @${STRING_PARAM
 export const VIP_REQUEST_ACTION_ERROR = `😔 @${STRING_PARAM}, hubo un problema al procesar tu solicitud de VIP. Por favor, solicitá el reembolso de tus RungeCoins. 💔`;
 
 export const VALORANT_RANDOM_AGENT_ACTION = '🎰 ¡Girando, girando! 🔥 ¿Quién sale esta vez? 👀 ¡A meterle con todo! 💪🎮';
+
+export const PLAYERS_QUEUE_SUCCESS_MESSAGE = `🔥 ¡La lista de cracks! 🔥: ${STRING_PARAM}`;
+export const PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE = '🎮 ¡La fila está vacía, todo en orden! 💥 Preparados para la próxima ronda. 🚀';
 
 export const REWARD_CLAIMED = `💰 ${STRING_PARAM}1 canjeó: ${STRING_PARAM}2`;

@@ -6,14 +6,18 @@ import {
 import { createClip } from '../services/twitch/clip';
 import Stream from '../Stream';
 import {
+  ADD_TO_PLAYERS_QUEUE_KEY,
   CLIP_ACTION_ERROR,
   CLIP_ACTION_SUCCESS,
   CLIP_ACTION_SUCCESS_EDIT_AVAILABLE,
   CREATE_CLIP_KEY,
+  LEAVE_PLAYERS_QUEUE_KEY,
+  PLAYERS_QUEUE_SUCCESS_MESSAGE,
   PROCESSING_CLIP_ERROR,
   STRING_PARAM,
 } from '../configuration/chat';
 import { ActionsType } from './type';
+import { getOrderedQueue, joinQueue, removeFromQueue } from '../services/gameQueue';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
@@ -23,6 +27,27 @@ let processingClip = false;
 const USER_ACTIONS: {
   [command: string]: ActionsType;
 } = {
+  [ADD_TO_PLAYERS_QUEUE_KEY]: ({ chat, username, tags }) => {
+    if (!username || !tags) return;
+
+    joinQueue({
+      username,
+      isMod: !!tags.mod,
+      isVIP: !!tags.badges?.vip,
+      isSub: !!tags.subscriber,
+      isFollower: true,
+    });
+
+    const list = getOrderedQueue();
+    chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
+  },
+  [LEAVE_PLAYERS_QUEUE_KEY]: ({ chat, username }) => {
+    if (!username) return;
+
+    removeFromQueue(username);
+    const list = getOrderedQueue();
+    chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
+  },
   [CREATE_CLIP_KEY]: async ({ chat }) => {
     try {
       const isOnline = await Stream.shared.fetchStreamOnline();
