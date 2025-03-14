@@ -21,7 +21,6 @@ import {
   RAID_MESSAGE,
   REWARD_CLAIMED,
   STRING_PARAM,
-  VALORANT_RANDOM_AGENT_ACTION,
   VALORANT_RANDOM_AGENT_KEY,
 } from '../configuration/chat';
 import MOD_ACTIONS from './modActions';

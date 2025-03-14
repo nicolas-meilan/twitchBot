@@ -12,6 +12,24 @@ export type OnNewMessage = (props: {
     self: boolean;
 }) => void;
 
+function createProxiedClient(client: tmi.Client): tmi.Client {
+  return new Proxy(client, {
+    get(target, prop, receiver) {
+      if (prop === 'say') {
+        return async function(targetChannel: string, message: string) {
+          try {
+            await target.say(targetChannel, message);
+            return;
+          } catch {
+            logger.error(`Error sending message`);
+          }
+        };
+      }
+      return Reflect.get(target, prop, receiver);
+    }
+  });
+}
+
 const connectToChat = async (
   botUsername: string,
   accountChatUsername: string,
@@ -32,11 +50,13 @@ const connectToChat = async (
       channels: [accountChatUsername],
     });
 
-    await client.connect();
+    const proxiedClient = createProxiedClient(client);
+
+    await proxiedClient.connect();
 
     logger.info('Successfully connected to Twitch chat.');
 
-    client.on('message', (channel, tags, message, self) => {
+    proxiedClient.on('message', (channel, tags, message, self) => {
       reconnectionCurrentRetries = 0;
       onNewMessage({
         channel,
@@ -46,7 +66,7 @@ const connectToChat = async (
       });
     });
 
-    client.on('disconnected', async () => {
+    proxiedClient.on('disconnected', async () => {
       try {
         if (reconnectionCurrentRetries >= RECONNECTION_RETRIES) {
           logger.error('Error connecting chat');
@@ -60,7 +80,7 @@ const connectToChat = async (
       }
     });
 
-    return client;
+    return proxiedClient;
   } catch {
     logger.error('Chat error');
   }
