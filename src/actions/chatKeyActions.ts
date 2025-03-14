@@ -8,12 +8,14 @@ import {
   MESSAGES_CONFIG,
   MOD_COMMANDS_RESPONSE_KEY,
   MODS_ACTIONS_CONFIG,
+  PLAYERS_KEY,
   USERS_ACTIONS_CONFIG,
   VALORANT_LAST_RANKED_RESPONSE_KEY,
   VALORANT_RANK_RESPONSE_KEY,
   VIP_ACTIONS_CONFIG,
   VIP_COMMANDS_RESPONSE_KEY,
 } from "../configuration/chat";
+import { getOrderedQueue } from "../services/gameQueue";
 
 type ChatKeyActionsType = () => string | Promise<string>;
 
@@ -40,6 +42,7 @@ const CHAT_KEY_ACTIONS: {
     ...Object.keys(MESSAGES_CONFIG),
     ...USERS_ACTIONS_CONFIG,
   ].sort().join(COMMANDS_SEPARATOR),
+  [PLAYERS_KEY]: () => getOrderedQueue(),
   [MOD_COMMANDS_RESPONSE_KEY]: async () => MODS_ACTIONS_CONFIG.sort().join(COMMANDS_SEPARATOR),
   [VIP_COMMANDS_RESPONSE_KEY]: async () => VIP_ACTIONS_CONFIG.sort().join(COMMANDS_SEPARATOR),
 };

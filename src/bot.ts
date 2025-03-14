@@ -62,6 +62,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
       chat,
       value: formattedMessage.replace(originalCommand, '').trim(),
       username: tags.username,
+      tags: tags,
     });
 
     return;
@@ -78,6 +79,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
       chat,
       value: formattedMessage.replace(originalCommand, '').trim(),
       username: tags.username,
+      tags: tags,
     });
 
     return;
@@ -94,6 +96,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
       chat,
       value: formattedMessage.replace(originalCommand, '').trim(),
       username: tags.username,
+      tags: tags,
     });
 
     return;
