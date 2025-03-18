@@ -1,11 +1,11 @@
 import WebSocket from 'ws';
-import tmi from 'tmi.js';
 import axios from 'axios';
 
 import logger from '../../utils/logger';
 import { getBroadcastTokens } from './auth';
 import { BASE_URL } from '../../configuration/constants';
 import EVENT_ACTIONS from '../../actions/eventActions';
+import TwitchChatService from './chat';
 
 export type EventCallback = (principalData?: string, extraData?: any) => void;
 
@@ -123,16 +123,17 @@ const registerEventSubSubscriptions = async (accessToken: string, sessionId: str
   }));
 };
 
-const connectToEvents = async (
-  chat: tmi.Client,
-) => {
+const connectToEvents = async () => {
   try {
-    const runHandler = (subscriptionType: string = '', chat: tmi.Client, event?: any) => {
+    const runHandler = (subscriptionType: string = '', event?: any) => {
       const action = EVENT_ACTIONS[subscriptionType as keyof typeof EVENT_ACTIONS];
       if (!action) return;
 
       logger.info(subscriptionType);
-      action({ chat, event });
+      action({
+        chat: TwitchChatService.chat,
+        event,
+      });
     };
 
     const token = await getBroadcastTokens({ avoidLogin: true });
@@ -160,7 +161,7 @@ const connectToEvents = async (
         }
 
         const event = data?.payload?.event;
-        runHandler(data.payload?.subscription?.type, chat, event);
+        runHandler(data.payload?.subscription?.type, event);
       } catch {
         logger.error('Error processing websocket message');
       }
@@ -173,14 +174,14 @@ const connectToEvents = async (
     ws.on('close', async (code) => {
       if (code === 4004) logger.error('Token expired');
 
-      eventsReconnection(chat);
+      eventsReconnection();
     });
   } catch {
-    eventsReconnection(chat);
+    eventsReconnection();
   }
 };
 
-const eventsReconnection = (chat: tmi.Client) => {
+const eventsReconnection = () => {
   setTimeout(() => {
     if (reconnectionCurrentRetries >= RECONNECTION_RETRIES) {
       logger.error('Error connecting websocket');
@@ -188,7 +189,7 @@ const eventsReconnection = (chat: tmi.Client) => {
     }
 
     logger.info('Reconnecting websocket...');
-    connectToEvents(chat);
+    connectToEvents();
     reconnectionCurrentRetries += 1;
   }, RECONNECTION_TIME);
 };

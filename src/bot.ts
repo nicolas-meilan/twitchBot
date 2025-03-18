@@ -1,6 +1,6 @@
 import tmi from 'tmi.js';
 
-import connectToChat, { OnNewMessage } from './services/twitch/chat';
+import TwitchChatService, { OnNewMessage } from './services/twitch/chat';
 import connectToEvents from './services/twitch/events';
 import logger from './utils/logger';
 import { random } from './utils/numbers';
@@ -126,7 +126,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   chat.say(channel, formattedResponse);
 };
 
-const spamFollowMessage = (chat: tmi.Client) => {
+const spamFollowMessage = () => {
   const time = FOLLOW_RECURRENT_MESSAGE_TIME_MIN * 60 * 1000; // ms
 
   setInterval(() => {
@@ -140,11 +140,11 @@ const spamFollowMessage = (chat: tmi.Client) => {
 
     const currentFollowerMessage = FOLLOW_SPAM_MESSAGES[random(0, FOLLOW_SPAM_MESSAGES.length)];
     logger.info(currentFollowerMessage);
-    chat.say(BROADCAST_USERNAME, currentFollowerMessage);
+    TwitchChatService.chat.say(BROADCAST_USERNAME, currentFollowerMessage);
   }, time);
 };
 
-const spamPrimeMessage = (chat: tmi.Client) => {
+const spamPrimeMessage = () => {
   const time = PRIME_RECURRENT_MESSAGE_TIME_MIN * 60 * 1000; // ms
 
   setInterval(() => {
@@ -158,28 +158,23 @@ const spamPrimeMessage = (chat: tmi.Client) => {
 
     const currentPrimeMessage = PRIME_SPAM_MESSAGES[random(0, PRIME_SPAM_MESSAGES.length)];
     logger.info(currentPrimeMessage);
-    chat.say(BROADCAST_USERNAME, currentPrimeMessage);
+    TwitchChatService.chat.say(BROADCAST_USERNAME, currentPrimeMessage);
   }, time);
 };
 
 const startBot = async () => {
   unvipExpiredRequests(BROADCAST_USERNAME);
 
-  const chat = await connectToChat(
+  await TwitchChatService.initialize(
     BOT_USERNAME,
     BROADCAST_USERNAME,
-    (params) => {
-      if (!chat) return;
+    (params) => messageHandler(TwitchChatService.chat)(params),
+  );
 
-      messageHandler(chat)(params);
-    });
+  spamFollowMessage();
+  spamPrimeMessage();
 
-  if (!chat) return;
-
-  spamFollowMessage(chat);
-  spamPrimeMessage(chat);
-
-  await connectToEvents(chat);
+  await connectToEvents();
 };
 
 export default startBot;
