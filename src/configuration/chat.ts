@@ -90,7 +90,7 @@ export const MESSAGES_CONFIG: {
   ['!comandosmod']: `Lista de comandos para mods:${COMMANDS_SEPARATOR}${MOD_COMMANDS_RESPONSE_KEY}`,
   ['!comandosvip']: `Lista de comandos VIP:${COMMANDS_SEPARATOR}${VIP_COMMANDS_RESPONSE_KEY}`,
   ['!jugadores']: `🎯 Jugadores listos para la acción: ${PLAYERS_KEY}`,
-  ['!comojugar']: '¡Para unirte a la partida, usá 🖥️ !unirme! | Para ver los jugadores, poné 🖥️ !jugadores | Si no podés seguir, tirá 🖥️ !salir para dejar espacio a otro. ¡No te quedes afuera! 👾',
+  ['!comojugar']: 'Para unirte a la partida, usá 🖥️ !unirme | Para ver los jugadores, poné 🖥️ !jugadores | Si no podés seguir, tirá 🖥️ !salir para dejar espacio a otro. ¡No te quedes afuera! 👾',
   ['!chiste']: `🤡 ${JOKES_KEY}`,
   ['!chistes']: `🤡 ${JOKES_KEY}`,
 };

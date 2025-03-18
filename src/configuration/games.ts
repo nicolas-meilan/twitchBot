@@ -22,31 +22,30 @@ export const BASE_TAGS = [
   'spanish',
   'chill',
   'gaming',
-  'fun',
-  'funny',
+  'diversion',
+  'argentina',
+  'latam',
 ];
 
 export const GAMES: {
   [key: typeof GAMES_KEYS[number]]: Game;
 } = {
   [VALORANT_KEY]: {
-    title: 'Valorant en directo | Amigos + competitivo = caos controlado 🤪🎮',
+    title: 'Valorant en directo | ¿Querés jugar? Mandá !unirme y entrá al equipo 🎮🔥',
     gameId: '516575',
     tags: [
       ...BASE_TAGS,
-      'funnygameplay',
       'competitive',
       'valorant',
       'shooter',
-      'valorantchill',
+      'fps',
     ],
   },
   [DB_KEY]: {
-    title: 'Dragon Ball Sparking Zero | Más risas que victorias 😂🎮',
+    title: 'Dragon Ball Sparking Zero en directo | Más risas que victorias 😂🎮',
     gameId: '400407464',
     tags: [
       ...BASE_TAGS,
-      'noobplays',
       'DRAGONBALLSPARKINGZERO',
       'dragonball',
       'dragonballz',
@@ -61,7 +60,6 @@ export const GAMES: {
       'Phasmophobia',
       'ghosthunting',
       'horror',
-      'teamplay',
       'jumpscares',
     ],
   },
@@ -72,9 +70,8 @@ export const GAMES: {
       ...BASE_TAGS,
       'casualgaming',
       'Fortnite',
-      'fortnitechill',
+      'shooter',
       'funnyplays',
-      'royale',
     ],
   },
   [DESARROLLO]: {
@@ -84,7 +81,6 @@ export const GAMES: {
       ...BASE_TAGS,
       'coding',
       'livestreamcoding',
-      'codinglive',
       'tech',
       'developer',
     ],
