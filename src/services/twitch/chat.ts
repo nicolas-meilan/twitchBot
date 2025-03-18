@@ -49,21 +49,24 @@ class TwitchChatService {
   private createProxiedClient(client: tmi.Client): tmi.Client {
     return new Proxy(client, {
       get: (target, prop, receiver) => {
-        if (prop === 'say') {
-          return async (targetChannel: string, message: string) => {
+        const original = Reflect.get(target, prop, receiver);
+        
+        if (typeof original === 'function') {
+          return async (...args: any[]) => {
             try {
-              await target.say(targetChannel, message);
+              return await original.apply(target, args);
             } catch {
-              await this.retryConnection();
-              try {
-                await target.say(targetChannel, message);
-              } catch {
-                logger.error('Error sending message to chat');
+              if (!TwitchChatService.chat?.readyState()
+                || ['CLOSING', 'CLOSED'].includes(TwitchChatService.chat.readyState())) {
+                await this.retryConnection();
+              } else {
+                logger.error(`Error in tmi.js client method ${String(prop)}`);
               }
             }
           };
         }
-        return Reflect.get(target, prop, receiver);
+        
+        return original;
       },
     });
   }

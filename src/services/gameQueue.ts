@@ -1,5 +1,5 @@
-const VIP_TIME_ADVANTAGE = 10 * 60 * 1000; // 10 minutes in milliseconds
-const SUB_TIME_ADVANTAGE = 5 * 60 * 1000; // 5 minutes in milliseconds
+const VIP_TIME_ADVANTAGE = 15;
+const SUB_TIME_ADVANTAGE = 10;
 
 type User = {
   username: string,
@@ -26,14 +26,16 @@ const gameQueue: UserRequest[] = [{
   addedManuallyWithPriority: false,
 }];
 
+const minToMs = (minutes: number) => minutes * 60 * 1000;
+
 const findUserInQueue = (username: string) => gameQueue.find((player) => player.username === username);
 
 const extraUserData = (user: UserRequest) => {
   if (user.isBroadcaster) return '👑 (Streamer)';
   if (user.isMod) return '🛡️ (Mod)';
   if (user.addedManuallyWithPriority) return '🚀 (Invitado/a)';
-  if (user.isVIP) return '💎 +10 (VIP)';
-  if (user.isSub) return '🏅 +5 (Suscriptor/a)';
+  if (user.isVIP) return `💎 +${VIP_TIME_ADVANTAGE} (VIP)`;
+  if (user.isSub) return `🏅 +${SUB_TIME_ADVANTAGE} (Suscriptor/a)`;
   if (user.isFollower) return '🤗 +0 (Seguidor/a)';
 
   return '';
@@ -56,8 +58,8 @@ export const getOrderedQueue = () => {
     if (a.isMod && !b.isMod) return -1;
     if (!a.isMod && b.isMod) return 1;
 
-    const adjustedA = a.timestamp - (a.isVIP ? VIP_TIME_ADVANTAGE : 0) - (a.isSub ? SUB_TIME_ADVANTAGE : 0);
-    const adjustedB = b.timestamp - (b.isVIP ? VIP_TIME_ADVANTAGE : 0) - (b.isSub ? SUB_TIME_ADVANTAGE : 0);
+    const adjustedA = a.timestamp - (a.isVIP ? minToMs(VIP_TIME_ADVANTAGE) : 0) - (a.isSub ? SUB_TIME_ADVANTAGE : 0);
+    const adjustedB = b.timestamp - (b.isVIP ? minToMs(VIP_TIME_ADVANTAGE) : 0) - (b.isSub ? SUB_TIME_ADVANTAGE : 0);
 
     return adjustedA - adjustedB;
   });
