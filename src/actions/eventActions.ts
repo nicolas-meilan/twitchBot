@@ -18,6 +18,7 @@ import {
   NEW_FOLLOWER_MESSAGE,
   NEW_GIFT_SUB_MESSAGE,
   NEW_SUB_MESSAGE,
+  RAID_FOLLOW_MESSAGE,
   RAID_MESSAGE,
   REWARD_CLAIMED,
   STRING_PARAM,
@@ -27,8 +28,11 @@ import MOD_ACTIONS from './modActions';
 import VIP_ACTIONS from './vipActions';
 import USER_ACTIONS from './userActions';
 import { twoWeeksVipRequest } from './powerups';
+import { delay } from '../utils/system';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
+
+const RAID_MESSAGES_DELAY = 5000;
 
 type EventActionsType = (params: {
   chat: tmi.Client
@@ -86,7 +90,7 @@ const EVENT_ACTIONS: {
     logger.info(chatMessage);
     chat.say(BROADCAST_USERNAME, chatMessage);
   },
-  ['channel.raid']: ({ chat, event }) => {
+  ['channel.raid']: async ({ chat, event }) => {
     const username: string = event?.from_broadcaster_user_name;
     const viewers: string = event?.viewers;
 
@@ -95,8 +99,17 @@ const EVENT_ACTIONS: {
     const chatMessage = RAID_MESSAGE.replace(`${STRING_PARAM}1`, username)
       .replace(`${STRING_PARAM}2`, viewers);
 
+    const chatMessage2 = RAID_FOLLOW_MESSAGE
+      .replace(STRING_PARAM, username)
+      .replace(STRING_PARAM, username);
+
     logger.info(chatMessage);
     chat.say(BROADCAST_USERNAME, chatMessage);
+
+    await delay(RAID_MESSAGES_DELAY);
+
+    logger.info(chatMessage);
+    chat.say(BROADCAST_USERNAME, chatMessage2);
   },
   ['channel.cheer']: ({ chat, event }) => {
     const username = event?.user_name;

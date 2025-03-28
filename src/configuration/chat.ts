@@ -103,7 +103,8 @@ export const NEW_COMMUNITY_GIFT_MESSAGE = `🎁 ¡@${STRING_PARAM}1 regaló ${ST
 
 export const BITS_MESSAGE = `🎉 ¡Mil Gracias @${STRING_PARAM}1 por tirar esos ${STRING_PARAM}2 bits! 💎✨ ¡Se re valora, amigo/a! 🔥`;
 
-export const RAID_MESSAGE = `🚀 ¡Tremenda raid de @${STRING_PARAM}1! 🙌🔥 Bienvenidos a todos los ${STRING_PARAM}2 que vienen con la manada 🐺. Soy RungeKutta93, hacemos streams chill 😄 ¡También en TikTok! 👉 tiktok.com/@rungekutta93 | Kick 👉 kick.com/rungekutta93 | YouTube 👉 youtube.com/@rungekutta93 | Discord 👉 discord.gg/bHePmGSXVm 💜 Si tenés Prime, suscribite gratis y apoyá el canal. 🚀🔥`;
+export const RAID_MESSAGE = `🚀 ¡Tremenda raid de @${STRING_PARAM}1! 🙌🔥 Bienvenidos a todos los ${STRING_PARAM}2 que vienen con la manada 🐺. Soy RungeKutta93, hacemos streams chill 😄 ¡También en TikTok! 👉 https://tiktok.com/@rungekutta93 | Kick 👉 https://kick.com/rungekutta93 | YouTube 👉 https://youtube.com/@rungekutta93 | Discord 👉 https://discord.gg/bHePmGSXVm 💜 Si tenés Prime, suscribite gratis y apoyá el canal. 🚀🔥`;
+export const RAID_FOLLOW_MESSAGE = `🔥 ¡No olviden seguir a @${STRING_PARAM} en su canal! 👉 https://www.twitch.tv/${STRING_PARAM} 💜 ¡Gracias por la raid! 🙌`;
 
 export const FOLLOW_SPAM_MESSAGES = [
   '🎮 ¡Gracias por coparte con el stream! 🔔 Mandale follow así no te perdés nada. 💜 Si te pinta, suscribite y bancá el canal. 🔥 También estoy en TikTok, Kick y YouTube: tiktok.com/@rungekutta93 | kick.com/rungekutta93 | youtube.com/@rungekutta93',
