@@ -1,3 +1,5 @@
+const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
+
 const VIP_TIME_ADVANTAGE = 15;
 const SUB_TIME_ADVANTAGE = 10;
 
@@ -16,7 +18,7 @@ type UserRequest = User & {
 };
 
 const gameQueue: UserRequest[] = [{
-  username: 'rungekutta93',
+  username: BROADCAST_USERNAME,
   isMod: true,
   isVIP: true,
   isSub: true,
@@ -26,9 +28,13 @@ const gameQueue: UserRequest[] = [{
   addedManuallyWithPriority: false,
 }];
 
+const isBroadcaster = (username: string) => username
+  .toLowerCase().trim() === BROADCAST_USERNAME.toLowerCase().trim();
+
 const minToMs = (minutes: number) => minutes * 60 * 1000;
 
-const findUserInQueue = (username: string) => gameQueue.find((player) => player.username === username);
+const findUserInQueue = (username: string) => gameQueue.find((player) => player.username
+  .toLowerCase().trim() === username.toLowerCase().trim());
 
 const extraUserData = (user: UserRequest) => {
   if (user.isBroadcaster) return '👑 (Streamer)';
@@ -42,7 +48,8 @@ const extraUserData = (user: UserRequest) => {
 };
 
 export const joinQueue = (user: User) => {
-  if (gameQueue.some((player) => player.username === user.username)) return false;
+  if (isBroadcaster(user.username) || gameQueue.some((player) => player.username
+    .toLowerCase().trim() === user.username.toLowerCase().trim())) return false;
 
   gameQueue.push({
     ...user,
@@ -71,14 +78,18 @@ export const getOrderedQueue = () => {
 
 export const moveToEndFromQueue = (username: string)  => {
   const user = findUserInQueue(username);
-  if (!user) return false;
+  if (!user || isBroadcaster(user.username)) return false;
 
   user.timestamp = Date.now();
   return true;
 };
 
 export const removeFromQueue = (username: string) => {
-  const index = gameQueue.findIndex((player) => player.username.toLowerCase() === username.toLowerCase());
+  if (isBroadcaster(username)) return false;
+
+  const index = gameQueue.findIndex((player) => player.username
+    .toLowerCase().trim() === username.toLowerCase().trim());
+
   if (index === -1) return false;
 
   gameQueue.splice(index, 1);
@@ -88,7 +99,7 @@ export const removeFromQueue = (username: string) => {
 export const deleteQueue = () => gameQueue.length = 1;
 
 export const joinQueueManually = (value: string, maxPriority?: boolean) => {
-  const username = value.split(' ')[0];
+  const username = value.split(' ')[0]?.trim();
   const alreadyExists = !!findUserInQueue(username);
 
   if (alreadyExists && !maxPriority) return false;
