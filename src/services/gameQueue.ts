@@ -1,6 +1,6 @@
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
-const VIP_TIME_ADVANTAGE = 15;
+const VIP_TIME_ADVANTAGE = 5;
 const SUB_TIME_ADVANTAGE = 10;
 
 type User = {
@@ -40,8 +40,8 @@ const extraUserData = (user: UserRequest) => {
   if (user.isBroadcaster) return '👑 (Streamer)';
   if (user.isMod) return '🛡️ (Mod)';
   if (user.addedManuallyWithPriority) return '🚀 (Invitado/a)';
-  if (user.isVIP) return `💎 +${VIP_TIME_ADVANTAGE} (VIP)`;
   if (user.isSub) return `🏅 +${SUB_TIME_ADVANTAGE} (Suscriptor/a)`;
+  if (user.isVIP) return `💎 +${VIP_TIME_ADVANTAGE} (VIP)`;
   if (user.isFollower) return '🤗 +0 (Seguidor/a)';
 
   return '';
