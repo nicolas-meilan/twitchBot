@@ -47,6 +47,17 @@ const extraUserData = (user: UserRequest) => {
   return '';
 };
 
+const getTimeDiscount = (user: UserRequest) => minToMs((() => {
+  const maxTimeDiscount = SUB_TIME_ADVANTAGE > VIP_TIME_ADVANTAGE
+    ? SUB_TIME_ADVANTAGE : VIP_TIME_ADVANTAGE;
+
+  if (user.isSub && user.isVIP) return maxTimeDiscount;
+  if (user.isSub) return SUB_TIME_ADVANTAGE;
+  if (user.isVIP) return VIP_TIME_ADVANTAGE;
+
+  return 0;
+})());
+
 export const joinQueue = (user: User) => {
   if (isBroadcaster(user.username) || gameQueue.some((player) => player.username
     .toLowerCase().trim() === user.username.toLowerCase().trim())) return false;
@@ -62,11 +73,17 @@ export const joinQueue = (user: User) => {
 
 export const getOrderedQueue = () => {
   const orderedQueue = gameQueue.slice().sort((a, b) => {
+    if (a.isBroadcaster && !b.isBroadcaster) return -1;
+    if (!a.isBroadcaster && b.isBroadcaster) return 1;
+
+    if (a.addedManuallyWithPriority && !b.addedManuallyWithPriority) return -1;
+    if (!a.addedManuallyWithPriority && b.addedManuallyWithPriority) return 1;
+
     if (a.isMod && !b.isMod) return -1;
     if (!a.isMod && b.isMod) return 1;
 
-    const adjustedA = a.timestamp - (a.isVIP ? minToMs(VIP_TIME_ADVANTAGE) : 0) - (a.isSub ? SUB_TIME_ADVANTAGE : 0);
-    const adjustedB = b.timestamp - (b.isVIP ? minToMs(VIP_TIME_ADVANTAGE) : 0) - (b.isSub ? SUB_TIME_ADVANTAGE : 0);
+    const adjustedA = a.timestamp - getTimeDiscount(a);
+    const adjustedB = b.timestamp - getTimeDiscount(b);
 
     return adjustedA - adjustedB;
   });
@@ -112,7 +129,7 @@ export const joinQueueManually = (value: string, maxPriority?: boolean) => {
     isSub: false,
     isFollower: false,
     addedManuallyWithPriority: !!maxPriority,
-    timestamp: maxPriority ? 0 : Date.now(),
+    timestamp: Date.now(),
   };
 
   gameQueue.push(userRequest);
