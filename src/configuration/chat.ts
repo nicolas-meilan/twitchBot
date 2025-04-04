@@ -35,6 +35,7 @@ export const TTS_KEY = '!tts';
 export const VALORANT_RANDOM_AGENT_KEY = '!agenterandom';
 export const CREATE_CLIP_KEY = '!clip';
 export const ADD_TO_PLAYERS_QUEUE_KEY = '!unirme';
+export const ADD_TO_PLAYERS_QUEUE_KEY_ALIAS = '!unirse';
 export const MOVE_PLAYER_FROM_QUEUE_KEY = '!mover';
 export const DELETE_PLAYER_FROM_QUEUE_KEY = '!borrar';
 export const ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY = '!agregar';
@@ -44,6 +45,7 @@ export const CLEAN_PLAYERS_QUEUE_KEY = '!limpiar';
 export const USERS_ACTIONS_CONFIG = [
   CREATE_CLIP_KEY,
   ADD_TO_PLAYERS_QUEUE_KEY,
+  ADD_TO_PLAYERS_QUEUE_KEY_ALIAS,
   LEAVE_PLAYERS_QUEUE_KEY,
 ];
 
@@ -75,7 +77,7 @@ export const MESSAGES_CONFIG: {
   ['!kick']: '🚀 ¡Seguime también en Kick! Pasate a la verde para más streams copados 👉 https://kick.com/rungekutta93 🎮 ¡Nos vemos ahí, papá!',
   ['!youtube']: '📺 ¡No te pierdas mis videos en YouTube! Suscribite para contenido épico y más diversión 👉 https://youtube.com/@rungekutta93 🎮 ¡Dale al botón rojo, papá! 🚀🔥',
   ['!tiktok']: '🎥✨ ¡Prendo en TikTok también! 👉 https://tiktok.com/@rungekutta93 🎮🔥 ¡Te espero ahí!',
-  ['!horarios']: '🎮 Mi horario de streams 🎮 🗓️ Generalmente estoy en vivo a las 10:30 PM y a veces también a las 6:00 PM. Todo sujeto a mi disponibilidad, siempre en horario de Argentina 🇦🇷. ¡Activá las notis para no perderte nada!',
+  ['!horarios']: '🎮 Mi horario de streams 🎮 🗓️ Generalmente estoy en vivo a las 6:00 PM y a veces también a las 10:30 PM. Todo sujeto a mi disponibilidad, siempre en horario de Argentina 🇦🇷. ¡Activá las notis para no perderte nada!',
   ['!risas']: '😂 ¡Se descontroló el chat! Jajaja, qué nivel de risas, gente. 🤣 ¡Los quiero ver a todos spameando el jajajaja! 😂🔥',
   ['!perdon']: '😅 ¡Uh, me mandé una! Perdón, gente. 🙏 Espero que me perdonen... o no. 😂💜',
   ['!rangovalorant']: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
@@ -90,6 +92,7 @@ export const MESSAGES_CONFIG: {
   ['!comandosmod']: `Lista de comandos para mods:${COMMANDS_SEPARATOR}${MOD_COMMANDS_RESPONSE_KEY}`,
   ['!comandosvip']: `Lista de comandos VIP:${COMMANDS_SEPARATOR}${VIP_COMMANDS_RESPONSE_KEY}`,
   ['!jugadores']: `🎯 Jugadores listos para la acción: ${PLAYERS_KEY}`,
+  ['!lista']: `🎯 Jugadores listos para la acción: ${PLAYERS_KEY}`,
   ['!comojugar']: 'Para unirte a la partida, usá 🖥️ !unirme | Para ver los jugadores, poné 🖥️ !jugadores | Si no podés seguir, tirá 🖥️ !salir para dejar espacio a otro. 🏆 Subs y VIPs tienen tiempo de ventaja. ¡No te quedes afuera! 👾',
   ['!chiste']: `🤡 ${JOKES_KEY}`,
   ['!chistes']: `🤡 ${JOKES_KEY}`,

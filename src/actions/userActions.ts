@@ -7,6 +7,7 @@ import { createClip } from '../services/twitch/clip';
 import Stream from '../Stream';
 import {
   ADD_TO_PLAYERS_QUEUE_KEY,
+  ADD_TO_PLAYERS_QUEUE_KEY_ALIAS,
   CLIP_ACTION_ERROR,
   CLIP_ACTION_SUCCESS,
   CLIP_ACTION_SUCCESS_EDIT_AVAILABLE,
@@ -40,6 +41,9 @@ const USER_ACTIONS: {
 
     const list = getOrderedQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
+  },
+  [ADD_TO_PLAYERS_QUEUE_KEY_ALIAS]: ({ chat, username, tags }) => {
+    USER_ACTIONS[ADD_TO_PLAYERS_QUEUE_KEY]({ chat, username, tags });
   },
   [LEAVE_PLAYERS_QUEUE_KEY]: ({ chat, username }) => {
     if (!username) return;
