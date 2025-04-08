@@ -73,6 +73,11 @@ class TwitchChatService {
 
   private async connect() {
     try {
+      if (TwitchChatService.chat && TwitchChatService.chat.readyState() === 'OPEN') {
+        logger.warn('Closing existing chat connection to prevent duplicates.');
+        await TwitchChatService.chat.disconnect();
+      }
+
       const token = await getBotTokens({ avoidLogin: true });
 
       if (!token) return;
