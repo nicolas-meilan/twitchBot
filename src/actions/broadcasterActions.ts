@@ -7,12 +7,14 @@ import {
   START_ACTION_SUCCESS,
   START_STREAM_KEY,
   STRING_PARAM,
+  VIP_KEY,
 } from '../configuration/chat';
 import logger from '../utils/logger';
 import Stream from '../Stream';
 import { BASE_STREAM_START_TIME_MIN } from '../configuration/botEvents';
 import { delay } from '../utils/system';
 import { ActionsType } from './type';
+import { twoWeeksVipRequest } from './powerups';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
@@ -50,6 +52,11 @@ const BROADCASTER_ACTIONS: {
 
     chat.say(BROADCAST_USERNAME, STREAM_START_ALERT_LONG);
     logger.info(STREAM_START_ALERT_LONG);
+  },
+  [VIP_KEY]: async ({ chat, value }) => {
+    if (!value) return;
+
+    await twoWeeksVipRequest(chat, value?.trim());
   },
 };
 

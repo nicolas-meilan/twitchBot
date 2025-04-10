@@ -24,9 +24,11 @@ export const RESPONSES_KEYS = [
 export const COMMAND_DELIMITER = '/';
 
 export const START_STREAM_KEY = '!online';
+export const VIP_KEY = '!vip';
 
 export const BROADCASTER_MESSAGES_CONFIG = [
   START_STREAM_KEY,
+  VIP_KEY,
 ];
 
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
