@@ -33,6 +33,8 @@ import { delay } from '../utils/system';
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
 const RAID_MESSAGES_DELAY = 5000;
+const BITS_TTS_DELAY = 5000;
+const MIN_BITS_FOR_TTS = 10;
 
 type EventActionsType = (params: {
   chat: tmi.Client
@@ -111,8 +113,9 @@ const EVENT_ACTIONS: {
     logger.info(chatMessage);
     chat.say(BROADCAST_USERNAME, chatMessage2);
   },
-  ['channel.cheer']: ({ chat, event }) => {
+  ['channel.cheer']: async ({ chat, event }) => {
     const username = event?.user_name;
+    const userMessage = event?.message?.trim();
     const bits = event?.bits;
 
     if (!username || !bits) return;
@@ -122,6 +125,11 @@ const EVENT_ACTIONS: {
 
     logger.info(chatMessage);
     chat.say(BROADCAST_USERNAME, chatMessage);
+
+    if (userMessage && bits >= MIN_BITS_FOR_TTS) {
+      await delay(BITS_TTS_DELAY);
+      sendEventTTS(userMessage, username);
+    }
   },
   ['channel.channel_points_custom_reward_redemption.add']: async ({ chat, event }) => {
     chat.say(BROADCAST_USERNAME, REWARD_CLAIMED
