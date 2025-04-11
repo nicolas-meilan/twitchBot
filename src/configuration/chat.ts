@@ -152,5 +152,6 @@ export const VALORANT_RANDOM_AGENT_ACTION = '🎰 ¡Girando, girando! 🔥 ¿Qui
 
 export const PLAYERS_QUEUE_SUCCESS_MESSAGE = `🔥 ¡La lista de cracks! 🔥: ${STRING_PARAM}`;
 export const PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE = '🎮 ¡La fila está vacía, todo en orden! 💥 Preparados para la próxima ronda. 🚀';
+export const PLAYERS_QUEUE_NO_FOLLOWER = `🕹️ @${STRING_PARAM} Opa, primero tirate el follow así te sumás a la lista 😉. ¡Dale que es un clic nomás!`;
 
 export const REWARD_CLAIMED = `💰 ${STRING_PARAM}1 canjeó: ${STRING_PARAM}2`;

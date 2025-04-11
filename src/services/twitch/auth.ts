@@ -27,7 +27,7 @@ const TOKEN_VALIDATION_ENDPOINT = '/oauth2/validate';
 const LOCAL_ENVIRONMENT = 'local';
 
 const SCOPES: Record<LoginType, string> = {
-  [LoginType.BotUser]: 'chat:read chat:edit clips:edit',
+  [LoginType.BotUser]: 'chat:read chat:edit clips:edit moderator:read:followers',
   [LoginType.BroadcastUser]: 'channel:manage:broadcast moderator:read:followers channel:read:subscriptions bits:read channel:read:redemptions channel:manage:vips',
 };
 

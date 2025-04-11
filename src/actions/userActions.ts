@@ -13,12 +13,15 @@ import {
   CLIP_ACTION_SUCCESS_EDIT_AVAILABLE,
   CREATE_CLIP_KEY,
   LEAVE_PLAYERS_QUEUE_KEY,
+  PLAYERS_QUEUE_NO_FOLLOWER,
   PLAYERS_QUEUE_SUCCESS_MESSAGE,
   PROCESSING_CLIP_ERROR,
   STRING_PARAM,
 } from '../configuration/chat';
 import { ActionsType } from './type';
 import { getOrderedQueue, joinQueue, removeFromQueue } from '../services/gameQueue';
+import { isFollower } from '../services/twitch/user';
+import logger from '../utils/logger';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
@@ -28,15 +31,35 @@ let processingClip = false;
 const USER_ACTIONS: {
   [command: string]: ActionsType;
 } = {
-  [ADD_TO_PLAYERS_QUEUE_KEY]: ({ chat, username, tags }) => {
+  [ADD_TO_PLAYERS_QUEUE_KEY]: async ({ chat, username, tags }) => {
     if (!username || !tags) return;
+
+    let userIsFollower = !!tags.mod || !!tags.badges?.vip || !!tags.subscriber;
+    if (!userIsFollower) {
+      const userId = tags['user-id'];
+      if (!userId) return;
+      try {
+        const token = await getBotTokens({ avoidLogin: true });
+        if (!token || !token.access_token) return;
+  
+        userIsFollower = await isFollower(token.access_token, userId);
+      } catch {
+        logger.error(`Error checking if user ${username} is a follower`);
+        return;
+      }
+    }
+
+    if (!userIsFollower) {
+        chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_NO_FOLLOWER.replace(STRING_PARAM, username));
+        return;
+    }
 
     joinQueue({
       username,
       isMod: !!tags.mod,
       isVIP: !!tags.badges?.vip,
       isSub: !!tags.subscriber,
-      isFollower: true,
+      isFollower: userIsFollower,
     });
 
     const list = getOrderedQueue();
