@@ -7,6 +7,7 @@ import {
   TWITCH_POWER_UP_CLIP,
   TWITCH_POWER_UP_MAKE_CLIP,
   TWITCH_POWER_UP_TTS,
+  TWITCH_POWER_UP_USER_SACRIFICE,
   TWITCH_POWER_UP_VALORANT_RANDOM_PICKER,
   TWITCH_POWER_UP_VIP_REQUEST,
 } from '../configuration/botEvents';
@@ -27,7 +28,7 @@ import {
 import MOD_ACTIONS from './modActions';
 import VIP_ACTIONS from './vipActions';
 import USER_ACTIONS from './userActions';
-import { twoWeeksVipRequest } from './powerups';
+import { twoWeeksVipRequest, userSacrifice } from './powerups';
 import { delay } from '../utils/system';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
@@ -180,6 +181,14 @@ const EVENT_ACTIONS: {
 
     if (isValorantRandomPicker) {
       VIP_ACTIONS[VALORANT_RANDOM_AGENT_KEY]({ chat });
+      return;
+    }
+
+    const isUserSacrifice = event.reward.title.toLowerCase().trim()
+      === TWITCH_POWER_UP_USER_SACRIFICE.toLowerCase().trim();
+
+    if (isUserSacrifice) {
+      await userSacrifice(chat, event.user_name);
       return;
     }
   },

@@ -150,6 +150,10 @@ export const VIP_REQUEST_ACTION_ERROR = `😔 @${STRING_PARAM}, hubo un problema
 
 export const VALORANT_RANDOM_AGENT_ACTION = '🎰 ¡Girando, girando! 🔥 ¿Quién sale esta vez? 👀 ¡A meterle con todo! 💪🎮';
 
+export const SACRIFICE_REASON = '🕯️🍀';
+export const SACRIFICE_SUCCESS = `🕯️ @${STRING_PARAM} acaba de sacrificarse 30 segundos por la victoria 🍀`;
+export const SACRIFICE_ERROR = `⛔ No se pudo sacrificar a @${STRING_PARAM} ... es demasiado poderoso 🧙‍♂️`;
+
 export const PLAYERS_QUEUE_SUCCESS_MESSAGE = `🔥 ¡La lista de cracks! 🔥: ${STRING_PARAM}`;
 export const PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE = '🎮 ¡La fila está vacía, todo en orden! 💥 Preparados para la próxima ronda. 🚀';
 export const PLAYERS_QUEUE_NO_FOLLOWER = `🕹️ @${STRING_PARAM} Opa, primero tirate el follow así te sumás a la lista 😉. ¡Dale que es un clic nomás!`;
