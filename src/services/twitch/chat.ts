@@ -60,7 +60,7 @@ class TwitchChatService {
                 || ['CLOSED'].includes(TwitchChatService.chat.readyState())) {
                 await this.retryConnection();
               } else {
-                logger.error(`Error in tmi.js client method ${String(prop)}`);
+                logger.error(`Error in tmi.js client method ${String(prop)}: ${error}`);
                 throw error;
               }
             }

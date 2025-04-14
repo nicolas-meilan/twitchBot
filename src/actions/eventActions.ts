@@ -146,6 +146,14 @@ const EVENT_ACTIONS: {
       return;
     }
 
+    const isUserSacrifice = event.reward.title.toLowerCase().trim()
+    === TWITCH_POWER_UP_USER_SACRIFICE.toLowerCase().trim();
+
+    if (isUserSacrifice) {
+      await userSacrifice(chat, event.user_id, event.user_name);
+      return;
+    }
+  
     // Power Ups that Needs to be online
     if (!Stream.shared.isOnline) return;
 
@@ -181,14 +189,6 @@ const EVENT_ACTIONS: {
 
     if (isValorantRandomPicker) {
       VIP_ACTIONS[VALORANT_RANDOM_AGENT_KEY]({ chat });
-      return;
-    }
-
-    const isUserSacrifice = event.reward.title.toLowerCase().trim()
-      === TWITCH_POWER_UP_USER_SACRIFICE.toLowerCase().trim();
-
-    if (isUserSacrifice) {
-      await userSacrifice(chat, event.user_name);
       return;
     }
   },

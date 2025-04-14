@@ -1,7 +1,7 @@
 import tmi from 'tmi.js';
 
 import { revokeVipRequest, storeVipRequest } from '../db/vipdb';
-import { getBroadcastTokens } from '../services/twitch/auth';
+import { getBotTokens, getBroadcastTokens } from '../services/twitch/auth';
 import { getUserIdByUsername } from '../services/twitch/user';
 import { giveVip } from '../services/twitch/vip';
 import logger from '../utils/logger';
@@ -13,6 +13,7 @@ import {
   VIP_REQUEST_ACTION_ERROR,
   VIP_REQUEST_ACTION_SUCCESS,
 } from '../configuration/chat';
+import { banUser } from '../services/twitch/mod';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
@@ -61,10 +62,20 @@ export const twoWeeksVipRequest = async (chat: tmi.Client, userName?: string) =>
   }
 };
 
-export const userSacrifice = async (chat: tmi.Client, userName: string) => {
+const SACRIFICE_TIME_MIN = 2;
+export const userSacrifice = async (chat: tmi.Client, userId: string, userName: string) => {
   try {
-    await chat.timeout(BROADCAST_USERNAME, userName, 30, SACRIFICE_REASON);
-    chat.say(BROADCAST_USERNAME, SACRIFICE_SUCCESS.replace(STRING_PARAM, userName));
+    const tokens = await getBotTokens({ avoidLogin: true });
+    if (!tokens) throw new Error('Failed to retrieve access tokens.');
+
+    await banUser(tokens.access_token, userId, {
+      duration: SACRIFICE_TIME_MIN * 60,
+      reason: SACRIFICE_REASON,
+    });
+
+    chat.say(BROADCAST_USERNAME, SACRIFICE_SUCCESS
+      .replace(`${STRING_PARAM}1`, userName)
+      .replace(`${STRING_PARAM}2`, `${SACRIFICE_TIME_MIN} minutos`));
     logger.info(SACRIFICE_SUCCESS.replace(STRING_PARAM, userName));
   } catch (error){
     chat.say(BROADCAST_USERNAME, SACRIFICE_ERROR.replace(STRING_PARAM, userName));
