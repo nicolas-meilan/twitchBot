@@ -57,7 +57,7 @@ const EVENT_ACTIONS: {
     const username = event?.user_name;
     const gifter = event?.gifter_name;
     const giftCount = event?.gift_count || 1;
-    const isGift = event?.is_gift;
+    const isGift = event?.is_gift && gifter;
     const recipient = event?.recipient_user_name;
 
     const giftMessage = recipient
