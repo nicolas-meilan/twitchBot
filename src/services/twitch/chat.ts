@@ -15,6 +15,7 @@ class TwitchChatService {
 
   private static shared = new TwitchChatService();
 
+  private reconnecting = false;
   private reconnectionRetries = 3;
   private reconnectionTime = 1000;
   private currentRetries = 0;
@@ -36,6 +37,8 @@ class TwitchChatService {
   }
 
   private async retryConnection() {
+    if (this.reconnecting) return;
+    this.reconnecting = true;
     if (this.currentRetries >= this.reconnectionRetries) {
       logger.error('Error connecting chat');
       return;
@@ -44,6 +47,7 @@ class TwitchChatService {
     await delay(this.reconnectionTime);
     this.currentRetries += 1;
     await this.connect();
+    this.reconnecting = false;
   }
 
   private createProxiedClient(client: tmi.Client): tmi.Client {
