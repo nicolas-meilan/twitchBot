@@ -39,9 +39,20 @@ class TwitchChatService {
   private async retryConnection() {
     if (this.reconnecting) return;
     this.reconnecting = true;
+
     if (this.currentRetries >= this.reconnectionRetries) {
       logger.error('Error connecting chat');
+      this.reconnecting = false;
       return;
+    }
+
+    if (TwitchChatService.chat) {
+      try {
+        await TwitchChatService.chat.disconnect();
+        logger.info('Previous chat connection closed successfully.');
+      } catch (error) {
+        logger.warn('Error while disconnecting previous chat connection:', error);
+      }
     }
 
     await delay(this.reconnectionTime);
@@ -53,15 +64,18 @@ class TwitchChatService {
   private createProxiedClient(client: tmi.Client): tmi.Client {
     return new Proxy(client, {
       get: (target, prop, receiver) => {
+        if (prop === 'disconnect') {
+          return Reflect.get(target, prop, receiver);
+        }
+
         const original = Reflect.get(target, prop, receiver);
-        
+
         if (typeof original === 'function') {
           return async (...args: any[]) => {
             try {
               return await original.apply(target, args);
-            } catch (error){
-              if (!TwitchChatService.chat?.readyState()
-                || ['CLOSED'].includes(TwitchChatService.chat.readyState())) {
+            } catch (error) {
+              if (!TwitchChatService.chat?.readyState() || TwitchChatService.chat.readyState() === 'CLOSED') {
                 await this.retryConnection();
               } else {
                 logger.error(`Error in tmi.js client method ${String(prop)}: ${error}`);
@@ -70,7 +84,7 @@ class TwitchChatService {
             }
           };
         }
-        
+
         return original;
       },
     });
@@ -108,9 +122,6 @@ class TwitchChatService {
         this.onNewMessage({ channel, tags, message, self });
       });
 
-      TwitchChatService.chat.on('disconnected', async () => {
-        await this.retryConnection();
-      });
     } catch {
       logger.error('Chat error');
     }

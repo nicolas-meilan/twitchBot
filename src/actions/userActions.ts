@@ -50,8 +50,8 @@ const USER_ACTIONS: {
     }
 
     if (!userIsFollower) {
-        chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_NO_FOLLOWER.replace(STRING_PARAM, username));
-        return;
+      chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_NO_FOLLOWER.replace(STRING_PARAM, username));
+      return;
     }
 
     joinQueue({
