@@ -87,6 +87,8 @@ export const MESSAGES_CONFIG: {
   ['!elo']: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
   ['!valorantrango']: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
   ['!valorant']: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
+  ['!id']: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
+  ['!mira']: `Ahí tenés, la mira mágica papá 😎🎯: 0;p;0;s;1;P;c;1;u;DFFDD0FF;o;0.456;0t;1;0l;3;0o;1;0a;1;0f;0;1b;0;A;c;1;o;1;d;1;0b;0;1b;0;S;s;0.8;o;1`,
   ['!ultimarankedvalo']: VALORANT_LAST_RANKED_RESPONSE_KEY,
   ['!ultimarankedvalorant']: VALORANT_LAST_RANKED_RESPONSE_KEY,
   ['!ultimapartida']: VALORANT_LAST_RANKED_RESPONSE_KEY,
