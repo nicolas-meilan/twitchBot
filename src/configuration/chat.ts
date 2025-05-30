@@ -46,11 +46,23 @@ export const CLEAN_PLAYERS_QUEUE_KEY = '!limpiar';
 export const PLAYERS_QUEUE_ON = '!listaon';
 export const PLAYERS_QUEUE_OFF = '!listaoff';
 
+export const LOTTERY_COMMAND = '!sorteo';
+export const LOTTERY_STATUS_COMMAND = '!estoy';
+export const LOTTERY_LIST_COMMAND = '!listasorteo';
+export const LOTTERY_START_COMMAND = '!iniciarsorteo';
+export const LOTTERY_CLEAN_COMMAND = '!limpiarsorteo';
+export const LOTTERY_REMOVE_COMMAND = '!eliminardelsorteo';
+export const LOTTERY_PAUSE_COMMAND = '!pausarinscripcionsorteo';
+export const LOTTERY_RESUME_COMMAND = '!comenzarinscripcionsorteo';
+
 export const USERS_ACTIONS_CONFIG = [
   CREATE_CLIP_KEY,
   ADD_TO_PLAYERS_QUEUE_KEY,
   ADD_TO_PLAYERS_QUEUE_KEY_ALIAS,
   LEAVE_PLAYERS_QUEUE_KEY,
+  LOTTERY_COMMAND,
+  LOTTERY_STATUS_COMMAND,
+  LOTTERY_LIST_COMMAND,
 ];
 
 export const VIP_ACTIONS_CONFIG = [
@@ -69,6 +81,11 @@ export const MODS_ACTIONS_CONFIG = [
   CLEAN_PLAYERS_QUEUE_KEY,
   PLAYERS_QUEUE_ON,
   PLAYERS_QUEUE_OFF,
+  LOTTERY_START_COMMAND,
+  LOTTERY_CLEAN_COMMAND,
+  LOTTERY_REMOVE_COMMAND,
+  LOTTERY_PAUSE_COMMAND,
+  LOTTERY_RESUME_COMMAND,
 ];
 
 export const MESSAGES_CONFIG: {
@@ -163,7 +180,23 @@ export const SACRIFICE_ERROR = `⛔ No se pudo sacrificar a @${STRING_PARAM} ...
 export const PLAYERS_QUEUE_SUCCESS_MESSAGE = `🔥 ¡La lista de cracks! 🔥: ${STRING_PARAM}`;
 export const PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE = '🎮 ¡La fila está vacía, todo en orden! 💥 Preparados para la próxima ronda. 🚀';
 export const PLAYERS_QUEUE_NO_FOLLOWER = `🕹️ @${STRING_PARAM} Opa, primero tirate el follow así te sumás a la lista 😉. ¡Dale que es un clic nomás!`;
-export const PLAYERS_QUEUE_ON_MESSAGE = '🟢 ¡La lista está abierta, papá! Ya podés sumarte con !unirme. 🚀';
-export const PLAYERS_QUEUE_OFF_MESSAGE = '🔴 La lista está cerrada por ahora, bancá un toque. Solo se agregan jugadores manualmente. ⏸️';
+export const PLAYERS_QUEUE_ON_MESSAGE = '🟢 ¡La lista está abierta! Ya podés sumarte con !unirme. 🚀';
+export const PLAYERS_QUEUE_OFF_MESSAGE = '🔴 La lista está cerrada por ahora. Solo se agregan jugadores manualmente. ⏸️';
+
+export const LOTTERY_JOIN_SUCCESS = '🎉 @__PARAM__, ya estás participando del sorteo, mucha suerte papá!';
+export const LOTTERY_ALREADY_JOINED = '👀 @__PARAM__, ya estabas anotado en el sorteo, tranqui que no te lo perdés.';
+export const LOTTERY_JOIN_PAUSED = '⏸️ El sorteo está pausado, bancá para anotarte.';
+export const LOTTERY_STATUS_JOINED = '✅ @__PARAM__, estás inscripto en el sorteo, ¡que la suerte te acompañe!';
+export const LOTTERY_STATUS_NOT_JOINED = '❌ @__PARAM__, no estás inscripto en el sorteo. Usá !sorteo para sumarte.';
+export const LOTTERY_LIST = '🎲 Hay __PARAM__ personas participando del sorteo. ¡Mucha suerte a todos!';
+export const LOTTERY_START_SUCCESS = '🎉 ¡El sorteo arrancó! En unos segundos te digo quién ganó...';
+export const LOTTERY_START_WINNER = '🎉 El ganador es: @__PARAM__ ¡Felicitaciones!';
+export const LOTTERY_CLEAN_SUCCESS = '🧹 El sorteo fue limpiado, todos pueden anotarse de nuevo.';
+export const LOTTERY_REMOVE_SUCCESS = '🗑️ @__PARAM__ fue eliminado del sorteo.';
+export const LOTTERY_REMOVE_FAIL = '❌ No se encontró a @__PARAM__ en el sorteo.';
+export const LOTTERY_PAUSED = '⏸️ El sorteo fue pausado, nadie puede anotarse por ahora.';
+export const LOTTERY_RESUMED = '▶️ El sorteo fue reanudado, ya pueden anotarse de nuevo.';
+export const LOTTERY_NO_USERS = '⚠️ No hay usuarios anotados en el sorteo.';
+export const LOTTERY_ONLY_SUBS = '⛔ Solo los suscriptores pueden participar en el sorteo. Si te copa, suscribite y probá suerte!';
 
 export const REWARD_CLAIMED = `💰 ${STRING_PARAM}1 canjeó: ${STRING_PARAM}2`;

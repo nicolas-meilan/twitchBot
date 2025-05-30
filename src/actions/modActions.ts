@@ -3,6 +3,7 @@ import { BASE_TAGS, Game, GAMES } from '../configuration/games';
 import { getGameId, updateChannelInfo } from '../services/twitch/channel';
 import { getBroadcastTokens, refreshBroadcastTokens } from '../services/twitch/auth';
 import { getClipInformation } from '../services/twitch/clip';
+import lottery from '../services/Lottery';
 import {
   ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY,
   CHANGE_CHANNEL_INFORMATION_KEY,
@@ -25,10 +26,25 @@ import {
   STRING_PARAM,
   TTS_KEY,
   TTS_MOD_SENDER,
+  LOTTERY_START_COMMAND,
+  LOTTERY_CLEAN_COMMAND,
+  LOTTERY_REMOVE_COMMAND,
+  LOTTERY_PAUSE_COMMAND,
+  LOTTERY_RESUME_COMMAND,
+  LOTTERY_START_SUCCESS,
+  LOTTERY_CLEAN_SUCCESS,
+  LOTTERY_REMOVE_SUCCESS,
+  LOTTERY_REMOVE_FAIL,
+  LOTTERY_PAUSED,
+  LOTTERY_RESUMED,
+  LOTTERY_NO_USERS,
+  LOTTERY_START_WINNER,
 } from '../configuration/chat';
 import { ActionsType } from './type';
 import gameQueue from '../services/GameQueue';
+import { delay } from '../utils/system';
 
+const LOTTERY_DELAY = 18000; // 18 seconds
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 const PLAYERS_QUEUE_PRIORITY_KEY = [
   'prioritario',
@@ -163,6 +179,41 @@ const MOD_ACTIONS: {
     } catch {
       chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_ERROR);
     }
+  },
+  [LOTTERY_START_COMMAND]: async ({ chat }) => {
+    const winner = lottery.start(() => {
+      chat.say(BROADCAST_USERNAME, LOTTERY_PAUSED);
+    });
+    if (!winner) {
+      chat.say(BROADCAST_USERNAME, LOTTERY_NO_USERS);
+      return;
+    }
+    chat.say(BROADCAST_USERNAME, LOTTERY_START_SUCCESS);
+    // TODO Send event to OBS font
+    await delay(LOTTERY_DELAY);
+
+    chat.say(BROADCAST_USERNAME, LOTTERY_START_WINNER.replace('__PARAM__', winner));
+  },
+  [LOTTERY_CLEAN_COMMAND]: ({ chat }) => {
+    lottery.clean();
+    chat.say(BROADCAST_USERNAME, LOTTERY_CLEAN_SUCCESS);
+  },
+  [LOTTERY_REMOVE_COMMAND]: ({ chat, value }) => {
+    if (!value) return;
+    const removed = lottery.remove(value);
+    if (removed) {
+      chat.say(BROADCAST_USERNAME, LOTTERY_REMOVE_SUCCESS.replace('__PARAM__', value));
+    } else {
+      chat.say(BROADCAST_USERNAME, LOTTERY_REMOVE_FAIL.replace('__PARAM__', value));
+    }
+  },
+  [LOTTERY_PAUSE_COMMAND]: ({ chat }) => {
+    lottery.pauseJoin();
+    chat.say(BROADCAST_USERNAME, LOTTERY_PAUSED);
+  },
+  [LOTTERY_RESUME_COMMAND]: ({ chat }) => {
+    lottery.resumeJoin();
+    chat.say(BROADCAST_USERNAME, LOTTERY_RESUMED);
   },
 };
 

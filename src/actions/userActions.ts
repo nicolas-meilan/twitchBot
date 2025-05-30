@@ -17,12 +17,23 @@ import {
   PLAYERS_QUEUE_OFF_MESSAGE,
   PLAYERS_QUEUE_SUCCESS_MESSAGE,
   PROCESSING_CLIP_ERROR,
+  LOTTERY_ALREADY_JOINED,
+  LOTTERY_JOIN_PAUSED,
+  LOTTERY_JOIN_SUCCESS,
+  LOTTERY_LIST,
+  LOTTERY_STATUS_JOINED,
+  LOTTERY_STATUS_NOT_JOINED,
   STRING_PARAM,
+  LOTTERY_COMMAND,
+  LOTTERY_STATUS_COMMAND,
+  LOTTERY_LIST_COMMAND,
+  LOTTERY_ONLY_SUBS,
 } from '../configuration/chat';
 import { ActionsType } from './type';
 import gameQueue from '../services/GameQueue';
 import { isFollower } from '../services/twitch/user';
 import logger from '../utils/logger';
+import lottery from '../services/Lottery';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
@@ -42,7 +53,7 @@ const USER_ACTIONS: {
       try {
         const token = await getBotTokens({ avoidLogin: true });
         if (!token || !token.access_token) return;
-  
+
         userIsFollower = await isFollower(token.access_token, userId);
       } catch {
         logger.error(`Error checking if user ${username} is a follower`);
@@ -119,6 +130,42 @@ const USER_ACTIONS: {
       chat.say(BROADCAST_USERNAME, CLIP_ACTION_ERROR);
       processingClip = false;
     }
+  },
+  [LOTTERY_COMMAND]: ({ chat, username, tags }) => {
+    if (!username || !tags) return;
+    if (!tags.subscriber) {
+      chat.say(BROADCAST_USERNAME, LOTTERY_ONLY_SUBS);
+      return;
+    }
+    const joined = lottery.join(username, () => {
+      chat.say(BROADCAST_USERNAME, LOTTERY_JOIN_PAUSED);
+    });
+
+    if (joined) {
+      chat.say(BROADCAST_USERNAME, LOTTERY_JOIN_SUCCESS.replace('__PARAM__', username));
+      return;
+    }
+
+    if (lottery.isJoined(username)) {
+      chat.say(BROADCAST_USERNAME, LOTTERY_ALREADY_JOINED.replace('__PARAM__', username));
+    }
+  },
+  [LOTTERY_STATUS_COMMAND]: ({ chat, username }) => {
+    if (!username) return;
+
+    if (lottery.isJoined(username, () => {
+      chat.say(BROADCAST_USERNAME, LOTTERY_JOIN_PAUSED);
+    })) {
+      chat.say(BROADCAST_USERNAME, LOTTERY_STATUS_JOINED.replace('__PARAM__', username));
+    } else {
+      chat.say(BROADCAST_USERNAME, LOTTERY_STATUS_NOT_JOINED.replace('__PARAM__', username));
+    }
+  },
+  [LOTTERY_LIST_COMMAND]: ({ chat }) => {
+    const count = lottery.getListLength(() => {
+      chat.say(BROADCAST_USERNAME, LOTTERY_JOIN_PAUSED);
+    });
+    chat.say(BROADCAST_USERNAME, LOTTERY_LIST.replace('__PARAM__', `${count}`));
   },
 };
 
