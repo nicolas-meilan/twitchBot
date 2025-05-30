@@ -19,7 +19,7 @@ import {
   STRING_PARAM,
 } from '../configuration/chat';
 import { ActionsType } from './type';
-import gameQueue from '../services/GameQueue2';
+import gameQueue from '../services/GameQueue';
 import { isFollower } from '../services/twitch/user';
 import logger from '../utils/logger';
 

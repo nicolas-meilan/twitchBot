@@ -15,7 +15,7 @@ import {
   VIP_ACTIONS_CONFIG,
   VIP_COMMANDS_RESPONSE_KEY,
 } from "../configuration/chat";
-import gameQueue from "../services/GameQueue2";
+import gameQueue from "../services/GameQueue";
 
 type ChatKeyActionsType = () => string | Promise<string>;
 
