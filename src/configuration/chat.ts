@@ -43,6 +43,8 @@ export const DELETE_PLAYER_FROM_QUEUE_KEY = '!borrar';
 export const ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY = '!agregar';
 export const LEAVE_PLAYERS_QUEUE_KEY = '!salir';
 export const CLEAN_PLAYERS_QUEUE_KEY = '!limpiar';
+export const PLAYERS_QUEUE_ON = '!listaon';
+export const PLAYERS_QUEUE_OFF = '!listaoff';
 
 export const USERS_ACTIONS_CONFIG = [
   CREATE_CLIP_KEY,
@@ -65,6 +67,8 @@ export const MODS_ACTIONS_CONFIG = [
   DELETE_PLAYER_FROM_QUEUE_KEY,
   ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY,
   CLEAN_PLAYERS_QUEUE_KEY,
+  PLAYERS_QUEUE_ON,
+  PLAYERS_QUEUE_OFF,
 ];
 
 export const MESSAGES_CONFIG: {
@@ -159,5 +163,7 @@ export const SACRIFICE_ERROR = `⛔ No se pudo sacrificar a @${STRING_PARAM} ...
 export const PLAYERS_QUEUE_SUCCESS_MESSAGE = `🔥 ¡La lista de cracks! 🔥: ${STRING_PARAM}`;
 export const PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE = '🎮 ¡La fila está vacía, todo en orden! 💥 Preparados para la próxima ronda. 🚀';
 export const PLAYERS_QUEUE_NO_FOLLOWER = `🕹️ @${STRING_PARAM} Opa, primero tirate el follow así te sumás a la lista 😉. ¡Dale que es un clic nomás!`;
+export const PLAYERS_QUEUE_ON_MESSAGE = '🟢 ¡La lista está abierta, papá! Ya podés sumarte con !unirme. 🚀';
+export const PLAYERS_QUEUE_OFF_MESSAGE = '🔴 La lista está cerrada por ahora, bancá un toque. Solo se agregan jugadores manualmente. ⏸️';
 
 export const REWARD_CLAIMED = `💰 ${STRING_PARAM}1 canjeó: ${STRING_PARAM}2`;

@@ -22,6 +22,7 @@ class GameQueue {
   #VIP_TIME_ADVANTAGE = VIP_TIME_ADVANTAGE;
   #SUB_TIME_ADVANTAGE = SUB_TIME_ADVANTAGE;
   #BROADCAST_USERNAME = BROADCAST_USERNAME;
+  #joinStopped = false;
 
   constructor() {
     this.#gameQueue = [{
@@ -34,6 +35,18 @@ class GameQueue {
       timestamp: 0,
       addedManuallyWithPriority: false,
     }];
+  }
+
+  stopJoin() {
+    this.#joinStopped = true;
+  }
+
+  resumeJoin() {
+    this.#joinStopped = false;
+  }
+
+  isJoinStopped() {
+    return this.#joinStopped;
   }
 
   #isBroadcaster(username: string) {
@@ -72,7 +85,12 @@ class GameQueue {
     return 0;
   }
 
-  joinQueue(user: User) {
+  joinQueue(user: User, onJoinStopped?: () => void) {
+    if (this.#joinStopped) {
+      onJoinStopped?.();
+      return false;
+    }
+
     if (this.#isBroadcaster(user.username) || this.#findUserInQueue(user.username)) return false;
 
     this.#gameQueue.push({

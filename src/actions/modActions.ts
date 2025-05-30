@@ -17,6 +17,10 @@ import {
   MOST_POPULAR_CLIP_KEY,
   MOVE_PLAYER_FROM_QUEUE_KEY,
   PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE,
+  PLAYERS_QUEUE_OFF,
+  PLAYERS_QUEUE_OFF_MESSAGE,
+  PLAYERS_QUEUE_ON,
+  PLAYERS_QUEUE_ON_MESSAGE,
   PLAYERS_QUEUE_SUCCESS_MESSAGE,
   STRING_PARAM,
   TTS_KEY,
@@ -67,6 +71,14 @@ const MOD_ACTIONS: {
   [CLEAN_PLAYERS_QUEUE_KEY]: async ({ chat }) =>  {
     gameQueue.deleteQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE);
+  },
+  [PLAYERS_QUEUE_ON]: async ({ chat }) =>  {
+    gameQueue.stopJoin();
+    chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_ON_MESSAGE);
+  },
+  [PLAYERS_QUEUE_OFF]: async ({ chat }) =>  {
+    gameQueue.resumeJoin();
+    chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_OFF_MESSAGE);
   },
   [MOST_POPULAR_CLIP_KEY]: async ({ chat }) =>  {
     try {
