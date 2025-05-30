@@ -23,13 +23,7 @@ import {
   TTS_MOD_SENDER,
 } from '../configuration/chat';
 import { ActionsType } from './type';
-import {
-  deleteQueue,
-  getOrderedQueue,
-  joinQueueManually,
-  moveToEndFromQueue,
-  removeFromQueue,
-} from '../services/gameQueue';
+import gameQueue from '../services/GameQueue';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 const PLAYERS_QUEUE_PRIORITY_KEY = [
@@ -52,26 +46,26 @@ const MOD_ACTIONS: {
     const [username, extraValue] = value.split(' ');
     const withPriority = PLAYERS_QUEUE_PRIORITY_KEY.includes(extraValue?.trim()?.toLowerCase());
 
-    joinQueueManually(username.trim(), withPriority);
-    const list = getOrderedQueue();
+    gameQueue.joinQueueManually(username.trim(), withPriority);
+    const list = gameQueue.getOrderedQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
   },
   [MOVE_PLAYER_FROM_QUEUE_KEY]: async ({ chat, value }) =>  {
     if (!value) return;
 
-    moveToEndFromQueue(value);
-    const list = getOrderedQueue();
+    gameQueue.moveToEndFromQueue(value);
+    const list = gameQueue.getOrderedQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
   },
   [DELETE_PLAYER_FROM_QUEUE_KEY]: async ({ chat, value }) =>  {
     if (!value) return;
 
-    removeFromQueue(value);
-    const list = getOrderedQueue();
+    gameQueue.removeFromQueue(value);
+    const list = gameQueue.getOrderedQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
   },
   [CLEAN_PLAYERS_QUEUE_KEY]: async ({ chat }) =>  {
-    deleteQueue();
+    gameQueue.deleteQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE);
   },
   [MOST_POPULAR_CLIP_KEY]: async ({ chat }) =>  {

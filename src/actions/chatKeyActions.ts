@@ -15,7 +15,7 @@ import {
   VIP_ACTIONS_CONFIG,
   VIP_COMMANDS_RESPONSE_KEY,
 } from "../configuration/chat";
-import { getOrderedQueue } from "../services/gameQueue";
+import gameQueue from "../services/GameQueue";
 
 type ChatKeyActionsType = () => string | Promise<string>;
 
@@ -42,7 +42,7 @@ const CHAT_KEY_ACTIONS: {
     ...Object.keys(MESSAGES_CONFIG),
     ...USERS_ACTIONS_CONFIG,
   ].sort().join(COMMANDS_SEPARATOR),
-  [PLAYERS_KEY]: () => getOrderedQueue(),
+  [PLAYERS_KEY]: () => gameQueue.getOrderedQueue(),
   [MOD_COMMANDS_RESPONSE_KEY]: async () => MODS_ACTIONS_CONFIG.sort().join(COMMANDS_SEPARATOR),
   [VIP_COMMANDS_RESPONSE_KEY]: async () => VIP_ACTIONS_CONFIG.sort().join(COMMANDS_SEPARATOR),
 };

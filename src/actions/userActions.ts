@@ -19,7 +19,7 @@ import {
   STRING_PARAM,
 } from '../configuration/chat';
 import { ActionsType } from './type';
-import { getOrderedQueue, joinQueue, removeFromQueue } from '../services/gameQueue';
+import gameQueue from '../services/GameQueue';
 import { isFollower } from '../services/twitch/user';
 import logger from '../utils/logger';
 
@@ -54,7 +54,7 @@ const USER_ACTIONS: {
       return;
     }
 
-    joinQueue({
+    gameQueue.joinQueue({
       username,
       isMod: !!tags.mod,
       isVIP: !!tags.badges?.vip,
@@ -62,7 +62,7 @@ const USER_ACTIONS: {
       isFollower: userIsFollower,
     });
 
-    const list = getOrderedQueue();
+    const list = gameQueue.getOrderedQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
   },
   [ADD_TO_PLAYERS_QUEUE_KEY_ALIAS]: ({ chat, username, tags }) => {
@@ -71,8 +71,8 @@ const USER_ACTIONS: {
   [LEAVE_PLAYERS_QUEUE_KEY]: ({ chat, username }) => {
     if (!username) return;
 
-    removeFromQueue(username);
-    const list = getOrderedQueue();
+    gameQueue.removeFromQueue(username);
+    const list = gameQueue.getOrderedQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
   },
   [CREATE_CLIP_KEY]: async ({ chat }) => {
