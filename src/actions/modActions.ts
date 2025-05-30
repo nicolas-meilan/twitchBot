@@ -23,7 +23,7 @@ import {
   TTS_MOD_SENDER,
 } from '../configuration/chat';
 import { ActionsType } from './type';
-import gameQueue from '../services/GameQueue';
+import gameQueue from '../services/GameQueue2';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 const PLAYERS_QUEUE_PRIORITY_KEY = [
