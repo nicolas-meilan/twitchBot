@@ -73,11 +73,11 @@ const MOD_ACTIONS: {
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE);
   },
   [PLAYERS_QUEUE_ON]: async ({ chat }) =>  {
-    gameQueue.stopJoin();
+    gameQueue.resumeJoin();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_ON_MESSAGE);
   },
   [PLAYERS_QUEUE_OFF]: async ({ chat }) =>  {
-    gameQueue.resumeJoin();
+    gameQueue.stopJoin();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_OFF_MESSAGE);
   },
   [MOST_POPULAR_CLIP_KEY]: async ({ chat }) =>  {

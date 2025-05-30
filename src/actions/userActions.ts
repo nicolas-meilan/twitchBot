@@ -14,6 +14,7 @@ import {
   CREATE_CLIP_KEY,
   LEAVE_PLAYERS_QUEUE_KEY,
   PLAYERS_QUEUE_NO_FOLLOWER,
+  PLAYERS_QUEUE_OFF_MESSAGE,
   PLAYERS_QUEUE_SUCCESS_MESSAGE,
   PROCESSING_CLIP_ERROR,
   STRING_PARAM,
@@ -54,13 +55,15 @@ const USER_ACTIONS: {
       return;
     }
 
-    gameQueue.joinQueue({
+    const joinedCorrectly = gameQueue.joinQueue({
       username,
       isMod: !!tags.mod,
       isVIP: !!tags.badges?.vip,
       isSub: !!tags.subscriber,
       isFollower: userIsFollower,
-    });
+    }, () => chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_OFF_MESSAGE));
+
+    if (!joinedCorrectly) return;
 
     const list = gameQueue.getOrderedQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
