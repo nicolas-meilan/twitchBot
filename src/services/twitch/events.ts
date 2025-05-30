@@ -5,7 +5,7 @@ import logger from '../../utils/logger';
 import { getBroadcastTokens } from './auth';
 import { BASE_URL } from '../../configuration/constants';
 import EVENT_ACTIONS from '../../actions/eventActions';
-import TwitchChatService from './chat';
+import TwitchChatService from './TwitchChatService';
 
 export type EventCallback = (principalData?: string, extraData?: any) => void;
 

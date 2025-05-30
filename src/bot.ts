@@ -1,6 +1,6 @@
 import tmi from 'tmi.js';
 
-import TwitchChatService, { OnNewMessage } from './services/twitch/chat';
+import TwitchChatService, { OnNewMessage } from './services/twitch/TwitchChatService';
 import connectToEvents from './services/twitch/events';
 import logger from './utils/logger';
 import { random } from './utils/numbers';
