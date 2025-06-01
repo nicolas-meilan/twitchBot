@@ -4,6 +4,7 @@ import logger from '../utils/logger';
 import Stream from '../Stream';
 import { sendEventTTS } from '../services/botEvents';
 import {
+  TWITCH_LOTTERY,
   TWITCH_POWER_UP_CLIP,
   TWITCH_POWER_UP_MAKE_CLIP,
   TWITCH_POWER_UP_TTS,
@@ -28,7 +29,7 @@ import {
 import MOD_ACTIONS from './modActions';
 import VIP_ACTIONS from './vipActions';
 import USER_ACTIONS from './userActions';
-import { twoWeeksVipRequest, userSacrifice } from './powerups';
+import { joinLottery, twoWeeksVipRequest, userSacrifice } from './powerups';
 import { delay } from '../utils/system';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
@@ -145,15 +146,15 @@ const EVENT_ACTIONS: {
       await twoWeeksVipRequest(chat, event.user_name);
       return;
     }
+  
+    const isLottery = event.reward.title.toLowerCase().trim()
+      === TWITCH_LOTTERY.toLowerCase().trim();
 
-    const isUserSacrifice = event.reward.title.toLowerCase().trim()
-    === TWITCH_POWER_UP_USER_SACRIFICE.toLowerCase().trim();
-
-    if (isUserSacrifice) {
-      await userSacrifice(chat, event.user_id, event.user_name);
+    if (isLottery) {
+      joinLottery(chat, event.user_name);
       return;
     }
-  
+
     // Power Ups that Needs to be online
     if (!Stream.shared.isOnline) return;
 
@@ -189,6 +190,14 @@ const EVENT_ACTIONS: {
 
     if (isValorantRandomPicker) {
       VIP_ACTIONS[VALORANT_RANDOM_AGENT_KEY]({ chat });
+      return;
+    }
+
+    const isUserSacrifice = event.reward.title.toLowerCase().trim()
+      === TWITCH_POWER_UP_USER_SACRIFICE.toLowerCase().trim();
+
+    if (isUserSacrifice) {
+      await userSacrifice(chat, event.user_id, event.user_name);
       return;
     }
   },

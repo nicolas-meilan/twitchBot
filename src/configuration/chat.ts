@@ -97,8 +97,8 @@ export const MESSAGES_CONFIG: {
   ['!redes']: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 🎮 https://youtube.com/@rungekutta93 🎮 https://tiktok.com/@rungekutta93 💬 https://discord.gg/bHePmGSXVm',
   ['!discord']: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
   ['!ds']: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
-  ['!kick']: '🚀 ¡Seguime también en Kick! Pasate a la verde para más streams copados 👉 https://kick.com/rungekutta93 🎮 ¡Nos vemos ahí, papá!',
-  ['!youtube']: '📺 ¡No te pierdas mis videos en YouTube! Suscribite para contenido épico y más diversión 👉 https://youtube.com/@rungekutta93 🎮 ¡Dale al botón rojo, papá! 🚀🔥',
+  ['!kick']: '🚀 ¡Seguime también en Kick! Pasate a la verde para más streams copados 👉 https://kick.com/rungekutta93 🎮 ¡Nos vemos ahí!',
+  ['!youtube']: '📺 ¡No te pierdas mis videos en YouTube! Suscribite para contenido épico y más diversión 👉 https://youtube.com/@rungekutta93 🎮 ¡Dale al botón rojo! 🚀🔥',
   ['!tiktok']: '🎥✨ ¡Prendo en TikTok también! 👉 https://tiktok.com/@rungekutta93 🎮🔥 ¡Te espero ahí!',
   ['!horarios']: '🎮 Mi horario de streams 🎮 🗓️ Generalmente estoy en vivo a las 6:00 PM y a veces también a las 10:30 PM. Todo sujeto a mi disponibilidad, siempre en horario de Argentina 🇦🇷. ¡Activá las notis para no perderte nada!',
   ['!risas']: '😂 ¡Se descontroló el chat! Jajaja, qué nivel de risas, gente. 🤣 ¡Los quiero ver a todos spameando el jajajaja! 😂🔥',
@@ -109,7 +109,7 @@ export const MESSAGES_CONFIG: {
   ['!valorantrango']: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
   ['!valorant']: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
   ['!id']: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
-  ['!mira']: `Ahí tenés, la mira mágica papá 😎🎯: 0;p;0;s;1;P;c;1;u;DFFDD0FF;o;0.456;0t;1;0l;3;0o;1;0a;1;0f;0;1b;0;A;c;1;o;1;d;1;0b;0;1b;0;S;s;0.8;o;1`,
+  ['!mira']: `Ahí tenés, la mira mágica 😎🎯: 0;p;0;s;1;P;c;1;u;DFFDD0FF;o;0.456;0t;1;0l;3;0o;1;0a;1;0f;0;1b;0;A;c;1;o;1;d;1;0b;0;1b;0;S;s;0.8;o;1`,
   ['!ultimarankedvalo']: VALORANT_LAST_RANKED_RESPONSE_KEY,
   ['!ultimarankedvalorant']: VALORANT_LAST_RANKED_RESPONSE_KEY,
   ['!ultimapartida']: VALORANT_LAST_RANKED_RESPONSE_KEY,
@@ -149,7 +149,7 @@ export const PRIME_SPAM_MESSAGES = [
   '💡 ¿Sabías que con Amazon Prime tenés una sub GRATIS? 🎁 Usala con Prime Gaming y bancá el contenido. 💜 ¡Sumate a la comunidad!',
 ];
 
-export const ACTION_NOT_ALLOWED = 'No podés hacer eso, papá';
+export const ACTION_NOT_ALLOWED = 'No podés hacer eso';
 
 export const TTS_MOD_SENDER = 'Un moderador';
 export const TTS_MESSAGE = `${STRING_PARAM}1 dijo: ${STRING_PARAM}2`;
@@ -160,8 +160,8 @@ export const CHANNEL_INFO_ACTION_ERROR = 'No pudimos actualizar la info del cana
 
 export const CLIP_ACTION_ERROR = 'Error con el clip';
 export const PROCESSING_CLIP_ERROR = '⏳ Estamos procesando el clip, bancanos un toque...';
-export const CLIP_ACTION_SUCCESS = `🎥 ¡Acá tenés el clip, papá! 👉 ${STRING_PARAM}`;
-export const CLIP_ACTION_SUCCESS_EDIT_AVAILABLE = `🎥 ¡Acá tenés el clip, papá! 👉 ${STRING_PARAM}1 | 📝 Editá el clip acá: ${STRING_PARAM}2`;
+export const CLIP_ACTION_SUCCESS = `🎥 ¡Acá tenés el clip! 👉 ${STRING_PARAM}`;
+export const CLIP_ACTION_SUCCESS_EDIT_AVAILABLE = `🎥 ¡Acá tenés el clip! 👉 ${STRING_PARAM}1 | 📝 Editá el clip acá: ${STRING_PARAM}2`;
 
 export const START_ACTION_ERROR = `¡Eh, che! Ya estás online, no hace falta que lo digas de nuevo. 😎`;
 export const START_ACTION_SUCCESS = `¡Faltan solo ${STRING_PARAM} minutos para arrancar! 🎮⏰ ¡Prepará el mate y ponete cómodo que se viene lo mejor! 🚀`;
@@ -183,7 +183,7 @@ export const PLAYERS_QUEUE_NO_FOLLOWER = `🕹️ @${STRING_PARAM} Opa, primero 
 export const PLAYERS_QUEUE_ON_MESSAGE = '🟢 ¡La lista está abierta! Ya podés sumarte con !unirme. 🚀';
 export const PLAYERS_QUEUE_OFF_MESSAGE = '🔴 La lista está cerrada por ahora. Solo se agregan jugadores manualmente. ⏸️';
 
-export const LOTTERY_JOIN_SUCCESS = '🎉 @__PARAM__, ya estás participando del sorteo, mucha suerte papá!';
+export const LOTTERY_JOIN_SUCCESS = '🎉 @__PARAM__, ya estás participando del sorteo, mucha suerte!';
 export const LOTTERY_ALREADY_JOINED = '👀 @__PARAM__, ya estabas anotado en el sorteo, tranqui que no te lo perdés.';
 export const LOTTERY_STATUS_JOINED = '✅ @__PARAM__, estás inscripto en el sorteo, ¡que la suerte te acompañe!';
 export const LOTTERY_STATUS_NOT_JOINED = '❌ @__PARAM__, no estás inscripto en el sorteo. Usá !sorteo para sumarte.';

@@ -6,6 +6,9 @@ import { getUserIdByUsername } from '../services/twitch/user';
 import { giveVip } from '../services/twitch/vip';
 import logger from '../utils/logger';
 import {
+  LOTTERY_ALREADY_JOINED,
+  LOTTERY_JOIN_SUCCESS,
+  LOTTERY_PAUSED,
   SACRIFICE_ERROR,
   SACRIFICE_REASON,
   SACRIFICE_SUCCESS,
@@ -14,6 +17,7 @@ import {
   VIP_REQUEST_ACTION_SUCCESS,
 } from '../configuration/chat';
 import { banUser } from '../services/twitch/mod';
+import lottery from '../services/Lottery';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
@@ -80,5 +84,20 @@ export const userSacrifice = async (chat: tmi.Client, userId: string, userName: 
   } catch {
     chat.say(BROADCAST_USERNAME, SACRIFICE_ERROR.replace(STRING_PARAM, userName));
     logger.error('error on execute sacrifice');
+  }
+};
+
+export const joinLottery = async (chat: tmi.Client, userName: string) => {
+  const joined = lottery.join(userName, () => {
+    chat.say(BROADCAST_USERNAME, LOTTERY_PAUSED);
+  });
+
+  if (joined) {
+    chat.say(BROADCAST_USERNAME, LOTTERY_JOIN_SUCCESS.replace('__PARAM__', userName));
+    return;
+  }
+
+  if (lottery.isJoined(userName)) {
+    chat.say(BROADCAST_USERNAME, LOTTERY_ALREADY_JOINED.replace('__PARAM__', userName));
   }
 };

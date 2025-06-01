@@ -34,6 +34,7 @@ import gameQueue from '../services/GameQueue';
 import { isFollower } from '../services/twitch/user';
 import logger from '../utils/logger';
 import lottery from '../services/Lottery';
+import { joinLottery } from './powerups';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
@@ -137,18 +138,7 @@ const USER_ACTIONS: {
       chat.say(BROADCAST_USERNAME, LOTTERY_ONLY_SUBS);
       return;
     }
-    const joined = lottery.join(username, () => {
-      chat.say(BROADCAST_USERNAME, LOTTERY_PAUSED);
-    });
-
-    if (joined) {
-      chat.say(BROADCAST_USERNAME, LOTTERY_JOIN_SUCCESS.replace('__PARAM__', username));
-      return;
-    }
-
-    if (lottery.isJoined(username)) {
-      chat.say(BROADCAST_USERNAME, LOTTERY_ALREADY_JOINED.replace('__PARAM__', username));
-    }
+    joinLottery(chat, username);
   },
   [LOTTERY_STATUS_COMMAND]: ({ chat, username }) => {
     if (!username) return;
