@@ -49,11 +49,11 @@ export const PLAYERS_QUEUE_OFF = '!listaoff';
 export const LOTTERY_COMMAND = '!sorteo';
 export const LOTTERY_STATUS_COMMAND = '!estoy';
 export const LOTTERY_LIST_COMMAND = '!listasorteo';
-export const LOTTERY_START_COMMAND = '!iniciarsorteo';
+export const LOTTERY_START_COMMAND = '!sortear';
 export const LOTTERY_CLEAN_COMMAND = '!limpiarsorteo';
-export const LOTTERY_REMOVE_COMMAND = '!eliminardelsorteo';
-export const LOTTERY_PAUSE_COMMAND = '!pausarinscripcionsorteo';
-export const LOTTERY_RESUME_COMMAND = '!comenzarinscripcionsorteo';
+export const LOTTERY_REMOVE_COMMAND = '!borrardelsorteo';
+export const LOTTERY_PAUSE_COMMAND = '!sorteooff';
+export const LOTTERY_RESUME_COMMAND = '!sorteoon';
 
 export const USERS_ACTIONS_CONFIG = [
   CREATE_CLIP_KEY,
@@ -185,7 +185,6 @@ export const PLAYERS_QUEUE_OFF_MESSAGE = '🔴 La lista está cerrada por ahora.
 
 export const LOTTERY_JOIN_SUCCESS = '🎉 @__PARAM__, ya estás participando del sorteo, mucha suerte papá!';
 export const LOTTERY_ALREADY_JOINED = '👀 @__PARAM__, ya estabas anotado en el sorteo, tranqui que no te lo perdés.';
-export const LOTTERY_JOIN_PAUSED = '⏸️ El sorteo está pausado, bancá para anotarte.';
 export const LOTTERY_STATUS_JOINED = '✅ @__PARAM__, estás inscripto en el sorteo, ¡que la suerte te acompañe!';
 export const LOTTERY_STATUS_NOT_JOINED = '❌ @__PARAM__, no estás inscripto en el sorteo. Usá !sorteo para sumarte.';
 export const LOTTERY_LIST = '🎲 Hay __PARAM__ personas participando del sorteo. ¡Mucha suerte a todos!';
@@ -194,8 +193,8 @@ export const LOTTERY_START_WINNER = '🎉 El ganador es: @__PARAM__ ¡Felicitaci
 export const LOTTERY_CLEAN_SUCCESS = '🧹 El sorteo fue limpiado, todos pueden anotarse de nuevo.';
 export const LOTTERY_REMOVE_SUCCESS = '🗑️ @__PARAM__ fue eliminado del sorteo.';
 export const LOTTERY_REMOVE_FAIL = '❌ No se encontró a @__PARAM__ en el sorteo.';
-export const LOTTERY_PAUSED = '⏸️ El sorteo fue pausado, nadie puede anotarse por ahora.';
-export const LOTTERY_RESUMED = '▶️ El sorteo fue reanudado, ya pueden anotarse de nuevo.';
+export const LOTTERY_PAUSED = '🔴 El sorteo fue pausado, nadie puede anotarse por ahora. ⏸️';
+export const LOTTERY_RESUMED = '🟢 El sorteo fue reanudado, ya pueden anotarse de nuevo. ▶️';
 export const LOTTERY_NO_USERS = '⚠️ No hay usuarios anotados en el sorteo.';
 export const LOTTERY_ONLY_SUBS = '⛔ Solo los suscriptores pueden participar en el sorteo. Si te copa, suscribite y probá suerte!';
 

@@ -16,6 +16,7 @@
     const OBS_COUNTDOWN_STRING_PARAM = "__OBS_COUNTDOWN_STRING_PARAM__";
     const PASSWORD = "__PASSWORD__";
     const VALORANT_RANDOM_PICKER_URL = "__VALORANT_RANDOM_PICKER_URL__";
+    const LOTTERY_URL = "__LOTTERY_URL__";
 
     const OFFLINE_CLIPS_ITEM_NAME = "OfflineClips";
     const OFFLINE_BACKGROUND_ITEM_NAME = "BackgroundOffline";
@@ -25,6 +26,8 @@
 
     const VALORANT_RANDOM_PICKER_ITEM_NAME = "VALORANT_RANDOM_PICKER";
     const VALORANT_RANDOM_PICKER_VISIBLE_TIME = 8000;
+    const LOTTERY_ITEM_NAME = "LOTTERY";
+    const LOTTERY_VISIBLE_TIME = 40000;
 
     let ws;
     let obs;
@@ -250,6 +253,32 @@
           return;
         }
 
+        if (type === "LOTTERY") {
+          if (!obs) return;
+
+          try {
+            const currentScene = await obs.call('GetCurrentProgramScene');
+            const { winner, users } = data;
+            const url = `${LOTTERY_URL}?winner=${encodeURIComponent(winner)}&users=${encodeURIComponent(users.join(','))}`;
+            
+            const lottery = await ensureBrowserItemExists(
+              currentScene.currentProgramSceneName,
+              LOTTERY_ITEM_NAME,
+              url,
+              { width: 600, height: 600, centered: true }
+            );
+
+            setTimeout(async () => {
+              await obs.call('SetInputSettings', {
+                inputName: LOTTERY_ITEM_NAME,
+                inputSettings: { url: '' }
+              });
+            }, LOTTERY_VISIBLE_TIME);
+          } catch (error) {
+            console.error('Error handling LOTTERY', error);
+          }
+          return;
+        }
         if (type === "START_STREAM") {
           if (!obs) return;
 

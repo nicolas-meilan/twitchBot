@@ -1,11 +1,11 @@
 class Lottery {
   #users: string[] = [];
   #winner: string | null = null;
-  #joinPaused = true;
+  #lotteryPaused = true;
 
-  join(username: string, onJoinPaused?: () => void) {
-    if (this.#joinPaused) {
-      onJoinPaused?.();
+  join(username: string, onLotteryPaused?: () => void) {
+    if (this.#lotteryPaused) {
+      onLotteryPaused?.();
       return false;
     }
     const uname = username.trim().toLowerCase();
@@ -14,9 +14,9 @@ class Lottery {
     return true;
   }
 
-  joinManually(username: string, onJoinPaused?: () => void) {
-    if (this.#joinPaused) {
-      onJoinPaused?.();
+  joinManually(username: string, onLotteryPaused?: () => void) {
+    if (this.#lotteryPaused) {
+      onLotteryPaused?.();
       return false;
     }
     const uname = username.trim().toLowerCase();
@@ -38,17 +38,17 @@ class Lottery {
     this.#winner = null;
   }
 
-  pauseJoin() {
-    this.#joinPaused = true;
+  pause() {
+    this.#lotteryPaused = true;
   }
 
-  resumeJoin() {
-    this.#joinPaused = false;
+  resume() {
+    this.#lotteryPaused = false;
   }
 
-  start(onJoinPaused?: () => void) {
-    if (this.#joinPaused) {
-      onJoinPaused?.();
+  start(onLotteryPaused?: () => void) {
+    if (this.#lotteryPaused) {
+      onLotteryPaused?.();
       return null;
     }
     this.#winner = null;
@@ -58,33 +58,41 @@ class Lottery {
     return this.#winner;
   }
 
-  getWinner(onJoinPaused?: () => void) {
-    if (this.#joinPaused) {
-      onJoinPaused?.();
+  getWinner(onLotteryPaused?: () => void) {
+    if (this.#lotteryPaused) {
+      onLotteryPaused?.();
       return null;
     }
     return this.#winner;
   }
 
-  getListLength(onJoinPaused?: () => void) {
-    if (this.#joinPaused) {
-      onJoinPaused?.();
+  getListLength(onLotteryPaused?: () => void) {
+    if (this.#lotteryPaused) {
+      onLotteryPaused?.();
       return 0;
     }
     return this.#users.length;
   }
 
-  isJoined(username: string, onJoinPaused?: () => void) {
-    if (this.#joinPaused) {
-      onJoinPaused?.();
+  isJoined(username: string, onLotteryPaused?: () => void) {
+    if (this.#lotteryPaused) {
+      onLotteryPaused?.();
       return false;
     }
     return this.#users.includes(username.trim().toLowerCase());
   }
 
-  getAllUsers(onJoinPaused?: () => void) {
-    if (this.#joinPaused) {
-      onJoinPaused?.();
+  getAllUsers(onLotteryPaused?: () => void) {
+    if (this.#lotteryPaused) {
+      onLotteryPaused?.();
+      return [];
+    }
+    return [...this.#users];
+  }
+
+  getList(onLotteryPaused?: () => void) {
+    if (this.#lotteryPaused) {
+      onLotteryPaused?.();
       return [];
     }
     return [...this.#users];

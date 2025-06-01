@@ -1,4 +1,4 @@
-import { sendEventClip, sendEventTTS } from '../services/botEvents';
+import { sendEventClip, sendEventTTS, sendEventLotteryWinner } from '../services/botEvents';
 import { BASE_TAGS, Game, GAMES } from '../configuration/games';
 import { getGameId, updateChannelInfo } from '../services/twitch/channel';
 import { getBroadcastTokens, refreshBroadcastTokens } from '../services/twitch/auth';
@@ -44,13 +44,15 @@ import { ActionsType } from './type';
 import gameQueue from '../services/GameQueue';
 import { delay } from '../utils/system';
 
-const LOTTERY_DELAY = 18000; // 18 seconds
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 const PLAYERS_QUEUE_PRIORITY_KEY = [
   'prioritario',
   'prioridad',
   'priority',
 ];
+
+const LOTTERY_DELAY = 18000; // 18 seconds
+const LOTTERY_EVENT_USERS_LENGTH = 30;
 
 const MOD_ACTIONS: {
   [command: string]: ActionsType;
@@ -184,12 +186,19 @@ const MOD_ACTIONS: {
     const winner = lottery.start(() => {
       chat.say(BROADCAST_USERNAME, LOTTERY_PAUSED);
     });
+
     if (!winner) {
       chat.say(BROADCAST_USERNAME, LOTTERY_NO_USERS);
       return;
     }
+
     chat.say(BROADCAST_USERNAME, LOTTERY_START_SUCCESS);
-    // TODO Send event to OBS font
+    const allUsers = lottery.getList();
+    const firstUsers = allUsers.slice(0, LOTTERY_EVENT_USERS_LENGTH);
+    if (!firstUsers.includes(winner)) {
+      firstUsers.push(winner);
+    }
+    sendEventLotteryWinner(winner, firstUsers);
     await delay(LOTTERY_DELAY);
 
     chat.say(BROADCAST_USERNAME, LOTTERY_START_WINNER.replace('__PARAM__', winner));
@@ -208,11 +217,11 @@ const MOD_ACTIONS: {
     }
   },
   [LOTTERY_PAUSE_COMMAND]: ({ chat }) => {
-    lottery.pauseJoin();
+    lottery.pause();
     chat.say(BROADCAST_USERNAME, LOTTERY_PAUSED);
   },
   [LOTTERY_RESUME_COMMAND]: ({ chat }) => {
-    lottery.resumeJoin();
+    lottery.resume();
     chat.say(BROADCAST_USERNAME, LOTTERY_RESUMED);
   },
 };

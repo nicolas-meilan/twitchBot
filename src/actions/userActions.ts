@@ -18,7 +18,6 @@ import {
   PLAYERS_QUEUE_SUCCESS_MESSAGE,
   PROCESSING_CLIP_ERROR,
   LOTTERY_ALREADY_JOINED,
-  LOTTERY_JOIN_PAUSED,
   LOTTERY_JOIN_SUCCESS,
   LOTTERY_LIST,
   LOTTERY_STATUS_JOINED,
@@ -28,6 +27,7 @@ import {
   LOTTERY_STATUS_COMMAND,
   LOTTERY_LIST_COMMAND,
   LOTTERY_ONLY_SUBS,
+  LOTTERY_PAUSED,
 } from '../configuration/chat';
 import { ActionsType } from './type';
 import gameQueue from '../services/GameQueue';
@@ -138,7 +138,7 @@ const USER_ACTIONS: {
       return;
     }
     const joined = lottery.join(username, () => {
-      chat.say(BROADCAST_USERNAME, LOTTERY_JOIN_PAUSED);
+      chat.say(BROADCAST_USERNAME, LOTTERY_PAUSED);
     });
 
     if (joined) {
@@ -154,7 +154,7 @@ const USER_ACTIONS: {
     if (!username) return;
 
     if (lottery.isJoined(username, () => {
-      chat.say(BROADCAST_USERNAME, LOTTERY_JOIN_PAUSED);
+      chat.say(BROADCAST_USERNAME, LOTTERY_PAUSED);
     })) {
       chat.say(BROADCAST_USERNAME, LOTTERY_STATUS_JOINED.replace('__PARAM__', username));
     } else {
@@ -163,7 +163,7 @@ const USER_ACTIONS: {
   },
   [LOTTERY_LIST_COMMAND]: ({ chat }) => {
     const count = lottery.getListLength(() => {
-      chat.say(BROADCAST_USERNAME, LOTTERY_JOIN_PAUSED);
+      chat.say(BROADCAST_USERNAME, LOTTERY_PAUSED);
     });
     chat.say(BROADCAST_USERNAME, LOTTERY_LIST.replace('__PARAM__', `${count}`));
   },

@@ -9,6 +9,7 @@ import {
   START_STREAM_EVENT,
   TTS_MAX_CHARACTERS,
   VALORANT_RANDOM_PICKER_EVENT,
+  LOTTERY_EVENT,
 } from '../configuration/botEvents';
 import { STRING_PARAM, TTS_MESSAGE } from '../configuration/chat';
 import { Clip } from './twitch/clip';
@@ -144,6 +145,20 @@ export const sendEventValorantRandomPicker = webSocketErrorHandler<[]>(async () 
     const payload = { type: VALORANT_RANDOM_PICKER_EVENT };
     activeSocket.send(JSON.stringify(payload));
     logger.info('VALORANT_RANDOM_PICKER_EVENT message sent');
+  } else {
+    logger.error('No active WebSocket connection. Message not sent.');
+  }
+});
+
+export const sendEventLotteryWinner = webSocketErrorHandler<[
+  winner: string,
+  users: string[],
+]>(async (winner, users) => {
+  logger.info('Sending LOTTERY event ...');
+  if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
+    const payload = { type: LOTTERY_EVENT, winner, users };
+    activeSocket.send(JSON.stringify(payload));
+    logger.info('LOTTERY event sent:', JSON.stringify(payload));
   } else {
     logger.error('No active WebSocket connection. Message not sent.');
   }
