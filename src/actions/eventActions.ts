@@ -146,14 +146,6 @@ const EVENT_ACTIONS: {
       await twoWeeksVipRequest(chat, event.user_name);
       return;
     }
-  
-    const isLottery = event.reward.title.toLowerCase().trim()
-      === TWITCH_LOTTERY.toLowerCase().trim();
-
-    if (isLottery) {
-      joinLottery(chat, event.user_name);
-      return;
-    }
 
     // Power Ups that Needs to be online
     if (!Stream.shared.isOnline) return;
@@ -198,6 +190,14 @@ const EVENT_ACTIONS: {
 
     if (isUserSacrifice) {
       await userSacrifice(chat, event.user_id, event.user_name);
+      return;
+    }
+
+    const isLottery = event.reward.title.toLowerCase().trim()
+      === TWITCH_LOTTERY.toLowerCase().trim();
+
+    if (isLottery) {
+      joinLottery(chat, event.user_name);
       return;
     }
   },

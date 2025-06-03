@@ -66,20 +66,36 @@ export const twoWeeksVipRequest = async (chat: tmi.Client, userName?: string) =>
   }
 };
 
-const SACRIFICE_TIME_MIN = 2;
+const getRandomDuration = () => {
+  // Weights for each duration (1-5 minutes)
+  // 1min: 15%, 2min: 35%, 3min: 35%, 4min: 9%, 5min: 6%
+  const weights = [15, 35, 35, 9, 6];
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  let random = Math.random() * totalWeight;
+  
+  for (let i = 0; i < weights.length; i++) {
+    random -= weights[i];
+    if (random <= 0) {
+      return i + 1; // Return duration in minutes (1-5)
+    }
+  }
+  return 2; // Fallback to 2 minutes
+};
+
 export const userSacrifice = async (chat: tmi.Client, userId: string, userName: string) => {
   try {
     const tokens = await getBotTokens({ avoidLogin: true });
     if (!tokens) throw new Error('Failed to retrieve access tokens.');
 
+    const duration = getRandomDuration();
     await banUser(tokens.access_token, userId, {
-      duration: SACRIFICE_TIME_MIN * 60,
+      duration: duration * 60,
       reason: SACRIFICE_REASON,
     });
 
     chat.say(BROADCAST_USERNAME, SACRIFICE_SUCCESS
       .replace(`${STRING_PARAM}1`, userName)
-      .replace(`${STRING_PARAM}2`, `${SACRIFICE_TIME_MIN} minutos`));
+      .replace(`${STRING_PARAM}2`, `${duration} minutos`));
     logger.info(SACRIFICE_SUCCESS.replace(STRING_PARAM, userName));
   } catch {
     chat.say(BROADCAST_USERNAME, SACRIFICE_ERROR.replace(STRING_PARAM, userName));
