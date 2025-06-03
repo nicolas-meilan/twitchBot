@@ -46,15 +46,6 @@ class TwitchChatService {
       return;
     }
 
-    if (TwitchChatService.chat) {
-      try {
-        await TwitchChatService.chat.disconnect();
-        logger.info('Previous chat connection closed successfully.');
-      } catch (error) {
-        logger.warn('Error while disconnecting previous chat connection:', error);
-      }
-    }
-
     await delay(this.reconnectionTime);
     this.currentRetries += 1;
     await this.connect();
@@ -78,7 +69,7 @@ class TwitchChatService {
               if (!TwitchChatService.chat?.readyState() || TwitchChatService.chat.readyState() === 'CLOSED') {
                 await this.retryConnection();
               } else {
-                logger.error(`Error in tmi.js client method ${String(prop)}: ${error}`);
+                logger.error(`Error in tmi.js client method ${String(prop)}`);
                 throw error;
               }
             }
@@ -92,13 +83,10 @@ class TwitchChatService {
 
   private async connect() {
     try {
-      if (TwitchChatService.chat && TwitchChatService.chat.readyState() === 'OPEN') {
-        logger.warn('Closing existing chat connection to prevent duplicates.');
-        await TwitchChatService.chat.disconnect();
-      }
+      await TwitchChatService.chat?.removeAllListeners();
+      await TwitchChatService.chat?.disconnect();
 
       const token = await getBotTokens({ avoidLogin: true });
-
       if (!token) return;
 
       logger.info(`Connecting to Twitch chat for channel: ${this.accountChatUsername}...`);
@@ -118,8 +106,17 @@ class TwitchChatService {
       logger.info('Successfully connected to Twitch chat.');
 
       TwitchChatService.chat.on('message', (channel, tags, message, self) => {
-        this.currentRetries = 0;
-        this.onNewMessage({ channel, tags, message, self });
+        try {
+          this.currentRetries = 0;
+          this.onNewMessage({ channel, tags, message, self });
+        } catch {
+          logger.error('Error in message handler:');
+        }
+      });
+
+      TwitchChatService.chat.on('disconnected', (reason: string) => {
+        logger.warn(`Twitch chat disconnected: ${reason}`);
+        this.retryConnection();
       });
 
     } catch {
