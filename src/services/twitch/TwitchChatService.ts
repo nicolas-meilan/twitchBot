@@ -66,11 +66,10 @@ class TwitchChatService {
             try {
               return await original.apply(target, args);
             } catch (error) {
-              if (!TwitchChatService.chat?.readyState() || TwitchChatService.chat.readyState() === 'CLOSED') {
+              if (!TwitchChatService.chat || TwitchChatService.chat?.readyState() === 'CLOSED') {
                 await this.retryConnection();
               } else {
-                logger.error(`Error in tmi.js client method ${String(prop)}`);
-                throw error;
+                logger.error(`Error in tmi.js client method ${String(prop)}:`, error);
               }
             }
           };
