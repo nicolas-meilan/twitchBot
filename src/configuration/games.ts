@@ -5,12 +5,14 @@ export type Game = {
 };
 
 const VALORANT_KEY = 'valorant';
+const PEAK_KEY = 'peak';
 const DB_KEY = 'dragonballsparkingzero';
 const PHASMOPHOBIA = 'phasmophobia';
 const FORTNITE = 'fortnite';
 const DESARROLLO = 'desarrollo';
 
 export const GAMES_KEYS = [
+  PEAK_KEY,
   VALORANT_KEY,
   DB_KEY,
   PHASMOPHOBIA,
@@ -39,6 +41,17 @@ export const GAMES: {
       'valorant',
       'shooter',
       'fps',
+    ],
+  },
+    [PEAK_KEY]: {
+    title: 'PEAK en directo | Montañas, memes y mucha tensión 🌋💪',
+    gameId: '1081998272',
+    tags: [
+      ...BASE_TAGS,
+      'adventure',
+      'peak',
+      'survival',
+      'climbing',
     ],
   },
   [DB_KEY]: {
