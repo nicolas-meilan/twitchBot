@@ -100,6 +100,7 @@ export const MESSAGES_CONFIG: {
   ['!kick']: '🚀 ¡Seguime también en Kick! Pasate a la verde para más streams copados 👉 https://kick.com/rungekutta93 🎮 ¡Nos vemos ahí!',
   ['!youtube']: '📺 ¡No te pierdas mis videos en YouTube! Suscribite para contenido épico y más diversión 👉 https://youtube.com/@rungekutta93 🎮 ¡Dale al botón rojo! 🚀🔥',
   ['!tiktok']: '🎥✨ ¡Prendo en TikTok también! 👉 https://tiktok.com/@rungekutta93 🎮🔥 ¡Te espero ahí!',
+  ['!steam']: '🎮 ¡Sumate a Steam y jugamos juntos! 🔥 Mi código de amigo: 1010270454 💨 ¡Agregame y vamos con todo! 🚀',
   ['!horarios']: '🎮 Mi horario de streams 🎮 🗓️ Generalmente estoy en vivo a las 6:00 PM y a veces también a las 10:30 PM. Todo sujeto a mi disponibilidad, siempre en horario de Argentina 🇦🇷. ¡Activá las notis para no perderte nada!',
   ['!risas']: '😂 ¡Se descontroló el chat! Jajaja, qué nivel de risas, gente. 🤣 ¡Los quiero ver a todos spameando el jajajaja! 😂🔥',
   ['!perdon']: '😅 ¡Uh, me mandé una! Perdón, gente. 🙏 Espero que me perdonen... o no. 😂💜',
