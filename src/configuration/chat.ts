@@ -32,6 +32,7 @@ export const BROADCASTER_MESSAGES_CONFIG = [
 ];
 
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
+export const CHANGE_CHANNEL_INFORMATION_KEY_2 = '!game';
 export const MOST_POPULAR_CLIP_KEY = '!topclip';
 export const TTS_KEY = '!tts';
 export const VALORANT_RANDOM_AGENT_KEY = '!agenterandom';
@@ -72,6 +73,7 @@ export const VIP_ACTIONS_CONFIG = [
 
 export const MODS_ACTIONS_CONFIG = [
   CHANGE_CHANNEL_INFORMATION_KEY,
+  CHANGE_CHANNEL_INFORMATION_KEY_2,
   TTS_KEY,
   MOST_POPULAR_CLIP_KEY,
   VALORANT_RANDOM_AGENT_KEY,

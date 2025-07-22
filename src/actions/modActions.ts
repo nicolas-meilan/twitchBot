@@ -7,6 +7,7 @@ import lottery from '../services/Lottery';
 import {
   ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY,
   CHANGE_CHANNEL_INFORMATION_KEY,
+  CHANGE_CHANNEL_INFORMATION_KEY_2,
   CHANNEL_INFO_ACTION_ERROR,
   CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE,
   CHANNEL_INFO_ACTION_SUCCESS,
@@ -54,6 +55,64 @@ const PLAYERS_QUEUE_PRIORITY_KEY = [
 const LOTTERY_DELAY = 18000; // 18 seconds
 const LOTTERY_EVENT_USERS_LENGTH = 30;
 
+const changeGameCategory: ActionsType = async ({ chat, value }) => {
+  if (!value) return;
+
+  const token = await getBroadcastTokens({ avoidLogin: true });
+  if (!token || !token.access_token) return;
+
+  let gameData: Game | undefined = GAMES[value];
+
+  if (!gameData) {
+    try {
+      const [
+        gameName,
+        gameTitle,
+        gameTags,
+      ] = value.split(COMMAND_DELIMITER);
+
+      const game = await getGameId(token.access_token, gameName.trim(), async () => {
+        const newToken = await refreshBroadcastTokens(token.refresh_token);
+        return await getGameId(newToken.access_token, gameName.trim());
+      });
+
+      if (!game) {
+        chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
+        return;
+      }
+
+      gameData = Object.values(GAMES).find(({ gameId }) => game.id === gameId);
+
+      if (!gameData) {
+        const extraTags = gameTags?.trim()
+          ? gameTags?.split(' ')
+            .filter((currentTag) => currentTag)
+            .map((currentTag) => currentTag.trim())
+          : [gameName.split(' ').join('')];
+
+        gameData = {
+          title: (gameTitle || game.name).trim(),
+          gameId: game.id,
+          tags: [...BASE_TAGS, ...extraTags],
+        };
+      }
+    } catch {
+      chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
+      return;
+    }
+  }
+
+  try {
+    await updateChannelInfo(token.access_token, gameData, async () => {
+      const newToken = await refreshBroadcastTokens(token.refresh_token);
+      updateChannelInfo(newToken.access_token, gameData);
+    });
+
+    chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_SUCCESS);
+  } catch {
+    chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_ERROR);
+  }
+}
 const MOD_ACTIONS: {
   [command: string]: ActionsType;
 } = {
@@ -124,64 +183,8 @@ const MOD_ACTIONS: {
       chat.say(BROADCAST_USERNAME, CLIP_ACTION_ERROR);
     }
   },
-  [CHANGE_CHANNEL_INFORMATION_KEY]: async ({ chat, value }) => {
-    if (!value) return;
-
-    const token = await getBroadcastTokens({ avoidLogin: true });
-    if (!token || !token.access_token) return;
-
-    let gameData: Game | undefined = GAMES[value];
-
-    if (!gameData) {
-      try {
-        const [
-          gameName,
-          gameTitle,
-          gameTags,
-        ] = value.split(COMMAND_DELIMITER);
-
-        const game = await getGameId(token.access_token, gameName.trim(), async () => {
-          const newToken = await refreshBroadcastTokens(token.refresh_token);
-          return await getGameId(newToken.access_token, gameName.trim());
-        });
-
-        if (!game) {
-          chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
-          return;
-        }
-
-        gameData = Object.values(GAMES).find(({ gameId }) => game.id === gameId);
-
-        if (!gameData) {
-          const extraTags = gameTags?.trim()
-            ? gameTags?.split(' ')
-              .filter((currentTag) => currentTag)
-              .map((currentTag) => currentTag.trim())
-            : [gameName.split(' ').join('')];
-
-          gameData = {
-            title: (gameTitle || game.name).trim(),
-            gameId: game.id,
-            tags: [...BASE_TAGS, ...extraTags],
-          };
-        }
-      } catch {
-        chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
-        return;
-      }
-    }
-
-    try {
-      await updateChannelInfo(token.access_token, gameData, async () => {
-        const newToken = await refreshBroadcastTokens(token.refresh_token);
-        updateChannelInfo(newToken.access_token, gameData);
-      });
-
-      chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_SUCCESS);
-    } catch {
-      chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_ERROR);
-    }
-  },
+  [CHANGE_CHANNEL_INFORMATION_KEY]: changeGameCategory,
+  [CHANGE_CHANNEL_INFORMATION_KEY_2]: changeGameCategory,
   [LOTTERY_START_COMMAND]: async ({ chat }) => {
     const winner = lottery.start(() => {
       chat.say(BROADCAST_USERNAME, LOTTERY_PAUSED);

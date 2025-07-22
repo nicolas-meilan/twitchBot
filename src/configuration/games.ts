@@ -10,6 +10,7 @@ const DB_KEY = 'dragonballsparkingzero';
 const PHASMOPHOBIA = 'phasmophobia';
 const FORTNITE = 'fortnite';
 const DESARROLLO = 'desarrollo';
+const JUST_CHATTING = 'justchatting';
 
 export const GAMES_KEYS = [
   PEAK_KEY,
@@ -32,6 +33,17 @@ export const BASE_TAGS = [
 export const GAMES: {
   [key: typeof GAMES_KEYS[number]]: Game;
 } = {
+  [JUST_CHATTING]: {
+    title: 'Charlita tranqui en vivo 🧉✨ Pasá a saludar y quedate un rato',
+    gameId: '509658',
+    tags: [
+      ...BASE_TAGS,
+      'chat',
+      'conversar',
+      'comunidad',
+      'charlas',
+    ],
+  },
   [VALORANT_KEY]: {
     title: 'Valorant en directo | ¿Querés jugar? Mandá !unirme y entrá al equipo 🎮🔥',
     gameId: '516575',
