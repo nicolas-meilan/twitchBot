@@ -12,7 +12,7 @@ export type EventCallback = (principalData?: string, extraData?: any) => void;
 const CLIENT_ID = process.env.CLIENT_ID || '';
 const BROADCAST_ACCOUNT_ID = process.env.BROADCAST_ACCOUNT_ID || '';
 
-const RECONNECTION_TIME = 1000;
+const RECONNECTION_TIME = 10000; // 10 seconds
 const RECONNECTION_RETRIES = 3;
 let reconnectionCurrentRetries = 0;
 

@@ -17,7 +17,7 @@ class TwitchChatService {
 
   private reconnecting = false;
   private reconnectionRetries = 3;
-  private reconnectionTime = 1000;
+  private reconnectionTime = 10000; // 10 seconds
   private currentRetries = 0;
   private botUsername!: string;
   private accountChatUsername!: string;
