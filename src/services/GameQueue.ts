@@ -3,6 +3,9 @@ const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 const VIP_TIME_ADVANTAGE = 5;
 const SUB_TIME_ADVANTAGE = 10;
 
+// Lista de usuarios bloqueados que no pueden unirse a la cola
+const BLOCKED_USERS = ['khimex0', 'xpequitass'];
+
 type User = {
   username: string,
   isMod: boolean;
@@ -53,6 +56,10 @@ class GameQueue {
     return username.toLowerCase().trim() === this.#BROADCAST_USERNAME.toLowerCase().trim();
   }
 
+  #isBlockedUser(username: string) {
+    return BLOCKED_USERS.includes(username.toLowerCase().trim());
+  }
+
   #minToMs(minutes: number) {
     return minutes * 60 * 1000;
   }
@@ -85,9 +92,14 @@ class GameQueue {
     return 0;
   }
 
-  joinQueue(user: User, onJoinStopped?: () => void) {
+  joinQueue(user: User, onJoinStopped?: () => void, onBlockedUser?: () => void) {
     if (this.#joinStopped) {
       onJoinStopped?.();
+      return false;
+    }
+
+    if (this.#isBlockedUser(user.username)) {
+      onBlockedUser?.();
       return false;
     }
 
@@ -151,6 +163,10 @@ class GameQueue {
 
   joinQueueManually(value: string, maxPriority?: boolean) {
     const username = value.split(' ')[0]?.trim();
+    
+    // Bloquear usuarios específicos incluso cuando se agregan manualmente
+    if (this.#isBlockedUser(username)) return false;
+    
     const alreadyExists = !!this.#findUserInQueue(username);
 
     if (alreadyExists && !maxPriority) return false;

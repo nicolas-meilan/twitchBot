@@ -14,6 +14,7 @@ import {
   CREATE_CLIP_KEY,
   LEAVE_PLAYERS_QUEUE_KEY,
   PLAYERS_QUEUE_NO_FOLLOWER,
+  PLAYERS_QUEUE_BLOCKED_USER,
   PLAYERS_QUEUE_OFF_MESSAGE,
   PLAYERS_QUEUE_SUCCESS_MESSAGE,
   PROCESSING_CLIP_ERROR,
@@ -73,7 +74,10 @@ const USER_ACTIONS: {
       isVIP: !!tags.badges?.vip,
       isSub: !!tags.subscriber,
       isFollower: userIsFollower,
-    }, () => chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_OFF_MESSAGE));
+    }, 
+    () => chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_OFF_MESSAGE),
+    () => chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_BLOCKED_USER.replace(STRING_PARAM, username))
+    );
 
     if (!joinedCorrectly) return;
 

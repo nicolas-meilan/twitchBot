@@ -183,6 +183,7 @@ export const SACRIFICE_ERROR = `⛔ No se pudo sacrificar a @${STRING_PARAM} ...
 export const PLAYERS_QUEUE_SUCCESS_MESSAGE = `🔥 ¡La lista de cracks! 🔥: ${STRING_PARAM}`;
 export const PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE = '🎮 ¡La fila está vacía, todo en orden! 💥 Preparados para la próxima ronda. 🚀';
 export const PLAYERS_QUEUE_NO_FOLLOWER = `🕹️ @${STRING_PARAM} Opa, primero tirate el follow así te sumás a la lista 😉. ¡Dale que es un clic nomás!`;
+export const PLAYERS_QUEUE_BLOCKED_USER = `🚫 Nonono @${STRING_PARAM}, vos no 😈💀`;
 export const PLAYERS_QUEUE_ON_MESSAGE = '🟢 ¡La lista está abierta! Ya podés sumarte con !unirme. 🚀';
 export const PLAYERS_QUEUE_OFF_MESSAGE = '🔴 La lista está cerrada por ahora. Solo se agregan jugadores manualmente. ⏸️';
 

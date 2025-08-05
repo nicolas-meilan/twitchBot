@@ -23,6 +23,7 @@ import {
   PLAYERS_QUEUE_OFF_MESSAGE,
   PLAYERS_QUEUE_ON,
   PLAYERS_QUEUE_ON_MESSAGE,
+  PLAYERS_QUEUE_BLOCKED_USER,
   PLAYERS_QUEUE_SUCCESS_MESSAGE,
   STRING_PARAM,
   TTS_KEY,
@@ -127,7 +128,18 @@ const MOD_ACTIONS: {
     const [username, extraValue] = value.split(' ');
     const withPriority = PLAYERS_QUEUE_PRIORITY_KEY.includes(extraValue?.trim()?.toLowerCase());
 
-    gameQueue.joinQueueManually(username.trim(), withPriority);
+    const addedSuccessfully = gameQueue.joinQueueManually(username.trim(), withPriority);
+    
+    if (!addedSuccessfully) {
+      // Si no se pudo agregar, verificar si es porque está bloqueado
+      const username_lower = username.toLowerCase().trim();
+      const isBlocked = username_lower === 'khimex0' || username_lower === 'xpequitass';
+      if (isBlocked) {
+        chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_BLOCKED_USER.replace(STRING_PARAM, username.trim()));
+        return;
+      }
+    }
+    
     const list = gameQueue.getOrderedQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
   },
