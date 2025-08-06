@@ -10,6 +10,7 @@ const DB_KEY = 'dragonballsparkingzero';
 const PHASMOPHOBIA = 'phasmophobia';
 const FORTNITE = 'fortnite';
 const DESARROLLO = 'desarrollo';
+const DEAD_BY_DAYLIGHT = 'deadbydaylight';
 const JUST_CHATTING = 'justchatting';
 
 export const GAMES_KEYS = [
@@ -19,6 +20,7 @@ export const GAMES_KEYS = [
   PHASMOPHOBIA,
   FORTNITE,
   DESARROLLO,
+  DEAD_BY_DAYLIGHT,
 ];
 
 export const BASE_TAGS = [
@@ -108,6 +110,17 @@ export const GAMES: {
       'livestreamcoding',
       'tech',
       'developer',
+    ],
+  },
+  [DEAD_BY_DAYLIGHT]: {
+    title: 'Dead by Daylight en Vivo | Supervivencia y terror con amigos 👻🔪',
+    gameId: '491487',
+    tags: [
+      ...BASE_TAGS,
+      'laughs',
+      'friends',
+      'cooperative',
+      'suspense',
     ],
   },
 };
