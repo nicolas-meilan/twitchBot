@@ -39,7 +39,16 @@ export const getGameId = async (
       return null;
     }
 
-    logger.info('Game category finded');
+    const exactMatch = categories.find((cat: BaseGame) => 
+      cat.name.toLowerCase().replace(/\s+/g, '') === gameName.toLowerCase().replace(/\s+/g, '')
+    );
+    
+    if (exactMatch) {
+      logger.info('Game category found');
+      return exactMatch;
+    }
+
+    logger.info('Game category found');
     return categories[0];
 
   } catch (error){

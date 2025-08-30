@@ -11,6 +11,7 @@ const PHASMOPHOBIA = 'phasmophobia';
 const FORTNITE = 'fortnite';
 const DESARROLLO = 'desarrollo';
 const DEAD_BY_DAYLIGHT = 'deadbydaylight';
+const MINECRAFT = 'minecraft';
 const JUST_CHATTING = 'justchatting';
 
 export const GAMES_KEYS = [
@@ -21,6 +22,7 @@ export const GAMES_KEYS = [
   FORTNITE,
   DESARROLLO,
   DEAD_BY_DAYLIGHT,
+  MINECRAFT,
 ];
 
 export const BASE_TAGS = [
@@ -121,6 +123,17 @@ export const GAMES: {
       'friends',
       'cooperative',
       'suspense',
+    ],
+  },
+  [MINECRAFT]: {
+    title: 'Minecraft en Vivo | Construcción, aventuras y creatividad sin límites 🧱⛏️',
+    gameId: '27471',
+    tags: [
+      ...BASE_TAGS,
+      'building',
+      'survival',
+      'sandbox',
+      'adventure',
     ],
   },
 };
