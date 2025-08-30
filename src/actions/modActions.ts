@@ -112,7 +112,7 @@ const changeGameCategory: ActionsType = async ({ chat, value }) => {
   } catch {
     chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_ERROR);
   }
-}
+};
 const MOD_ACTIONS: {
   [command: string]: ActionsType;
 } = {

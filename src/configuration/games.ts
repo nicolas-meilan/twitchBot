@@ -59,7 +59,7 @@ export const GAMES: {
       'fps',
     ],
   },
-    [PEAK_KEY]: {
+  [PEAK_KEY]: {
     title: 'PEAK en directo | Montañas, memes y mucha tensión 🌋💪',
     gameId: '1081998272',
     tags: [
