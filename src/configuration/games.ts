@@ -13,6 +13,8 @@ const DESARROLLO = 'desarrollo';
 const DEAD_BY_DAYLIGHT = 'deadbydaylight';
 const MINECRAFT = 'minecraft';
 const JUST_CHATTING = 'justchatting';
+const ROCKET_LEAGUE = 'rocketleague';
+const LOL = 'LOL';
 
 export const GAMES_KEYS = [
   PEAK_KEY,
@@ -23,6 +25,8 @@ export const GAMES_KEYS = [
   DESARROLLO,
   DEAD_BY_DAYLIGHT,
   MINECRAFT,
+  ROCKET_LEAGUE,
+  LOL,
 ];
 
 export const BASE_TAGS = [
@@ -134,6 +138,28 @@ export const GAMES: {
       'survival',
       'sandbox',
       'adventure',
+    ],
+  },
+  [ROCKET_LEAGUE]: {
+    title: 'Rocket League en Vivo | Coches voladores, goles y risas desde el garage 🚗✨',
+    gameId: '30921',
+    tags: [
+      ...BASE_TAGS,
+      'carsoccer',
+      'esports',
+      'competitive',
+      'aerials',
+    ],
+  },
+  [LOL]: {
+    title: 'LOL en Vivo | Paseo por la Grieta, memes y relax 😅☕',
+    gameId: '21779',
+    tags: [
+      ...BASE_TAGS,
+      'leagueoflegends',
+      'moba',
+      'esports',
+      'ranked',
     ],
   },
 };
