@@ -124,6 +124,8 @@ export const MESSAGES_CONFIG: {
   ['!comojugar']: 'Para unirte a la partida, usá 🖥️ !unirme | Para ver los jugadores, poné 🖥️ !jugadores | Si no podés seguir, tirá 🖥️ !salir para dejar espacio a otro. 🏆 Subs y VIPs tienen tiempo de ventaja. ¡No te quedes afuera! 👾',
   ['!chiste']: `🤡 ${JOKES_KEY}`,
   ['!chistes']: `🤡 ${JOKES_KEY}`,
+  ['!pc']: '🧠 Ryzen 9 9950X3D | 🔥 RTX 5080 MSI Ventus 3X | 🧩 32GB DDR5 XPG Lancer Neon | 🛠️ Asus TUF X870-Plus WiFi | ❄️ ROG Strix LC III 360 ARGB | ⚡ XPG Core Reactor II 1200W 80+ Gold | 🖥️ Antec C5 ARGB',
+  ['!computadora']: '🧠 Ryzen 9 9950X3D | 🔥 RTX 5080 MSI Ventus 3X | 🧩 32GB DDR5 XPG Lancer Neon | 🛠️ Asus TUF X870-Plus WiFi | ❄️ ROG Strix LC III 360 ARGB | ⚡ XPG Core Reactor II 1200W 80+ Gold | 🖥️ Antec C5 ARGB',
 };
 
 export const NEW_FOLLOWER_MESSAGE = `🎉 ¡Mil Gracias @${STRING_PARAM}1, por la buena onda y el follow! 🙌✨ ¡Bienvenido/a a la comunidad! 🎮🚀 ¡Se vienen cosas piolas!`;
