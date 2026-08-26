@@ -118,17 +118,13 @@ export const sendEventClip = webSocketErrorHandler<[
 });
 
 export const sendEventStartStream = webSocketErrorHandler<[
-  background: string,
-  clips: Clip[],
   startTimeMin?: number,
-]>(async (background, clips, startTimeMin = BASE_STREAM_START_TIME_MIN) => {
+]>(async (startTimeMin = BASE_STREAM_START_TIME_MIN) => {
   logger.info('Sending START_STREAM event ...');
   if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
 
     const payload = {
       type: START_STREAM_EVENT,
-      background,
-      clips,
       startTimeMin,
     };
     activeSocket.send(JSON.stringify(payload));

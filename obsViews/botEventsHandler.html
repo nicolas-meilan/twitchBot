@@ -19,7 +19,6 @@
     const LOTTERY_URL = "__LOTTERY_URL__";
 
     const OFFLINE_CLIPS_ITEM_NAME = "OfflineClips";
-    const OFFLINE_BACKGROUND_ITEM_NAME = "BackgroundOffline";
     const OFFLINE_COUNTDOWN_ITEM_NAME = "OfflineCountdown";
     const DEFAULT_CLIP_TIME = 30000;
     const CLIP_PLUS_TIME = 2150;
@@ -32,7 +31,6 @@
     let ws;
     let obs;
     let voices = [];
-    let offlineclipsLoopTimeout;
 
     window.speechSynthesis.onvoiceschanged = () => {
       voices = window.speechSynthesis.getVoices();
@@ -140,51 +138,6 @@
       }
     }
 
-    async function playClipsInLoop(sceneName, itemName, clips) {
-      if (!obs || !clips || !clips.length) {
-        console.error('OBS is not connected or clips array is empty.');
-        return;
-      }
-
-      let index = 0;
-
-      async function playNextClip() {
-        const clip = clips[index];
-
-        if (!clip || !clip.embed_url) {
-          console.error(`Invalid clip data at index ${index}`);
-          return;
-        }
-
-        try {
-          await obs.call('SetInputSettings', {
-            inputName: itemName,
-            inputSettings: {
-              url: `${clip.embed_url}&parent=localhost&autoplay=true&controls=false`,
-              is_local_file: false,
-            }
-          });
-
-          const videoTimeMs = (Number(clip.duration || '0') * 1000) || DEFAULT_CLIP_TIME;
-          offlineclipsLoopTimeout = setTimeout(() => {
-            index = (index + 1) % clips.length;
-            playNextClip();
-          }, videoTimeMs + CLIP_PLUS_TIME);
-        } catch (error) {
-          console.error(`Error playing clip at index ${index}:`, error);
-        }
-      }
-
-      playNextClip();
-    }
-
-    function stopClipsLoop() {
-      if (offlineclipsLoopTimeout) {
-        clearTimeout(offlineclipsLoopTimeout);
-        offlineclipsLoopTimeout = null;
-      }
-    }
-
     function connectBotWebSocket() {
       ws = new WebSocket(WEBSOCKET_URL);
       ws.onopen = function () {
@@ -282,17 +235,10 @@
         if (type === "START_STREAM") {
           if (!obs) return;
 
-          const { background, clips, startTimeMin } = data;
+          const { startTimeMin } = data;
           try {
-            stopClipsLoop();
-
             await ensureSceneExists(OBS_OFFLINE_SCENE_NAME);
 
-            const offlineBackground = await ensureBrowserItemExists(
-              OBS_OFFLINE_SCENE_NAME,
-              OFFLINE_BACKGROUND_ITEM_NAME,
-              background,
-            );
             const countdownUrl = OBS_COUNTDOWN_URL
               .replace(`${OBS_COUNTDOWN_STRING_PARAM}1`, startTimeMin)
               .replace(`${OBS_COUNTDOWN_STRING_PARAM}2`, OBS_COUNTDOWN_MESSAGE);
@@ -307,16 +253,9 @@
             await setSceneItemEnabled(OBS_OFFLINE_SCENE_NAME, offlineClips.sceneItemId, false);
             await setSceneItemEnabled(OBS_OFFLINE_SCENE_NAME, offlineCountdown.sceneItemId, false);
 
-            await setSceneItemIndex(OBS_OFFLINE_SCENE_NAME, offlineCountdown.sceneItemId, 2);
-            await setSceneItemIndex(OBS_OFFLINE_SCENE_NAME, offlineClips.sceneItemId, 1);
-            await setSceneItemIndex(OBS_OFFLINE_SCENE_NAME, offlineBackground.sceneItemId, 0);
-            await setSceneItemEnabled(OBS_OFFLINE_SCENE_NAME, offlineBackground.sceneItemId, true);
+            await setSceneItemIndex(OBS_OFFLINE_SCENE_NAME, offlineCountdown.sceneItemId, 1);
+            await setSceneItemIndex(OBS_OFFLINE_SCENE_NAME, offlineClips.sceneItemId, 0);
             await setSceneItemEnabled(OBS_OFFLINE_SCENE_NAME, offlineCountdown.sceneItemId, true);
-
-            if (clips && clips.length) {
-              await setSceneItemEnabled(OBS_OFFLINE_SCENE_NAME, offlineClips.sceneItemId, true);
-              playClipsInLoop(OBS_OFFLINE_SCENE_NAME, OFFLINE_CLIPS_ITEM_NAME, clips);
-            }
 
             await muteGlobalAudioSources(OBS_OFFLINE_SCENE_NAME);
             await obs.call('StartStream');

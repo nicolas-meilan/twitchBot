@@ -29,21 +29,12 @@ const BROADCASTER_ACTIONS: {
       return;
     }
 
-    const offlineBackground = Stream.offlineImage;
-    let clips: Clip[] = [];
-
-    try {
-      const token = await getBroadcastTokens({ avoidLogin: true });
-      if (!token?.access_token) return;
-      clips = await getLatestClips(token.access_token);
-    } catch { /* empty */ }
-
     const timeToStartMinFromMessage = Number(value?.trim()) || BASE_STREAM_START_TIME_MIN;
     const timeToStartMin = Number.isInteger(timeToStartMinFromMessage)
       ? timeToStartMinFromMessage
       : BASE_STREAM_START_TIME_MIN;
 
-    sendEventStartStream(offlineBackground, clips || [], timeToStartMin);
+    sendEventStartStream(timeToStartMin);
     const chatMessage = START_ACTION_SUCCESS.replace(STRING_PARAM, timeToStartMin.toString());
     chat.say(BROADCAST_USERNAME, chatMessage);
     logger.info(chatMessage);
