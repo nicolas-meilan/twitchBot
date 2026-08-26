@@ -5,6 +5,17 @@ import { BASE_URL } from '../../configuration/constants';
 const BROADCAST_ACCOUNT_ID = process.env.BROADCAST_ACCOUNT_ID || '';
 const CLIENT_ID = process.env.CLIENT_ID || '';
 
+export const isUserNotVipError = (error: unknown): boolean => {
+  if (!axios.isAxiosError(error)) {
+    return false;
+  }
+
+  const status = error.response?.status;
+  const message = error.response?.data?.message ?? error.message ?? '';
+
+  return status === 422 && typeof message === 'string' && message.includes('not a VIP');
+};
+
 export const giveVip = async (
   accessToken: string,
   userId: string,
@@ -47,6 +58,11 @@ export const removeVip = async (
 
     logger.info('VIP removed successfully');
   } catch (error) {
+    if (isUserNotVipError(error)) {
+      logger.warn(`User ${userId} is not currently a VIP in the broadcaster channel. Treating as already removed.`);
+      return;
+    }
+
     logger.error('Error removing VIP');
     throw error;
   }

@@ -3,7 +3,7 @@ import {
   getExpiredVipRequests,
 } from '../db/vipdb';
 import { getBroadcastTokens } from '../services/twitch/auth';
-import { removeVip } from '../services/twitch/vip';
+import { isUserNotVipError, removeVip } from '../services/twitch/vip';
 import logger from './logger';
 import { delay } from './system';
 
@@ -18,9 +18,17 @@ export const unvipExpiredRequests = (account: string) => {
 
       const usersToUnvip = await getExpiredVipRequests(account);
       for (const { vip_user_id } of usersToUnvip) {
-        await removeVip(tokens.access_token, vip_user_id);
-        revokeVipRequest(account, vip_user_id);
+        try {
+          await removeVip(tokens.access_token, vip_user_id);
+        } catch (error) {
+          if (!isUserNotVipError(error)) {
+            throw error;
+          }
 
+          logger.warn(`VIP record for ${vip_user_id} was already removed on Twitch; clearing DB state.`);
+        }
+
+        revokeVipRequest(account, vip_user_id);
         logger.info(`unvip ${vip_user_id}`);
         await delay(REQUEST_INTERVAL);
       }
