@@ -22,10 +22,13 @@ import {
   USERS_ACTIONS_CONFIG,
   VIP_ACTIONS_CONFIG,
   COMMANDS_SEPARATOR,
+  AI_COMMAND_ERROR_MESSAGE,
+  AI_NO_RESPONSE_MESSAGE,
 } from './configuration/chat';
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
 import VIP_ACTIONS from './actions/vipActions';
+import { askLocalAi, isAiMention } from './services/localAi';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
@@ -34,6 +37,14 @@ const PRIME_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.PRIME_RECURRENT_MESS
 const TWITCH_CHAT_MESSAGE_MAX_LENGTH = 400;
 
 let previousMessage = '';
+
+const AI_EXECUTABLE_COMMANDS = new Set([
+  ...Object.keys(MESSAGES_CONFIG),
+  ...USERS_ACTIONS_CONFIG,
+  ...VIP_ACTIONS_CONFIG,
+  ...MODS_ACTIONS_CONFIG,
+  ...BROADCASTER_MESSAGES_CONFIG,
+]);
 
 const splitChatMessage = (message: string): string[] => {
   const commandParts = message.split(COMMANDS_SEPARATOR);
@@ -80,6 +91,52 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
 const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, tags }) => {
   const formattedMessage = message.trim();
   previousMessage = formattedMessage;
+
+  if (!formattedMessage.startsWith('!') && isAiMention(formattedMessage)) {
+    const result = await askLocalAi(channel, tags.username || 'chat', formattedMessage);
+    if (!result) {
+      chat.say(channel, AI_NO_RESPONSE_MESSAGE);
+      return;
+    }
+
+    if (result?.command) {
+      const command = result.command.name;
+      const commandValue = result.command.value;
+
+      if (!AI_EXECUTABLE_COMMANDS.has(command) || !command.startsWith('!')) {
+        chat.say(channel, AI_COMMAND_ERROR_MESSAGE);
+        return;
+      }
+
+      if (MODS_ACTIONS_CONFIG.includes(command) && !userHasAccess(tags, UserRole.MOD)) {
+        chat.say(channel, `${ACTION_NOT_ALLOWED}: necesitás ser moderador o broadcaster para usar ${command}.`);
+        logger.info(`AI command rejected for permissions: ${command}`);
+        return;
+      }
+
+      const commandMessage = `${command} ${commandValue}`;
+      await messageHandler(chat)({ channel, tags, message: commandMessage, self: false });
+      logger.info(`AI command processed: ${command}`);
+
+      if (result.answer) {
+        for (const responseMessage of splitChatMessage(result.answer)) {
+          chat.say(channel, responseMessage);
+        }
+      } else if (command !== '!game' && command !== '!categoria') {
+        chat.say(channel, `Listo, ejecuté ${command}.`);
+      }
+      return;
+    }
+    if (result.answer && !result.command) {
+      logger.info(`AI: ${result.answer}`);
+      for (const responseMessage of splitChatMessage(result.answer)) {
+        chat.say(channel, responseMessage);
+      }
+    } else if (!result.command) {
+      chat.say(channel, AI_NO_RESPONSE_MESSAGE);
+    }
+    return;
+  }
 
   const originalCommand = formattedMessage.split(' ')[0]?.trim();
   const command = originalCommand.toLowerCase();

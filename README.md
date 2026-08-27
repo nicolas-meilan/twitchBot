@@ -26,4 +26,12 @@ CLIENT_ID // client_id de tu aplicacion de twitch development
 CLIENT_SECRET // secret de tu aplicacion de twitch development
 BOT_USERNAME // username de la cuenta bot
 BROADCAST_USERNAME // username de la cuenta con el chat
+
+# Opcional: agente local OpenAI-compatible
+AI_URL=http://localhost:1234
+AI_MODEL=qwen3-8b
+AI_TIMEOUT_MS=90000
+AI_MEMORY_MESSAGES=20
 ```
+
+Para consultar al agente, escribí un mensaje que contenga `@rungestone` y no empiece con `!`. El historial se conserva en memoria por canal mientras el bot está en ejecución. El agente recibe instrucciones para no ejecutar ni emitir comandos del bot.

@@ -1,5 +1,7 @@
 import tmi from 'tmi.js';
 
+const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
+
 export enum UserRole {
   BASIC = 'BASIC',
   SUBSCRIPTOR = 'SUBSCRIPTOR',
@@ -37,6 +39,10 @@ export const USER_ROLE_ACCESS_CONFIG = {
 };
 
 export const getUserRole = (userTags: tmi.ChatUserstate) => {
+  if (BROADCAST_USERNAME && userTags.username?.toLowerCase() === BROADCAST_USERNAME.toLowerCase()) {
+    return UserRole.BROADCASTER;
+  }
+
   if (!userTags.badges) return UserRole.BASIC;
 
   if (userTags.badges.vip) return UserRole.VIP;

@@ -155,6 +155,8 @@ export const PRIME_SPAM_MESSAGES = [
 ];
 
 export const ACTION_NOT_ALLOWED = 'No podés hacer eso';
+export const AI_COMMAND_ERROR_MESSAGE = 'No pude ejecutar esa acción: necesito un comando válido y sus argumentos.';
+export const AI_NO_RESPONSE_MESSAGE = 'Me quedé pensando en el limbo digital y no pude responder. Probá de nuevo en un toque.';
 
 export const TTS_MOD_SENDER = 'Un moderador';
 export const TTS_MESSAGE = `${STRING_PARAM}1 dijo: ${STRING_PARAM}2`;

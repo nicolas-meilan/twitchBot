@@ -56,24 +56,27 @@ const LOTTERY_DELAY = 18000; // 18 seconds
 const LOTTERY_EVENT_USERS_LENGTH = 30;
 
 const changeGameCategory: ActionsType = async ({ chat, value }) => {
-  if (!value) return;
+  if (!value) {
+    chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_ERROR);
+    return;
+  }
 
   const token = await getBroadcastTokens({ avoidLogin: true });
-  if (!token || !token.access_token) return;
+  if (!token || !token.access_token) {
+    chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_ERROR);
+    return;
+  }
 
-  let gameData: Game | undefined = GAMES[value];
+  const [gameNamePart, gameTitle, gameTags] = value.split(COMMAND_DELIMITER);
+  const gameName = gameNamePart.trim();
+  let gameData: Game | undefined = GAMES[value] || Object.entries(GAMES)
+    .find(([key]) => key.toLowerCase() === gameName.toLowerCase())?.[1];
 
   if (!gameData) {
     try {
-      const [
-        gameName,
-        gameTitle,
-        gameTags,
-      ] = value.split(COMMAND_DELIMITER);
-
-      const game = await getGameId(token.access_token, gameName.trim(), async () => {
+      const game = await getGameId(token.access_token, gameName, async () => {
         const newToken = await refreshBroadcastTokens(token.refresh_token);
-        return await getGameId(newToken.access_token, gameName.trim());
+        return await getGameId(newToken.access_token, gameName);
       });
 
       if (!game) {
@@ -100,6 +103,13 @@ const changeGameCategory: ActionsType = async ({ chat, value }) => {
       chat.say(BROADCAST_USERNAME, CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE);
       return;
     }
+  }
+
+  if (gameData && gameTitle?.trim()) {
+    gameData = {
+      ...gameData,
+      title: gameTitle.trim(),
+    };
   }
 
   try {
