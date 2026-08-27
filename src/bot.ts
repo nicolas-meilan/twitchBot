@@ -46,6 +46,13 @@ const AI_EXECUTABLE_COMMANDS = new Set([
   ...BROADCASTER_MESSAGES_CONFIG,
 ]);
 
+const getAiCommandRequiredRole = (command: string): UserRole | undefined => {
+  if (VIP_ACTIONS_CONFIG.includes(command)) return UserRole.VIP;
+  if (MODS_ACTIONS_CONFIG.includes(command)) return UserRole.MOD;
+  if (BROADCASTER_MESSAGES_CONFIG.includes(command)) return UserRole.BROADCASTER;
+  return undefined;
+};
+
 const splitChatMessage = (message: string): string[] => {
   const commandParts = message.split(COMMANDS_SEPARATOR);
   if (commandParts.length === 1) return [message];
@@ -96,7 +103,7 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
   }
 };
 
-const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, tags }) => {
+const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, tags, ttsUser }) => {
   const formattedMessage = message.trim();
   previousMessage = formattedMessage;
 
@@ -119,14 +126,26 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
         return;
       }
 
-      if (MODS_ACTIONS_CONFIG.includes(command) && !userHasAccess(tags, UserRole.MOD)) {
-        sayAi(`${ACTION_NOT_ALLOWED}: necesitás ser moderador o broadcaster para usar ${command}.`);
+      const requiredRole = getAiCommandRequiredRole(command);
+      if (requiredRole && !userHasAccess(tags, requiredRole)) {
+        const roleDescription = requiredRole === UserRole.VIP
+          ? 'VIP, moderador o broadcaster'
+          : requiredRole === UserRole.MOD
+            ? 'moderador o broadcaster'
+            : 'broadcaster';
+        sayAi(`${ACTION_NOT_ALLOWED}: necesitás ser ${roleDescription} para usar ${command}.`);
         logger.info(`AI command rejected for permissions: ${command}`);
         return;
       }
 
       const commandMessage = `${command} ${commandValue}`;
-      await messageHandler(mentionedChat)({ channel, tags, message: commandMessage, self: false });
+      await messageHandler(mentionedChat)({
+        channel,
+        tags,
+        message: commandMessage,
+        self: false,
+        ttsUser: command === '!tts' ? BOT_USERNAME : undefined,
+      });
       logger.info(`AI command processed: ${command}`);
 
       if (result.answer) {
@@ -157,6 +176,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
       chat,
       value: formattedMessage.replace(originalCommand, '').trim(),
       username: tags.username,
+      ttsUser,
       tags: tags,
     });
 
@@ -174,6 +194,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
       chat,
       value: formattedMessage.replace(originalCommand, '').trim(),
       username: tags.username,
+      ttsUser,
       tags: tags,
     });
 
@@ -191,6 +212,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
       chat,
       value: formattedMessage.replace(originalCommand, '').trim(),
       username: tags.username,
+      ttsUser,
       tags: tags,
     });
 

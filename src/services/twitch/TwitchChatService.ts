@@ -8,6 +8,7 @@ export type OnNewMessage = (props: {
   tags: tmi.ChatUserstate;
   message: string;
   self: boolean;
+  ttsUser?: string;
 }) => void;
 
 class TwitchChatService {

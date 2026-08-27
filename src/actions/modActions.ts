@@ -126,10 +126,10 @@ const changeGameCategory: ActionsType = async ({ chat, value }) => {
 const MOD_ACTIONS: {
   [command: string]: ActionsType;
 } = {
-  [TTS_KEY]: ({ value, username }) => {
+  [TTS_KEY]: ({ value, username, ttsUser }) => {
     if (!value) return;
 
-    sendEventTTS(value, username || TTS_MOD_SENDER);
+    sendEventTTS(value, ttsUser || username || TTS_MOD_SENDER);
   },
   [ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY]: async ({ chat, value }) =>  {
     if (!value) return;

@@ -4,5 +4,6 @@ export type ActionsType = (params: {
   chat: tmi.Client
   value?: string;
   username?: string;
+  ttsUser?: string;
   tags?: tmi.ChatUserstate;
 }) => void | Promise<void>;
