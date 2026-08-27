@@ -28,7 +28,7 @@ import {
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
 import VIP_ACTIONS from './actions/vipActions';
-import { askLocalAi, isAiMention } from './services/localAi';
+import { askAi, isAiMention } from './services/aiService';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
@@ -71,6 +71,14 @@ const splitChatMessage = (message: string): string[] => {
   return messages;
 };
 
+const createMentionedChat = (chat: tmi.Client, username: string): tmi.Client => new Proxy(chat, {
+  get: (target, property, receiver) => {
+    if (property !== 'say') return Reflect.get(target, property, receiver);
+
+    return (channel: string, message: string) => target.say(channel, `@${username}, ${message}`);
+  },
+});
+
 const responsesKeysHandler = async (message: string): Promise<string | undefined> => {
   try {
     if (!message) return;
@@ -93,9 +101,12 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   previousMessage = formattedMessage;
 
   if (!formattedMessage.startsWith('!') && isAiMention(formattedMessage)) {
-    const result = await askLocalAi(channel, tags.username || 'chat', formattedMessage);
+    const username = tags.username || 'chat';
+    const mentionedChat = createMentionedChat(chat, username);
+    const sayAi = (response: string) => chat.say(channel, `@${username}, ${response}`);
+    const result = await askAi(channel, username, formattedMessage);
     if (!result) {
-      chat.say(channel, AI_NO_RESPONSE_MESSAGE);
+      sayAi(AI_NO_RESPONSE_MESSAGE);
       return;
     }
 
@@ -104,36 +115,36 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
       const commandValue = result.command.value;
 
       if (!AI_EXECUTABLE_COMMANDS.has(command) || !command.startsWith('!')) {
-        chat.say(channel, AI_COMMAND_ERROR_MESSAGE);
+        sayAi(AI_COMMAND_ERROR_MESSAGE);
         return;
       }
 
       if (MODS_ACTIONS_CONFIG.includes(command) && !userHasAccess(tags, UserRole.MOD)) {
-        chat.say(channel, `${ACTION_NOT_ALLOWED}: necesitás ser moderador o broadcaster para usar ${command}.`);
+        sayAi(`${ACTION_NOT_ALLOWED}: necesitás ser moderador o broadcaster para usar ${command}.`);
         logger.info(`AI command rejected for permissions: ${command}`);
         return;
       }
 
       const commandMessage = `${command} ${commandValue}`;
-      await messageHandler(chat)({ channel, tags, message: commandMessage, self: false });
+      await messageHandler(mentionedChat)({ channel, tags, message: commandMessage, self: false });
       logger.info(`AI command processed: ${command}`);
 
       if (result.answer) {
         for (const responseMessage of splitChatMessage(result.answer)) {
-          chat.say(channel, responseMessage);
+          sayAi(responseMessage);
         }
       } else if (command !== '!game' && command !== '!categoria') {
-        chat.say(channel, `Listo, ejecuté ${command}.`);
+        sayAi(`Listo, ejecuté ${command}.`);
       }
       return;
     }
     if (result.answer && !result.command) {
       logger.info(`AI: ${result.answer}`);
       for (const responseMessage of splitChatMessage(result.answer)) {
-        chat.say(channel, responseMessage);
+        sayAi(responseMessage);
       }
     } else if (!result.command) {
-      chat.say(channel, AI_NO_RESPONSE_MESSAGE);
+      sayAi(AI_NO_RESPONSE_MESSAGE);
     }
     return;
   }

@@ -34,4 +34,4 @@ AI_TIMEOUT_MS=90000
 AI_MEMORY_MESSAGES=20
 ```
 
-Para consultar al agente, escribí un mensaje que contenga `@rungestone` y no empiece con `!`. El historial se conserva en memoria por canal mientras el bot está en ejecución. El agente recibe instrucciones para no ejecutar ni emitir comandos del bot.
+Para consultar al agente, escribí un mensaje que contenga `@BOT_USERNAME` y no empiece con `!`. El historial se conserva en memoria por canal mientras el bot está en ejecución. El agente recibe instrucciones para no ejecutar ni emitir comandos del bot.
