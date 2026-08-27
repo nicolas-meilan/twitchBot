@@ -21,6 +21,7 @@ import {
   BROADCASTER_MESSAGES_CONFIG,
   USERS_ACTIONS_CONFIG,
   VIP_ACTIONS_CONFIG,
+  COMMANDS_SEPARATOR,
 } from './configuration/chat';
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
@@ -30,8 +31,34 @@ const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 const FOLLOW_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.FOLLOW_RECURRENT_MESSAGE_TIME_MIN || '0');
 const PRIME_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.PRIME_RECURRENT_MESSAGE_TIME_MIN || '0');
+const TWITCH_CHAT_MESSAGE_MAX_LENGTH = 400;
 
 let previousMessage = '';
+
+const splitChatMessage = (message: string): string[] => {
+  const commandParts = message.split(COMMANDS_SEPARATOR);
+  if (commandParts.length === 1) return [message];
+
+  const messages: string[] = [];
+  let currentMessage = commandParts[0] || '';
+
+  for (const commandPart of commandParts.slice(1)) {
+    const nextMessage = currentMessage
+      ? `${currentMessage}${COMMANDS_SEPARATOR}${commandPart}`
+      : `${COMMANDS_SEPARATOR} ${commandPart}`;
+
+    if ([...nextMessage].length <= TWITCH_CHAT_MESSAGE_MAX_LENGTH) {
+      currentMessage = nextMessage;
+      continue;
+    }
+
+    if (currentMessage) messages.push(currentMessage);
+    currentMessage = `${COMMANDS_SEPARATOR} ${commandPart}`;
+  }
+
+  if (currentMessage) messages.push(currentMessage);
+  return messages;
+};
 
 const responsesKeysHandler = async (message: string): Promise<string | undefined> => {
   try {
@@ -123,7 +150,9 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   if (!formattedResponse) return;
 
   logger.info(`BOT: ${formattedResponse}`);
-  chat.say(channel, formattedResponse);
+  for (const message of splitChatMessage(formattedResponse)) {
+    chat.say(channel, message);
+  }
 };
 
 const spamFollowMessage = () => {
