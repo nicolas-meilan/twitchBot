@@ -18,7 +18,6 @@
     const VALORANT_RANDOM_PICKER_URL = "__VALORANT_RANDOM_PICKER_URL__";
     const LOTTERY_URL = "__LOTTERY_URL__";
 
-    const OFFLINE_CLIPS_ITEM_NAME = "OfflineClips";
     const OFFLINE_COUNTDOWN_ITEM_NAME = "OfflineCountdown";
     const DEFAULT_CLIP_TIME = 30000;
     const CLIP_PLUS_TIME = 2150;
@@ -249,15 +248,12 @@
               countdownUrl,
             );
 
-            const offlineClips = await ensureBrowserItemExists(OBS_OFFLINE_SCENE_NAME, OFFLINE_CLIPS_ITEM_NAME);
-            await setSceneItemEnabled(OBS_OFFLINE_SCENE_NAME, offlineClips.sceneItemId, false);
             await setSceneItemEnabled(OBS_OFFLINE_SCENE_NAME, offlineCountdown.sceneItemId, false);
 
             await setSceneItemIndex(OBS_OFFLINE_SCENE_NAME, offlineCountdown.sceneItemId, 1);
-            await setSceneItemIndex(OBS_OFFLINE_SCENE_NAME, offlineClips.sceneItemId, 0);
             await setSceneItemEnabled(OBS_OFFLINE_SCENE_NAME, offlineCountdown.sceneItemId, true);
 
-            await muteGlobalAudioSources(OBS_OFFLINE_SCENE_NAME);
+            await muteGlobalAudioSources();
             await obs.call('StartStream');
             return;
           } catch (error) {
