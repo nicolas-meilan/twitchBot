@@ -1,4 +1,4 @@
-import { AI_QUEUE_PRIORITY_BENEFITS } from './chat';
+import { PLAYERS_QUEUE_PRIORITY_BENEFITS } from './chat';
 import gameQueue from '../services/GameQueue';
 import { getCommandDefinitions, getCommandDescription } from './commandDescriptions';
 
@@ -22,7 +22,7 @@ export const getAiCommandsGuide = () => {
     .sort(([firstCommand], [secondCommand]) => firstCommand.localeCompare(secondCommand))
     .map(([command, permission]) => {
       const { description, usage } = getCommandDescription(command);
-      const details = `${description}; uso: ${usage}`.replace(AI_QUEUE_PRIORITY_BENEFITS, priorityBenefits);
+      const details = `${description}; uso: ${usage}`.replace(PLAYERS_QUEUE_PRIORITY_BENEFITS, priorityBenefits);
       return formatKnownCommandsForChat(`- ${formatCommandForChat(command)}: ${details}; permiso: ${permission}`, commands.keys());
     })
     .join('\n');

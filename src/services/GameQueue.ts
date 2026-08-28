@@ -1,7 +1,7 @@
 export const VIP_TIME_ADVANTAGE = 5;
 export const SUB_TIME_ADVANTAGE = 10;
 
-import { AI_QUEUE_PRIORITY_BENEFITS } from '../configuration/chat';
+import { PLAYERS_QUEUE_PRIORITY_BENEFITS } from '../configuration/chat';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
@@ -27,7 +27,7 @@ class GameQueue {
   #joinStopped = false;
 
   getPriorityBenefitsDescription() {
-    return AI_QUEUE_PRIORITY_BENEFITS
+    return PLAYERS_QUEUE_PRIORITY_BENEFITS
       .replace('__SUB__', `${this.#SUB_TIME_ADVANTAGE}`)
       .replace('__VIP__', `${this.#VIP_TIME_ADVANTAGE}`);
   }
