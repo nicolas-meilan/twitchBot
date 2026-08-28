@@ -27,6 +27,7 @@ import {
   LOTTERY_ONLY_SUBS,
   LOTTERY_PAUSED,
   HELP_COMMAND,
+  FRIDGE_KEY,
 } from '../configuration/chat';
 import { ActionsType } from './type';
 import gameQueue from '../services/GameQueue';
@@ -159,6 +160,17 @@ const USER_ACTIONS: {
       chat.say(BROADCAST_USERNAME, LOTTERY_PAUSED);
     });
     chat.say(BROADCAST_USERNAME, LOTTERY_LIST.replace('__PARAM__', `${count}`));
+  },
+  [FRIDGE_KEY]: ({ chat, value }) => {
+    const rawName = (value || '').trim();
+    const cleanName = rawName.replace(/^@/, '').trim();
+
+    if (!cleanName) {
+      chat.say(BROADCAST_USERNAME, 'Necesito un nombre o nick para el chiste. Ejemplo: !heladera @bazinga');
+      return;
+    }
+
+    chat.say(BROADCAST_USERNAME, `¿Cuál es la diferencia entre ${cleanName} y una heladera? Que la heladera no se queja cuando le sacás la carne.`);
   },
 };
 

@@ -1,7 +1,7 @@
 import { sendEventClip, sendEventTTS, sendEventLotteryWinner } from '../services/botEvents';
 import { BASE_TAGS, Game, GAMES } from '../configuration/games';
 import { getGameId, updateChannelInfo } from '../services/twitch/channel';
-import { getBroadcastTokens, refreshBroadcastTokens } from '../services/twitch/auth';
+import { getBotTokens, getBroadcastTokens, refreshBroadcastTokens } from '../services/twitch/auth';
 import { getClipInformation } from '../services/twitch/clip';
 import lottery from '../services/Lottery';
 import {
@@ -157,7 +157,7 @@ const MOD_ACTIONS: {
     }
 
     try {
-      const token = await getBroadcastTokens({ avoidLogin: true });
+      const token = await getBotTokens({ avoidLogin: true });
       const userId = token ? await getUserIdByUsername(token.access_token, username) : null;
       if (!token || !userId) {
         chat.say(BROADCAST_USERNAME, `No encontré al usuario ${username}.`);
@@ -184,7 +184,7 @@ const MOD_ACTIONS: {
     }
 
     try {
-      const token = await getBroadcastTokens({ avoidLogin: true });
+      const token = await getBotTokens({ avoidLogin: true });
       const userId = token ? await getUserIdByUsername(token.access_token, username) : null;
       if (!token || !userId) {
         chat.say(BROADCAST_USERNAME, `No encontré al usuario ${username}.`);
