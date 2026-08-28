@@ -26,6 +26,7 @@ import {
   LOTTERY_LIST_COMMAND,
   LOTTERY_ONLY_SUBS,
   LOTTERY_PAUSED,
+  HELP_COMMAND,
 } from '../configuration/chat';
 import { ActionsType } from './type';
 import gameQueue from '../services/GameQueue';
@@ -33,6 +34,7 @@ import { isFollower } from '../services/twitch/user';
 import logger from '../utils/logger';
 import lottery from '../services/Lottery';
 import { joinLottery } from './powerups';
+import { getCommandHelp } from '../configuration/commandDescriptions';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
@@ -42,6 +44,9 @@ let processingClip = false;
 const USER_ACTIONS: {
   [command: string]: ActionsType;
 } = {
+  [HELP_COMMAND]: ({ chat, value }) => {
+    chat.say(BROADCAST_USERNAME, getCommandHelp(value?.trim() || ''));
+  },
   [ADD_TO_PLAYERS_QUEUE_KEY]: async ({ chat, username, tags }) => {
     if (!username || !tags) return;
 
