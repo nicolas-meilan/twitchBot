@@ -29,6 +29,7 @@ import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
 import VIP_ACTIONS from './actions/vipActions';
 import { askAi, isAiMention } from './services/aiService';
+import { formatKnownCommandsForChat } from './configuration/aiCommands';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
@@ -78,7 +79,7 @@ const splitChatMessage = (message: string): string[] => {
   return messages;
 };
 
-const formatAiResponseForChat = (message: string) => message.replace(/(?<!\()!\s*([a-zA-Z][\w-]*)/g, '(!$1)');
+const formatAiResponseForChat = (message: string) => formatKnownCommandsForChat(message, AI_EXECUTABLE_COMMANDS);
 
 const createMentionedChat = (chat: tmi.Client, username: string): tmi.Client => new Proxy(chat, {
   get: (target, property, receiver) => {

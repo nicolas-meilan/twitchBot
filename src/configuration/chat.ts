@@ -49,6 +49,8 @@ export const LEAVE_PLAYERS_QUEUE_KEY = '!salir';
 export const CLEAN_PLAYERS_QUEUE_KEY = '!limpiar';
 export const PLAYERS_QUEUE_ON = '!listaon';
 export const PLAYERS_QUEUE_OFF = '!listaoff';
+export const PLAYERS_LIST_KEY = '!jugadores';
+export const PLAYERS_LIST_ALIAS_KEY = '!lista';
 
 export const LOTTERY_COMMAND = '!sorteo';
 export const LOTTERY_STATUS_COMMAND = '!estoy';
@@ -124,8 +126,8 @@ export const MESSAGES_CONFIG: {
   ['!comandos']: `Lista de comandos:${COMMANDS_SEPARATOR}${COMMANDS_RESPONSE_KEY}`,
   ['!comandosmod']: `Lista de comandos para mods:${COMMANDS_SEPARATOR}${MOD_COMMANDS_RESPONSE_KEY}`,
   ['!comandosvip']: `Lista de comandos VIP:${COMMANDS_SEPARATOR}${VIP_COMMANDS_RESPONSE_KEY}`,
-  ['!jugadores']: `🎯 Jugadores listos para la acción: ${PLAYERS_KEY}`,
-  ['!lista']: `🎯 Jugadores listos para la acción: ${PLAYERS_KEY}`,
+  [PLAYERS_LIST_KEY]: `🎯 Jugadores listos para la acción: ${PLAYERS_KEY}`,
+  [PLAYERS_LIST_ALIAS_KEY]: `🎯 Jugadores listos para la acción: ${PLAYERS_KEY}`,
   ['!comojugar']: 'Para unirte a la partida, usá 🖥️ !unirme | Para ver los jugadores, poné 🖥️ !jugadores | Si no podés seguir, tirá 🖥️ !salir para dejar espacio a otro. 🏆 Subs y VIPs tienen tiempo de ventaja. ¡No te quedes afuera! 👾',
   ['!chiste']: `🤡 ${JOKES_KEY}`,
   ['!chistes']: `🤡 ${JOKES_KEY}`,
@@ -141,7 +143,8 @@ export const AI_COMMAND_DESCRIPTION_TIMEOUT = 'silenciar a un usuario: !timeout 
 export const AI_COMMAND_DESCRIPTION_BAN = 'bloquear permanentemente a un usuario: !ban usuario';
 export const AI_COMMAND_DESCRIPTION_JOIN = 'sumar al usuario que lo pide a la lista para jugar; también entiende: sumame, anotame o agregame a la lista; no lleva argumentos';
 export const AI_COMMAND_DESCRIPTION_LEAVE = 'sacar al usuario que lo pide de la lista para jugar; también entiende: sacame o quitame de la lista; no lleva argumentos';
-export const AI_COMMAND_DESCRIPTION_PLAYERS = 'mostrar la lista de jugadores; también entiende: quiénes están en la lista o qué jugadores hay; no lleva argumentos';
+export const AI_COMMAND_DESCRIPTION_PLAYERS = 'mostrar la lista de jugadores y sus prioridades; también entiende: quiénes están en la lista o qué jugadores hay; no lleva argumentos';
+export const AI_QUEUE_PRIORITY_BENEFITS = 'Suscriptores tienen __SUB__ minutos de prioridad y VIPs __VIP__ minutos';
 export const AI_COMMAND_DESCRIPTION_ADD = 'agregar manualmente un usuario a la lista: !agregar usuario';
 export const AI_COMMAND_DESCRIPTION_MOVE = 'mover un usuario de la lista: !mover usuario';
 export const AI_COMMAND_DESCRIPTION_DELETE = 'quitar un usuario de la lista: !borrar usuario';

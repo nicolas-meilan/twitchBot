@@ -1,7 +1,9 @@
-const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
+export const VIP_TIME_ADVANTAGE = 5;
+export const SUB_TIME_ADVANTAGE = 10;
 
-const VIP_TIME_ADVANTAGE = 5;
-const SUB_TIME_ADVANTAGE = 10;
+import { AI_QUEUE_PRIORITY_BENEFITS } from '../configuration/chat';
+
+const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
 type User = {
   username: string,
@@ -23,6 +25,12 @@ class GameQueue {
   #SUB_TIME_ADVANTAGE = SUB_TIME_ADVANTAGE;
   #BROADCAST_USERNAME = BROADCAST_USERNAME;
   #joinStopped = false;
+
+  getPriorityBenefitsDescription() {
+    return AI_QUEUE_PRIORITY_BENEFITS
+      .replace('__SUB__', `${this.#SUB_TIME_ADVANTAGE}`)
+      .replace('__VIP__', `${this.#VIP_TIME_ADVANTAGE}`);
+  }
 
   constructor() {
     this.#gameQueue = [{

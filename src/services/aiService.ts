@@ -1,7 +1,9 @@
 import axios from 'axios';
 import logger from '../utils/logger';
 import { getAiCommandsGuide } from '../configuration/aiCommands';
-import { AI_INVALID_RESPONSE_MESSAGE } from '../configuration/chat';
+import {
+  AI_INVALID_RESPONSE_MESSAGE,
+} from '../configuration/chat';
 
 const AI_URL = process.env.AI_URL!;
 const AI_MODEL = process.env.AI_MODEL!;
