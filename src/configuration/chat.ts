@@ -148,6 +148,7 @@ export const AI_QUEUE_PRIORITY_BENEFITS = 'Suscriptores tienen __SUB__ minutos d
 export const AI_COMMAND_DESCRIPTION_ADD = 'agregar manualmente un usuario a la lista: !agregar usuario';
 export const AI_COMMAND_DESCRIPTION_MOVE = 'mover un usuario de la lista: !mover usuario';
 export const AI_COMMAND_DESCRIPTION_DELETE = 'quitar un usuario de la lista: !borrar usuario';
+export const AI_COMMAND_DESCRIPTION_START_STREAM = 'iniciar el directo inmediatamente o indicar en cuántos minutos comienza: !online [minutos]; solo puede usarlo el streamer';
 
 export const NEW_FOLLOWER_MESSAGE = `🎉 ¡Mil Gracias @${STRING_PARAM}1, por la buena onda y el follow! 🙌✨ ¡Bienvenido/a a la comunidad! 🎮🚀 ¡Se vienen cosas piolas!`;
 
