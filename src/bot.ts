@@ -24,6 +24,17 @@ import {
   COMMANDS_SEPARATOR,
   AI_COMMAND_ERROR_MESSAGE,
   AI_NO_RESPONSE_MESSAGE,
+  VALORANT_ELO_KEY,
+  VALORANT_ID_ALIAS_KEY,
+  VALORANT_KEY,
+  VALORANT_LAST_RANKED_RESPONSE_KEY,
+  VALORANT_RANK_ALIAS_2_KEY,
+  VALORANT_RANK_ALIAS_KEY,
+  VALORANT_RANK_KEY,
+  VALORANT_RANK_RESPONSE_KEY,
+  LAST_GAME_KEY,
+  LAST_RANKED_ALIAS_KEY,
+  LAST_RANKED_KEY,
 } from './configuration/chat';
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
@@ -80,6 +91,35 @@ const splitChatMessage = (message: string): string[] => {
 };
 
 const formatAiResponseForChat = (message: string) => formatKnownCommandsForChat(message, AI_EXECUTABLE_COMMANDS);
+
+const VALORANT_COMMANDS = new Set([
+  VALORANT_RANK_KEY,
+  VALORANT_RANK_ALIAS_KEY,
+  VALORANT_ELO_KEY,
+  VALORANT_RANK_ALIAS_2_KEY,
+  VALORANT_KEY,
+  VALORANT_ID_ALIAS_KEY,
+  LAST_RANKED_KEY,
+  LAST_RANKED_ALIAS_KEY,
+  LAST_GAME_KEY,
+]);
+
+const getValorantCommandResponse = async (command: string, value?: string): Promise<string | undefined> => {
+  const playerValue = value?.trim();
+  const playerLabel = (await import('./services/valorant')).parseValorantPlayer(playerValue).label;
+
+  if ([VALORANT_RANK_KEY, VALORANT_RANK_ALIAS_KEY, VALORANT_ELO_KEY, VALORANT_RANK_ALIAS_2_KEY, VALORANT_KEY, VALORANT_ID_ALIAS_KEY].includes(command)) {
+    const data = await CHAT_KEY_ACTIONS[VALORANT_RANK_RESPONSE_KEY](playerValue);
+    return `🎮 ${playerLabel} - ${data}`;
+  }
+
+  if ([LAST_RANKED_KEY, LAST_RANKED_ALIAS_KEY, LAST_GAME_KEY].includes(command)) {
+    const data = await CHAT_KEY_ACTIONS[VALORANT_LAST_RANKED_RESPONSE_KEY](playerValue);
+    return `🎮 ${playerLabel} - ${data}`;
+  }
+
+  return undefined;
+};
 
 const createMentionedChat = (chat: tmi.Client, username: string): tmi.Client => new Proxy(chat, {
   get: (target, property, receiver) => {
@@ -234,6 +274,19 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
       value: formattedMessage.replace(originalCommand, '').trim(),
     });
 
+    return;
+  }
+
+  if (VALORANT_COMMANDS.has(command)) {
+    const value = formattedMessage.replace(originalCommand, '').trim();
+    const response = await getValorantCommandResponse(command, value);
+
+    if (!response) return;
+
+    logger.info(`BOT: ${response}`);
+    for (const message of splitChatMessage(response)) {
+      chat.say(channel, message);
+    }
     return;
   }
 

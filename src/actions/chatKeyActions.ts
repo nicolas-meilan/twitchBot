@@ -1,5 +1,5 @@
 import { fetchJokes } from "../services/jokes";
-import { fetchCurrentRank } from "../services/valorant";
+import { fetchCurrentRank, parseValorantPlayer } from "../services/valorant";
 
 import {
   COMMANDS_RESPONSE_KEY,
@@ -17,23 +17,24 @@ import {
 } from "../configuration/chat";
 import gameQueue from "../services/GameQueue";
 
-type ChatKeyActionsType = () => string | Promise<string>;
+type ChatKeyActionsType = (value?: string) => string | Promise<string>;
 
 const CHAT_KEY_ACTIONS: {
   [command: string]: ChatKeyActionsType
 } = {
-  [VALORANT_RANK_RESPONSE_KEY]: async () => {
-    const valorantInfo = await fetchCurrentRank();
+  [VALORANT_RANK_RESPONSE_KEY]: async (value?: string) => {
+    const valorantInfo = await fetchCurrentRank(value);
 
     return valorantInfo.currenttierpatched;
   },
-  [VALORANT_LAST_RANKED_RESPONSE_KEY]: async () => {
-    const valorantInfo = await fetchCurrentRank();
-
+  [VALORANT_LAST_RANKED_RESPONSE_KEY]: async (value?: string) => {
+    const valorantInfo = await fetchCurrentRank(value);
+    const playerLabel = parseValorantPlayer(value).label;
     const isPositive = valorantInfo.mmr_change_to_last_game >= 0;
+
     return `${isPositive
-      ? '🎉 Ahora sí, RungeKutta93 Ganó'
-      : '💔 Uh, RungeKutta93 perdió'} ${Math.abs(valorantInfo.mmr_change_to_last_game)} puntos ${isPositive
+      ? `🎉 Ahora sí, ${playerLabel} ganó`
+      : `💔 Uh, ${playerLabel} perdió`} ${Math.abs(valorantInfo.mmr_change_to_last_game)} puntos ${isPositive
       ? '🏆'
       : '😭'}`;
   },
