@@ -33,8 +33,11 @@ export const BROADCASTER_MESSAGES_CONFIG = [
 
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
 export const CHANGE_CHANNEL_INFORMATION_KEY_2 = '!game';
+export const KICK_KEY = '!kick';
 export const MOST_POPULAR_CLIP_KEY = '!topclip';
 export const TTS_KEY = '!tts';
+export const TIMEOUT_KEY = '!timeout';
+export const BAN_KEY = '!ban';
 export const VALORANT_RANDOM_AGENT_KEY = '!agenterandom';
 export const CREATE_CLIP_KEY = '!clip';
 export const ADD_TO_PLAYERS_QUEUE_KEY = '!unirme';
@@ -74,6 +77,8 @@ export const VIP_ACTIONS_CONFIG = [
 export const MODS_ACTIONS_CONFIG = [
   CHANGE_CHANNEL_INFORMATION_KEY,
   CHANGE_CHANNEL_INFORMATION_KEY_2,
+  TIMEOUT_KEY,
+  BAN_KEY,
   TTS_KEY,
   MOST_POPULAR_CLIP_KEY,
   VALORANT_RANDOM_AGENT_KEY,
@@ -99,7 +104,7 @@ export const MESSAGES_CONFIG: {
   ['!redes']: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 🎮 https://youtube.com/@rungekutta93 🎮 https://tiktok.com/@rungekutta93 💬 https://discord.gg/bHePmGSXVm',
   ['!discord']: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
   ['!ds']: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
-  ['!kick']: '🚀 ¡Seguime también en Kick! Pasate a la verde para más streams copados 👉 https://kick.com/rungekutta93 🎮 ¡Nos vemos ahí!',
+  [KICK_KEY]: '🚀 ¡Seguime también en Kick! Pasate a la verde para más streams copados 👉 https://kick.com/rungekutta93 🎮 ¡Nos vemos ahí!',
   ['!youtube']: '📺 ¡No te pierdas mis videos en YouTube! Suscribite para contenido épico y más diversión 👉 https://youtube.com/@rungekutta93 🎮 ¡Dale al botón rojo! 🚀🔥',
   ['!tiktok']: '🎥✨ ¡Prendo en TikTok también! 👉 https://tiktok.com/@rungekutta93 🎮🔥 ¡Te espero ahí!',
   ['!steam']: '🎮 ¡Sumate a Steam y jugamos juntos! 🔥 Mi código de amigo: 1010270454 💨 ¡Agregame y vamos con todo! 🚀',
@@ -127,6 +132,19 @@ export const MESSAGES_CONFIG: {
   ['!pc']: '🧠 Ryzen 9 9950X3D | 🔥 RTX 5080 MSI Ventus 3X | 🧩 32GB DDR5 XPG Lancer Neon | 🛠️ Asus TUF X870-Plus WiFi | ❄️ ROG Strix LC III 360 ARGB | ⚡ XPG Core Reactor II 1200W 80+ Gold | 🖥️ Antec C5 ARGB',
   ['!computadora']: '🧠 Ryzen 9 9950X3D | 🔥 RTX 5080 MSI Ventus 3X | 🧩 32GB DDR5 XPG Lancer Neon | 🛠️ Asus TUF X870-Plus WiFi | ❄️ ROG Strix LC III 360 ARGB | ⚡ XPG Core Reactor II 1200W 80+ Gold | 🖥️ Antec C5 ARGB',
 };
+
+export const AI_COMMAND_DESCRIPTION_GAME = 'cambiar categoría y opcionalmente título: !categoria juego / título';
+export const AI_COMMAND_DESCRIPTION_GAME_ALIAS = 'cambiar categoría y opcionalmente título: !game juego / título';
+export const AI_COMMAND_DESCRIPTION_KICK = 'mostrar el enlace del canal de Kick; no expulsa usuarios';
+export const AI_COMMAND_DESCRIPTION_TTS = 'enviar texto a voz: !tts texto';
+export const AI_COMMAND_DESCRIPTION_TIMEOUT = 'silenciar a un usuario: !timeout usuario [duración]; duración predeterminada: 5 minutos';
+export const AI_COMMAND_DESCRIPTION_BAN = 'bloquear permanentemente a un usuario: !ban usuario';
+export const AI_COMMAND_DESCRIPTION_JOIN = 'sumar al usuario que lo pide a la lista para jugar; también entiende: sumame, anotame o agregame a la lista; no lleva argumentos';
+export const AI_COMMAND_DESCRIPTION_LEAVE = 'sacar al usuario que lo pide de la lista para jugar; también entiende: sacame o quitame de la lista; no lleva argumentos';
+export const AI_COMMAND_DESCRIPTION_PLAYERS = 'mostrar la lista de jugadores; también entiende: quiénes están en la lista o qué jugadores hay; no lleva argumentos';
+export const AI_COMMAND_DESCRIPTION_ADD = 'agregar manualmente un usuario a la lista: !agregar usuario';
+export const AI_COMMAND_DESCRIPTION_MOVE = 'mover un usuario de la lista: !mover usuario';
+export const AI_COMMAND_DESCRIPTION_DELETE = 'quitar un usuario de la lista: !borrar usuario';
 
 export const NEW_FOLLOWER_MESSAGE = `🎉 ¡Mil Gracias @${STRING_PARAM}1, por la buena onda y el follow! 🙌✨ ¡Bienvenido/a a la comunidad! 🎮🚀 ¡Se vienen cosas piolas!`;
 

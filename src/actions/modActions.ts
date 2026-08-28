@@ -6,6 +6,7 @@ import { getClipInformation } from '../services/twitch/clip';
 import lottery from '../services/Lottery';
 import {
   ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY,
+  BAN_KEY,
   CHANGE_CHANNEL_INFORMATION_KEY,
   CHANGE_CHANNEL_INFORMATION_KEY_2,
   CHANNEL_INFO_ACTION_ERROR,
@@ -26,6 +27,7 @@ import {
   PLAYERS_QUEUE_SUCCESS_MESSAGE,
   STRING_PARAM,
   TTS_KEY,
+  TIMEOUT_KEY,
   TTS_MOD_SENDER,
   LOTTERY_START_COMMAND,
   LOTTERY_CLEAN_COMMAND,
@@ -44,6 +46,8 @@ import {
 import { ActionsType } from './type';
 import gameQueue from '../services/GameQueue';
 import { delay } from '../utils/system';
+import { getUserIdByUsername } from '../services/twitch/user';
+import { banUser } from '../services/twitch/mod';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 const PLAYERS_QUEUE_PRIORITY_KEY = [
@@ -54,6 +58,25 @@ const PLAYERS_QUEUE_PRIORITY_KEY = [
 
 const LOTTERY_DELAY = 18000; // 18 seconds
 const LOTTERY_EVENT_USERS_LENGTH = 30;
+const DEFAULT_TIMEOUT_SECONDS = 5 * 60;
+const MAX_TIMEOUT_SECONDS = 14 * 24 * 60 * 60;
+
+type TimeoutAction = { duration: number } | { permanent: true };
+
+const parseTimeoutDuration = (duration?: string): TimeoutAction | null => {
+  if (!duration) return { duration: DEFAULT_TIMEOUT_SECONDS };
+  if (['permanente', 'permanent', 'perm'].includes(duration.trim().toLowerCase())) return { permanent: true };
+
+  const match = duration.trim().toLowerCase().match(/^(\d+)(s|m|h|d)?$/);
+  if (!match) return null;
+
+  const amount = Number(match[1]);
+  const multiplier = ({ s: 1, m: 60, h: 60 * 60, d: 24 * 60 * 60 } as Record<string, number>)[match[2] || 's'];
+  const seconds = amount * multiplier;
+
+  if (seconds <= 0) return null;
+  return seconds > MAX_TIMEOUT_SECONDS ? { permanent: true } : { duration: seconds };
+};
 
 const changeGameCategory: ActionsType = async ({ chat, value }) => {
   if (!value) {
@@ -126,6 +149,56 @@ const changeGameCategory: ActionsType = async ({ chat, value }) => {
 const MOD_ACTIONS: {
   [command: string]: ActionsType;
 } = {
+  [BAN_KEY]: async ({ chat, value }) => {
+    const username = value?.trim();
+    if (!username) {
+      chat.say(BROADCAST_USERNAME, 'Necesito el usuario al que querés banear.');
+      return;
+    }
+
+    try {
+      const token = await getBroadcastTokens({ avoidLogin: true });
+      const userId = token ? await getUserIdByUsername(token.access_token, username) : null;
+      if (!token || !userId) {
+        chat.say(BROADCAST_USERNAME, `No encontré al usuario ${username}.`);
+        return;
+      }
+
+      await banUser(token.access_token, userId, { permanent: true });
+      chat.say(BROADCAST_USERNAME, `@${username} fue baneado permanentemente.`);
+    } catch {
+      chat.say(BROADCAST_USERNAME, `No pude banear a @${username}.`);
+    }
+  },
+  [TIMEOUT_KEY]: async ({ chat, value }) => {
+    const [username, duration] = value?.trim().split(/\s+/, 2) || [];
+    if (!username) {
+      chat.say(BROADCAST_USERNAME, 'Necesito el usuario al que querés silenciar.');
+      return;
+    }
+
+    const durationSeconds = parseTimeoutDuration(duration);
+    if (!durationSeconds) {
+      chat.say(BROADCAST_USERNAME, 'La duración debe ser válida, por ejemplo 30s, 5m o 1h.');
+      return;
+    }
+
+    try {
+      const token = await getBroadcastTokens({ avoidLogin: true });
+      const userId = token ? await getUserIdByUsername(token.access_token, username) : null;
+      if (!token || !userId) {
+        chat.say(BROADCAST_USERNAME, `No encontré al usuario ${username}.`);
+        return;
+      }
+
+      await banUser(token.access_token, userId, durationSeconds);
+      chat.say(BROADCAST_USERNAME, 'permanent' in durationSeconds
+        ? `@${username} fue baneado permanentemente.`
+        : `@${username} fue silenciado por ${durationSeconds.duration / 60} minuto(s).`);
+    } catch {
+      chat.say(BROADCAST_USERNAME, `No pude silenciar a @${username}.`);
+    }
+  },
   [TTS_KEY]: ({ value, username, ttsUser }) => {
     if (!value) return;
 

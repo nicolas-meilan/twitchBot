@@ -78,11 +78,13 @@ const splitChatMessage = (message: string): string[] => {
   return messages;
 };
 
+const formatAiResponseForChat = (message: string) => message.replace(/(?<!\()!\s*([a-zA-Z][\w-]*)/g, '(!$1)');
+
 const createMentionedChat = (chat: tmi.Client, username: string): tmi.Client => new Proxy(chat, {
   get: (target, property, receiver) => {
     if (property !== 'say') return Reflect.get(target, property, receiver);
 
-    return (channel: string, message: string) => target.say(channel, `@${username}, ${message}`);
+    return (channel: string, message: string) => target.say(channel, `@${username}, ${formatAiResponseForChat(message)}`);
   },
 });
 
@@ -110,7 +112,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
   if (!formattedMessage.startsWith('!') && isAiMention(formattedMessage)) {
     const username = tags.username || 'chat';
     const mentionedChat = createMentionedChat(chat, username);
-    const sayAi = (response: string) => chat.say(channel, `@${username}, ${response}`);
+    const sayAi = (response: string) => chat.say(channel, `@${username}, ${formatAiResponseForChat(response)}`);
     const result = await askAi(channel, username, formattedMessage);
     if (!result) {
       sayAi(AI_NO_RESPONSE_MESSAGE);
