@@ -204,6 +204,9 @@ export const AI_INVALID_RESPONSE_MESSAGE = 'La IA me devolvió una respuesta con
 export const TTS_MOD_SENDER = 'Un moderador';
 export const TTS_MESSAGE = `${STRING_PARAM}1 dijo: ${STRING_PARAM}2`;
 export const FRIDGE_JOKE_MESSAGE = `¿Cuál es la diferencia entre ${STRING_PARAM} y una heladera? Que la heladera no se queja cuando le sacás la carne.`;
+export const VALORANT_USER_NOT_FOUND_MESSAGE = `No encontré al usuario ${STRING_PARAM}. Revisá que exista y que el tag sea válido.`;
+export const VALORANT_INVALID_TAG_MESSAGE = `Tag inválido. Usá solo el valor que va después del #, con hasta 5 caracteres alfanuméricos, por ejemplo: usuario#RK93.`;
+export const VALORANT_LOOKUP_ERROR_MESSAGE = `No pude consultar el valor de ${STRING_PARAM}. Probá con otro usuario o tag.`;
 
 export const CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE = 'El juego no está disponible';
 export const CHANNEL_INFO_ACTION_SUCCESS = '¡Información del canal actualizada con éxito!';

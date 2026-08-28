@@ -24,6 +24,7 @@ import {
   COMMANDS_SEPARATOR,
   AI_COMMAND_ERROR_MESSAGE,
   AI_NO_RESPONSE_MESSAGE,
+  STRING_PARAM,
   VALORANT_ELO_KEY,
   VALORANT_ID_ALIAS_KEY,
   VALORANT_KEY,
@@ -35,6 +36,9 @@ import {
   LAST_GAME_KEY,
   LAST_RANKED_ALIAS_KEY,
   LAST_RANKED_KEY,
+  VALORANT_INVALID_TAG_MESSAGE,
+  VALORANT_LOOKUP_ERROR_MESSAGE,
+  VALORANT_USER_NOT_FOUND_MESSAGE,
 } from './configuration/chat';
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
@@ -106,19 +110,32 @@ const VALORANT_COMMANDS = new Set([
 
 const getValorantCommandResponse = async (command: string, value?: string): Promise<string | undefined> => {
   const playerValue = value?.trim();
-  const playerLabel = (await import('./services/valorant')).parseValorantPlayer(playerValue).label;
+  const { label: playerLabel, isValidTag } = (await import('./services/valorant')).parseValorantPlayer(playerValue);
 
-  if ([VALORANT_RANK_KEY, VALORANT_RANK_ALIAS_KEY, VALORANT_ELO_KEY, VALORANT_RANK_ALIAS_2_KEY, VALORANT_KEY, VALORANT_ID_ALIAS_KEY].includes(command)) {
-    const data = await CHAT_KEY_ACTIONS[VALORANT_RANK_RESPONSE_KEY](playerValue);
-    return `🎮 ${playerLabel} - ${data}`;
+  if (!isValidTag) {
+    return VALORANT_INVALID_TAG_MESSAGE;
   }
 
-  if ([LAST_RANKED_KEY, LAST_RANKED_ALIAS_KEY, LAST_GAME_KEY].includes(command)) {
-    const data = await CHAT_KEY_ACTIONS[VALORANT_LAST_RANKED_RESPONSE_KEY](playerValue);
-    return `🎮 ${playerLabel} - ${data}`;
-  }
+  try {
+    if ([VALORANT_RANK_KEY, VALORANT_RANK_ALIAS_KEY, VALORANT_ELO_KEY, VALORANT_RANK_ALIAS_2_KEY, VALORANT_KEY, VALORANT_ID_ALIAS_KEY].includes(command)) {
+      const data = await CHAT_KEY_ACTIONS[VALORANT_RANK_RESPONSE_KEY](playerValue);
+      return `🎮 ${playerLabel} - ${data}`;
+    }
 
-  return undefined;
+    if ([LAST_RANKED_KEY, LAST_RANKED_ALIAS_KEY, LAST_GAME_KEY].includes(command)) {
+      const data = await CHAT_KEY_ACTIONS[VALORANT_LAST_RANKED_RESPONSE_KEY](playerValue);
+      return `🎮 ${playerLabel} - ${data}`;
+    }
+
+    return undefined;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'VALORANT_USER_NOT_FOUND') {
+      return VALORANT_USER_NOT_FOUND_MESSAGE.replace(STRING_PARAM, playerLabel);
+    }
+
+    logger.error(`Error querying Valorant rank for ${playerLabel}: ${error}`);
+    return VALORANT_LOOKUP_ERROR_MESSAGE.replace(STRING_PARAM, playerLabel);
+  }
 };
 
 const createMentionedChat = (chat: tmi.Client, username: string): tmi.Client => new Proxy(chat, {
