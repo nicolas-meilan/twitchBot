@@ -208,6 +208,7 @@ export const TTS_MESSAGE = `${STRING_PARAM}1 dijo: ${STRING_PARAM}2`;
 export const FULL_TTS_ENABLED_MESSAGE = 'Modo TTS completo activo para la IA. Las respuestas de la IA saldrán por voz sin limitar caracteres.';
 export const FULL_TTS_DISABLED_MESSAGE = 'Modo TTS completo desactivado para la IA. Volvió al TTS normal.';
 export const FRIDGE_JOKE_MESSAGE = `¿Cuál es la diferencia entre ${STRING_PARAM} y una heladera? Que la heladera no se queja cuando le sacás la carne.`;
+export const FRIDGE_JOKE_ERROR_MESSAGE = 'Necesito un nombre o nick para el chiste. Ejemplo: !heladera @bazinga';
 export const VALORANT_USER_NOT_FOUND_MESSAGE = `No encontré al usuario ${STRING_PARAM}. Revisá que exista y que el tag sea válido.`;
 export const VALORANT_INVALID_TAG_MESSAGE = `Tag inválido. Usá solo el valor que va después del #, con hasta 5 caracteres alfanuméricos, por ejemplo: usuario#RK93.`;
 export const VALORANT_LOOKUP_ERROR_MESSAGE = `No pude consultar el valor de ${STRING_PARAM}. Probá con otro usuario o tag.`;

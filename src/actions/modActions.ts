@@ -45,6 +45,9 @@ import {
   LOTTERY_RESUMED,
   LOTTERY_NO_USERS,
   LOTTERY_START_WINNER,
+  FRIDGE_KEY,
+  FRIDGE_JOKE_MESSAGE,
+  FRIDGE_JOKE_ERROR_MESSAGE,
 } from '../configuration/chat';
 import { ActionsType } from './type';
 import gameQueue from '../services/GameQueue';
@@ -326,6 +329,17 @@ const MOD_ACTIONS: {
   [LOTTERY_RESUME_COMMAND]: ({ chat }) => {
     lottery.resume();
     chat.say(BROADCAST_USERNAME, LOTTERY_RESUMED);
+  },
+  [FRIDGE_KEY]: ({ chat, value }) => {
+    const rawName = (value || '').trim();
+    const cleanName = rawName.replace(/^@/, '').trim();
+
+    if (!cleanName) {
+      chat.say(BROADCAST_USERNAME, FRIDGE_JOKE_ERROR_MESSAGE);
+      return;
+    }
+
+    chat.say(BROADCAST_USERNAME, FRIDGE_JOKE_MESSAGE.replace(STRING_PARAM, cleanName));
   },
 };
 
