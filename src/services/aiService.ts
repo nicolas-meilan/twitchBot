@@ -140,8 +140,8 @@ export const sayAi = (chat: tmi.Client, channel: string, username: string, respo
   logger.info(`AI response: ${formattedResponse}`);
   chat.say(channel, chatMessage);
 
-  if (isAiFullTtsEnabled(channel)) {
-    sendEventTTS(formattedResponse, undefined, true);
+  if (isAiFullTtsEnabled()) {
+    sendEventTTS(formattedResponse, BOT_USERNAME, true);
   }
 };
 

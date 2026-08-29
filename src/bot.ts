@@ -39,6 +39,7 @@ import {
   VALORANT_INVALID_TAG_MESSAGE,
   VALORANT_LOOKUP_ERROR_MESSAGE,
   VALORANT_USER_NOT_FOUND_MESSAGE,
+  TTS_KEY,
 } from './configuration/chat';
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
@@ -188,7 +189,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
         tags,
         message: commandMessage,
         self: false,
-        ttsUser: command === '!tts' ? BOT_USERNAME : undefined,
+        ttsUser: command === TTS_KEY ? BOT_USERNAME : undefined,
       });
       logger.info(`AI command processed: ${command}`);
 

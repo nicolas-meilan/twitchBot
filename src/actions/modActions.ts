@@ -64,20 +64,15 @@ const LOTTERY_EVENT_USERS_LENGTH = 30;
 const DEFAULT_TIMEOUT_SECONDS = 5 * 60;
 const MAX_TIMEOUT_SECONDS = 14 * 24 * 60 * 60;
 
-const aiFullTtsByChannel = new Set<string>();
+let aiFullTtsByChannel = false;
 
 export const toggleAiFullTts = (channel: string) => {
-  const normalizedChannel = channel.toLowerCase();
-  if (aiFullTtsByChannel.has(normalizedChannel)) {
-    aiFullTtsByChannel.delete(normalizedChannel);
-    return false;
-  }
+  aiFullTtsByChannel = !aiFullTtsByChannel;
 
-  aiFullTtsByChannel.add(normalizedChannel);
-  return true;
+  return aiFullTtsByChannel;
 };
 
-export const isAiFullTtsEnabled = (channel: string) => aiFullTtsByChannel.has(channel.toLowerCase());
+export const isAiFullTtsEnabled = () => aiFullTtsByChannel;
 
 type TimeoutAction = { duration: number } | { permanent: true };
 
