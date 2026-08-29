@@ -87,14 +87,16 @@ const webSocketErrorHandler = <T extends Array<unknown>>(callback: (...args: T) 
 export const sendEventTTS = webSocketErrorHandler<[
   message: string,
   user?: string,
-]>(async (message, user) => {
+  allowLongMessage?: boolean,
+]>(async (message, user, allowLongMessage = false) => {
   logger.info('Sending TTS event ...');
   if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
     const parsedMessage = user
       ? TTS_MESSAGE.replace(`${STRING_PARAM}1`, user).replace(`${STRING_PARAM}2`, message)
       : message;
 
-    const payload = { type: BOT_EVENT_TTS, message: parsedMessage.substring(0, TTS_MAX_CHARACTERS) };
+    const safeMessage = allowLongMessage ? parsedMessage : parsedMessage.substring(0, TTS_MAX_CHARACTERS);
+    const payload = { type: BOT_EVENT_TTS, message: safeMessage };
     activeSocket.send(JSON.stringify(payload));
     logger.info('TTS message sent:', JSON.stringify(payload));
   } else {

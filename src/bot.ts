@@ -43,8 +43,7 @@ import {
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
 import VIP_ACTIONS from './actions/vipActions';
-import { askAi, isAiMention } from './services/aiService';
-import { formatKnownCommandsForChat } from './configuration/aiCommands';
+import { AI_EXECUTABLE_COMMANDS, askAi, isAiMention, sayAi, createMentionedChat } from './services/aiService';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
@@ -53,14 +52,6 @@ const PRIME_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.PRIME_RECURRENT_MESS
 const TWITCH_CHAT_MESSAGE_MAX_LENGTH = 400;
 
 let previousMessage = '';
-
-const AI_EXECUTABLE_COMMANDS = new Set([
-  ...Object.keys(MESSAGES_CONFIG),
-  ...USERS_ACTIONS_CONFIG,
-  ...VIP_ACTIONS_CONFIG,
-  ...MODS_ACTIONS_CONFIG,
-  ...BROADCASTER_MESSAGES_CONFIG,
-]);
 
 const getAiCommandRequiredRole = (command: string): UserRole | undefined => {
   if (VIP_ACTIONS_CONFIG.includes(command)) return UserRole.VIP;
@@ -93,8 +84,6 @@ const splitChatMessage = (message: string): string[] => {
   if (currentMessage) messages.push(currentMessage);
   return messages;
 };
-
-const formatAiResponseForChat = (message: string) => formatKnownCommandsForChat(message, AI_EXECUTABLE_COMMANDS);
 
 const VALORANT_COMMANDS = new Set([
   VALORANT_RANK_KEY,
@@ -138,14 +127,6 @@ const getValorantCommandResponse = async (command: string, value?: string): Prom
   }
 };
 
-const createMentionedChat = (chat: tmi.Client, username: string): tmi.Client => new Proxy(chat, {
-  get: (target, property, receiver) => {
-    if (property !== 'say') return Reflect.get(target, property, receiver);
-
-    return (channel: string, message: string) => target.say(channel, `@${username}, ${formatAiResponseForChat(message)}`);
-  },
-});
-
 const responsesKeysHandler = async (message: string): Promise<string | undefined> => {
   try {
     if (!message) return;
@@ -163,17 +144,20 @@ const responsesKeysHandler = async (message: string): Promise<string | undefined
   }
 };
 
-const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, tags, ttsUser }) => {
+const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, tags, ttsUser, self }) => {
+  if (self || (tags.username || '').toLowerCase() === BOT_USERNAME.toLowerCase()) {
+    return;
+  }
+
   const formattedMessage = message.trim();
   previousMessage = formattedMessage;
 
   if (!formattedMessage.startsWith('!') && isAiMention(formattedMessage)) {
     const username = tags.username || 'chat';
     const mentionedChat = createMentionedChat(chat, username);
-    const sayAi = (response: string) => chat.say(channel, `@${username}, ${formatAiResponseForChat(response)}`);
     const result = await askAi(channel, username, formattedMessage);
     if (!result) {
-      sayAi(AI_NO_RESPONSE_MESSAGE);
+      sayAi(chat, channel, username, AI_NO_RESPONSE_MESSAGE);
       return;
     }
 
@@ -182,7 +166,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
       const commandValue = result.command.value;
 
       if (!AI_EXECUTABLE_COMMANDS.has(command) || !command.startsWith('!')) {
-        sayAi(AI_COMMAND_ERROR_MESSAGE);
+        sayAi(chat, channel, username, AI_COMMAND_ERROR_MESSAGE);
         return;
       }
 
@@ -193,7 +177,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
           : requiredRole === UserRole.MOD
             ? 'moderador o broadcaster'
             : 'broadcaster';
-        sayAi(`${ACTION_NOT_ALLOWED}: necesitás ser ${roleDescription} para usar ${command}.`);
+        sayAi(chat, channel, username, `${ACTION_NOT_ALLOWED}: necesitás ser ${roleDescription} para usar ${command}.`);
         logger.info(`AI command rejected for permissions: ${command}`);
         return;
       }
@@ -210,20 +194,20 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
 
       if (result.answer) {
         for (const responseMessage of splitChatMessage(result.answer)) {
-          sayAi(responseMessage);
+          sayAi(chat, channel, username, responseMessage);
         }
       } else if (command !== '!game' && command !== '!categoria') {
-        sayAi(`Listo, ejecuté ${command}.`);
+        sayAi(chat, channel, username, `Listo, ejecuté ${command}.`);
       }
       return;
     }
     if (result.answer && !result.command) {
       logger.info(`AI: ${result.answer}`);
       for (const responseMessage of splitChatMessage(result.answer)) {
-        sayAi(responseMessage);
+        sayAi(chat, channel, username, responseMessage);
       }
     } else if (!result.command) {
-      sayAi(AI_NO_RESPONSE_MESSAGE);
+      sayAi(chat, channel, username, AI_NO_RESPONSE_MESSAGE);
     }
     return;
   }

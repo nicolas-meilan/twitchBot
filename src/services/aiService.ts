@@ -1,9 +1,17 @@
 import axios from 'axios';
+import tmi from 'tmi.js';
 import logger from '../utils/logger';
-import { getAiCommandsGuide } from '../configuration/aiCommands';
+import { getAiCommandsGuide, formatKnownCommandsForChat } from '../configuration/aiCommands';
 import {
   AI_INVALID_RESPONSE_MESSAGE,
+  BROADCASTER_MESSAGES_CONFIG,
+  MESSAGES_CONFIG,
+  MODS_ACTIONS_CONFIG,
+  USERS_ACTIONS_CONFIG,
+  VIP_ACTIONS_CONFIG,
 } from '../configuration/chat';
+import { isAiFullTtsEnabled } from '../actions/modActions';
+import { sendEventTTS } from './botEvents';
 
 const AI_URL = process.env.AI_URL!;
 const AI_MODEL = process.env.AI_MODEL!;
@@ -11,6 +19,14 @@ const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS!);
 const AI_MEMORY_MESSAGES = Number(process.env.AI_MEMORY_MESSAGES!);
 const BOT_USERNAME = process.env.BOT_USERNAME!;
 const AI_MENTION = `@${BOT_USERNAME}`;
+
+export const AI_EXECUTABLE_COMMANDS = new Set([
+  ...Object.keys(MESSAGES_CONFIG),
+  ...USERS_ACTIONS_CONFIG,
+  ...VIP_ACTIONS_CONFIG,
+  ...MODS_ACTIONS_CONFIG,
+  ...BROADCASTER_MESSAGES_CONFIG,
+]);
 
 const SYSTEM_PROMPT = [
   `Sos ${BOT_USERNAME}, el asistente gracioso, pícaro y consistente del chat de un streamer de Twitch.`,
@@ -106,6 +122,28 @@ export type AiResult = {
 const memoryByChannel = new Map<string, MemoryMessage[]>();
 
 const cleanMention = (message: string) => message.replace(new RegExp(AI_MENTION, 'ig'), '').trim();
+
+export const formatAiResponseForChat = (message: string) => formatKnownCommandsForChat(message, AI_EXECUTABLE_COMMANDS);
+
+export const createMentionedChat = (chat: tmi.Client, username: string): tmi.Client => new Proxy(chat, {
+  get: (target, property, receiver) => {
+    if (property !== 'say') return Reflect.get(target, property, receiver);
+
+    return (channel: string, message: string) => target.say(channel, `@${username}, ${formatAiResponseForChat(message)}`);
+  },
+});
+
+export const sayAi = (chat: tmi.Client, channel: string, username: string, response: string) => {
+  const formattedResponse = formatAiResponseForChat(response);
+  const chatMessage = `@${username}, ${formattedResponse}`;
+
+  logger.info(`AI response: ${formattedResponse}`);
+  chat.say(channel, chatMessage);
+
+  if (isAiFullTtsEnabled(channel)) {
+    sendEventTTS(formattedResponse, undefined, true);
+  }
+};
 
 const parseAiResult = (content: string): AiResult | undefined => {
   try {

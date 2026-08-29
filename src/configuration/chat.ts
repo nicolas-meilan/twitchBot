@@ -69,6 +69,7 @@ export const CHANGE_CHANNEL_INFORMATION_KEY_2 = '!game';
 export const KICK_KEY = '!kick';
 export const MOST_POPULAR_CLIP_KEY = '!topclip';
 export const TTS_KEY = '!tts';
+export const FULL_TTS_KEY = '!fulltts';
 export const TIMEOUT_KEY = '!timeout';
 export const BAN_KEY = '!ban';
 export const VALORANT_RANDOM_AGENT_KEY = '!agenterandom';
@@ -117,6 +118,7 @@ export const MODS_ACTIONS_CONFIG = [
   TIMEOUT_KEY,
   BAN_KEY,
   TTS_KEY,
+  FULL_TTS_KEY,
   MOST_POPULAR_CLIP_KEY,
   VALORANT_RANDOM_AGENT_KEY,
   MOVE_PLAYER_FROM_QUEUE_KEY,
@@ -203,6 +205,8 @@ export const AI_INVALID_RESPONSE_MESSAGE = 'La IA me devolvió una respuesta con
 
 export const TTS_MOD_SENDER = 'Un moderador';
 export const TTS_MESSAGE = `${STRING_PARAM}1 dijo: ${STRING_PARAM}2`;
+export const FULL_TTS_ENABLED_MESSAGE = 'Modo TTS completo activo para la IA. Las respuestas de la IA saldrán por voz sin limitar caracteres.';
+export const FULL_TTS_DISABLED_MESSAGE = 'Modo TTS completo desactivado para la IA. Volvió al TTS normal.';
 export const FRIDGE_JOKE_MESSAGE = `¿Cuál es la diferencia entre ${STRING_PARAM} y una heladera? Que la heladera no se queja cuando le sacás la carne.`;
 export const VALORANT_USER_NOT_FOUND_MESSAGE = `No encontré al usuario ${STRING_PARAM}. Revisá que exista y que el tag sea válido.`;
 export const VALORANT_INVALID_TAG_MESSAGE = `Tag inválido. Usá solo el valor que va después del #, con hasta 5 caracteres alfanuméricos, por ejemplo: usuario#RK93.`;
