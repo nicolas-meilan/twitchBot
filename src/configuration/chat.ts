@@ -71,7 +71,8 @@ export const CHANGE_CHANNEL_INFORMATION_KEY_2 = '!game';
 export const KICK_KEY = '!kick';
 export const MOST_POPULAR_CLIP_KEY = '!topclip';
 export const TTS_KEY = '!tts';
-export const FULL_TTS_KEY = '!iatts';
+export const FULL_TTS_ON_KEY = '!iattson';
+export const FULL_TTS_OFF_KEY = '!iattsoff';
 export const TIMEOUT_KEY = '!timeout';
 export const BAN_KEY = '!ban';
 export const VALORANT_RANDOM_AGENT_KEY = '!agenterandom';
@@ -120,7 +121,8 @@ export const MODS_ACTIONS_CONFIG = [
   TIMEOUT_KEY,
   BAN_KEY,
   TTS_KEY,
-  FULL_TTS_KEY,
+  FULL_TTS_ON_KEY,
+  FULL_TTS_OFF_KEY,
   MOST_POPULAR_CLIP_KEY,
   VALORANT_RANDOM_AGENT_KEY,
   MOVE_PLAYER_FROM_QUEUE_KEY,

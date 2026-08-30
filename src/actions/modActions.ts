@@ -27,7 +27,8 @@ import {
   PLAYERS_QUEUE_SUCCESS_MESSAGE,
   STRING_PARAM,
   TTS_KEY,
-  FULL_TTS_KEY,
+  FULL_TTS_ON_KEY,
+  FULL_TTS_OFF_KEY,
   FULL_TTS_DISABLED_MESSAGE,
   FULL_TTS_ENABLED_MESSAGE,
   TIMEOUT_KEY,
@@ -220,9 +221,16 @@ const MOD_ACTIONS: {
 
     sendEventTTS(value, ttsUser || username || TTS_MOD_SENDER);
   },
-  [FULL_TTS_KEY]: ({ chat }) => {
-    const enabled = toggleAiFullTts(BROADCAST_USERNAME);
-    chat.say(BROADCAST_USERNAME, enabled ? FULL_TTS_ENABLED_MESSAGE : FULL_TTS_DISABLED_MESSAGE);
+  [FULL_TTS_ON_KEY]: ({ chat }) => {
+    if(isAiFullTtsEnabled()) return;
+
+    toggleAiFullTts(BROADCAST_USERNAME);
+    chat.say(BROADCAST_USERNAME, FULL_TTS_ENABLED_MESSAGE);
+  },
+  [FULL_TTS_OFF_KEY]: ({ chat }) => {
+    if(!isAiFullTtsEnabled()) return;
+
+    chat.say(BROADCAST_USERNAME, FULL_TTS_DISABLED_MESSAGE);
   },
   [ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY]: async ({ chat, value }) =>  {
     if (!value) return;
