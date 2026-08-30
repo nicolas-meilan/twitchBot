@@ -40,6 +40,7 @@ import {
   VALORANT_LOOKUP_ERROR_MESSAGE,
   VALORANT_USER_NOT_FOUND_MESSAGE,
   TTS_KEY,
+  GAME_SYMBOL,
 } from './configuration/chat';
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
@@ -109,12 +110,12 @@ const getValorantCommandResponse = async (command: string, value?: string): Prom
   try {
     if ([VALORANT_RANK_KEY, VALORANT_RANK_ALIAS_KEY, VALORANT_ELO_KEY, VALORANT_RANK_ALIAS_2_KEY, VALORANT_KEY, VALORANT_ID_ALIAS_KEY].includes(command)) {
       const data = await CHAT_KEY_ACTIONS[VALORANT_RANK_RESPONSE_KEY](playerValue);
-      return `🎮 ${playerLabel} - ${data}`;
+      return `${GAME_SYMBOL} ${playerLabel} - ${data}`;
     }
 
     if ([LAST_RANKED_KEY, LAST_RANKED_ALIAS_KEY, LAST_GAME_KEY].includes(command)) {
       const data = await CHAT_KEY_ACTIONS[VALORANT_LAST_RANKED_RESPONSE_KEY](playerValue);
-      return `🎮 ${playerLabel} - ${data}`;
+      return `${GAME_SYMBOL} ${playerLabel} - ${data}`;
     }
 
     return undefined;

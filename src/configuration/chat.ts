@@ -1,3 +1,5 @@
+import { DEFAULT_VALORANT_TAG, DEFAULT_VALORANT_USERNAME } from "../services/valorant";
+
 export const KEY_DELIMITER = '__';
 export const STRING_PARAM = '__PARAM__';
 
@@ -137,8 +139,8 @@ export const MODS_ACTIONS_CONFIG = [
 export const MESSAGES_CONFIG: {
     [message: string]: string;
 } = {
-  [VALORANT_NICK_KEY]: '🎮 rungekutta93#RK93',
-  [VALORANT_ID_KEY]: '🎮 rungekutta93#RK93',
+  [VALORANT_NICK_KEY]: `🎮 ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG}`,
+  [VALORANT_ID_KEY]: `🎮 ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG}`,
   [PLATFORMS_KEY]: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 🎮 https://youtube.com/@rungekutta93 🎮 https://tiktok.com/@rungekutta93 💬 https://discord.gg/bHePmGSXVm',
   [SOCIAL_NETWORKS_KEY]: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 🎮 https://youtube.com/@rungekutta93 🎮 https://tiktok.com/@rungekutta93 💬 https://discord.gg/bHePmGSXVm',
   [DISCORD_KEY]: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
@@ -150,12 +152,6 @@ export const MESSAGES_CONFIG: {
   [SCHEDULE_KEY]: '🎮 Mi horario de streams 🎮 🗓️ Generalmente estoy en vivo a las 6:00 PM y a veces también a las 10:30 PM. Todo sujeto a mi disponibilidad, siempre en horario de Argentina 🇦🇷. ¡Activá las notis para no perderte nada!',
   [LAUGHTER_KEY]: '😂 ¡Se descontroló el chat! Jajaja, qué nivel de risas, gente. 🤣 ¡Los quiero ver a todos spameando el jajajaja! 😂🔥',
   [APOLOGY_KEY]: '😅 ¡Uh, me mandé una! Perdón, gente. 🙏 Espero que me perdonen... o no. 😂💜',
-  [VALORANT_RANK_KEY]: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
-  [VALORANT_RANK_ALIAS_KEY]: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
-  [VALORANT_ELO_KEY]: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
-  [VALORANT_RANK_ALIAS_2_KEY]: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
-  [VALORANT_KEY]: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
-  [VALORANT_ID_ALIAS_KEY]: `🎮 rungekutta93#RK93 - ${VALORANT_RANK_RESPONSE_KEY}`,
   [CROSSHAIR_KEY]: `Ahí tenés, la mira mágica 😎🎯: 0;p;0;s;1;P;c;1;u;DFFDD0FF;o;0.456;0t;1;0l;3;0o;1;0a;1;0f;0;1b;0;A;c;1;o;1;d;1;0b;0;1b;0;S;s;0.8;o;1`,
   [LAST_RANKED_KEY]: VALORANT_LAST_RANKED_RESPONSE_KEY,
   [LAST_RANKED_ALIAS_KEY]: VALORANT_LAST_RANKED_RESPONSE_KEY,
@@ -171,6 +167,8 @@ export const MESSAGES_CONFIG: {
   [COMPUTER_KEY]: '🧠 Ryzen 9 9950X3D | 🔥 RTX 5080 MSI Ventus 3X | 🧩 32GB DDR5 XPG Lancer Neon | 🛠️ Asus TUF X870-Plus WiFi | ❄️ ROG Strix LC III 360 ARGB | ⚡ XPG Core Reactor II 1200W 80+ Gold | 🖥️ Antec C5 ARGB',
   [COMPUTER_ALIAS_KEY]: '🧠 Ryzen 9 9950X3D | 🔥 RTX 5080 MSI Ventus 3X | 🧩 32GB DDR5 XPG Lancer Neon | 🛠️ Asus TUF X870-Plus WiFi | ❄️ ROG Strix LC III 360 ARGB | ⚡ XPG Core Reactor II 1200W 80+ Gold | 🖥️ Antec C5 ARGB',
 };
+
+export const GAME_SYMBOL = '🎮';
 
 export const NEW_FOLLOWER_MESSAGE = `🎉 ¡Mil Gracias @${STRING_PARAM}1, por la buena onda y el follow! 🙌✨ ¡Bienvenido/a a la comunidad! 🎮🚀 ¡Se vienen cosas piolas!`;
 
@@ -210,7 +208,7 @@ export const FULL_TTS_DISABLED_MESSAGE = 'Modo TTS completo desactivado para la 
 export const FRIDGE_JOKE_MESSAGE = `¿Cuál es la diferencia entre ${STRING_PARAM} y una heladera? Que la heladera no se queja cuando le sacás la carne.`;
 export const FRIDGE_JOKE_ERROR_MESSAGE = 'Necesito un nombre o nick para el chiste. Ejemplo: !heladera @bazinga';
 export const VALORANT_USER_NOT_FOUND_MESSAGE = `No encontré al usuario ${STRING_PARAM}. Revisá que exista y que el tag sea válido.`;
-export const VALORANT_INVALID_TAG_MESSAGE = `Tag inválido. Usá solo el valor que va después del #, con hasta 5 caracteres alfanuméricos, por ejemplo: usuario#RK93.`;
+export const VALORANT_INVALID_TAG_MESSAGE = `Tag inválido. Usá solo el valor que va después del #, con hasta 5 caracteres alfanuméricos, por ejemplo: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG}.`;
 export const VALORANT_LOOKUP_ERROR_MESSAGE = `No pude consultar el valor de ${STRING_PARAM}. Probá con otro usuario o tag.`;
 
 export const CHANNEL_INFO_ACTION_GAME_NOT_AVAILABLE = 'El juego no está disponible';

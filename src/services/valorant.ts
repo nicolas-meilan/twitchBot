@@ -1,7 +1,8 @@
 import axios from "axios";
 
-const DEFAULT_VALORANT_USERNAME = 'rungekutta93';
-const DEFAULT_VALORANT_TAG = 'RK93';
+export const DEFAULT_VALORANT_USERNAME = 'rungekutta93';
+export const DEFAULT_VALORANT_TAG = 'RK93';
+
 const DEFAULT_VALORANT_REGION = 'latam';
 const VALORANT_API_KEY = process.env.VALORANT_API_KEY || '';
 const VALID_VALORANT_TAG_REGEX = /^[A-Za-z0-9]{1,5}$/;
@@ -14,23 +15,21 @@ export type ValorantData = {
 };
 
 const sanitizeValorantUsername = (value?: string) => {
-  const sanitized = (value || '').trim().replace(/^@/, '');
+  const sanitized = (value || '').trim().toLowerCase().replace(/^@/, '').replace(/[\p{Cf}\p{Mn}]/gu, '');
   return sanitized || DEFAULT_VALORANT_USERNAME;
 };
 
 const sanitizeValorantTag = (value?: string) => {
-  const sanitized = (value || '').trim().replace(/[^A-Za-z0-9]/g, '').slice(0, 5);
+  const sanitized = (value || '').trim().toLowerCase().replace(/[^A-Za-z0-9]/g, '').slice(0, 5);
   return sanitized || DEFAULT_VALORANT_TAG;
 };
 
 export const parseValorantPlayer = (value?: string) => {
   const rawValue = (value || '').trim().replace(/^@/, '');
-  const separatorIndex = rawValue.indexOf('#');
-  const usernamePart = separatorIndex >= 0 ? rawValue.slice(0, separatorIndex) : rawValue;
-  const tagPart = separatorIndex >= 0 ? rawValue.slice(separatorIndex + 1) : undefined;
+  const [usernamePart, tagPart] = rawValue.split('#');
   const username = sanitizeValorantUsername(usernamePart);
   const tag = sanitizeValorantTag(tagPart);
-  const isValidTag = VALID_VALORANT_TAG_REGEX.test(tag) && !!tagPart?.trim();
+  const isValidTag = VALID_VALORANT_TAG_REGEX.test(tag);
 
   return {
     username,
