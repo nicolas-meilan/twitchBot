@@ -230,6 +230,7 @@ const MOD_ACTIONS: {
   [FULL_TTS_OFF_KEY]: ({ chat }) => {
     if(!isAiFullTtsEnabled()) return;
 
+    toggleAiFullTts(BROADCAST_USERNAME);
     chat.say(BROADCAST_USERNAME, FULL_TTS_DISABLED_MESSAGE);
   },
   [ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY]: async ({ chat, value }) =>  {
