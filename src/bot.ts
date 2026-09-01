@@ -24,23 +24,7 @@ import {
   COMMANDS_SEPARATOR,
   AI_COMMAND_ERROR_MESSAGE,
   AI_NO_RESPONSE_MESSAGE,
-  STRING_PARAM,
-  VALORANT_ELO_KEY,
-  VALORANT_ID_ALIAS_KEY,
-  VALORANT_KEY,
-  VALORANT_LAST_RANKED_RESPONSE_KEY,
-  VALORANT_RANK_ALIAS_2_KEY,
-  VALORANT_RANK_ALIAS_KEY,
-  VALORANT_RANK_KEY,
-  VALORANT_RANK_RESPONSE_KEY,
-  LAST_GAME_KEY,
-  LAST_RANKED_ALIAS_KEY,
-  LAST_RANKED_KEY,
-  VALORANT_INVALID_TAG_MESSAGE,
-  VALORANT_LOOKUP_ERROR_MESSAGE,
-  VALORANT_USER_NOT_FOUND_MESSAGE,
   TTS_KEY,
-  GAME_SYMBOL,
 } from './configuration/chat';
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
@@ -85,48 +69,6 @@ const splitChatMessage = (message: string): string[] => {
 
   if (currentMessage) messages.push(currentMessage);
   return messages;
-};
-
-const VALORANT_COMMANDS = new Set([
-  VALORANT_RANK_KEY,
-  VALORANT_RANK_ALIAS_KEY,
-  VALORANT_ELO_KEY,
-  VALORANT_RANK_ALIAS_2_KEY,
-  VALORANT_KEY,
-  VALORANT_ID_ALIAS_KEY,
-  LAST_RANKED_KEY,
-  LAST_RANKED_ALIAS_KEY,
-  LAST_GAME_KEY,
-]);
-
-const getValorantCommandResponse = async (command: string, value?: string): Promise<string | undefined> => {
-  const playerValue = value?.trim();
-  const { label: playerLabel, isValidTag } = (await import('./services/valorant')).parseValorantPlayer(playerValue);
-
-  if (!isValidTag) {
-    return VALORANT_INVALID_TAG_MESSAGE;
-  }
-
-  try {
-    if ([VALORANT_RANK_KEY, VALORANT_RANK_ALIAS_KEY, VALORANT_ELO_KEY, VALORANT_RANK_ALIAS_2_KEY, VALORANT_KEY, VALORANT_ID_ALIAS_KEY].includes(command)) {
-      const data = await CHAT_KEY_ACTIONS[VALORANT_RANK_RESPONSE_KEY](playerValue);
-      return `${GAME_SYMBOL} ${playerLabel} - ${data}`;
-    }
-
-    if ([LAST_RANKED_KEY, LAST_RANKED_ALIAS_KEY, LAST_GAME_KEY].includes(command)) {
-      const data = await CHAT_KEY_ACTIONS[VALORANT_LAST_RANKED_RESPONSE_KEY](playerValue);
-      return `${GAME_SYMBOL} ${playerLabel} - ${data}`;
-    }
-
-    return undefined;
-  } catch (error) {
-    if (error instanceof Error && error.message === 'VALORANT_USER_NOT_FOUND') {
-      return VALORANT_USER_NOT_FOUND_MESSAGE.replace(STRING_PARAM, playerLabel);
-    }
-
-    logger.error(`Error querying Valorant rank for ${playerLabel}: ${error}`);
-    return VALORANT_LOOKUP_ERROR_MESSAGE.replace(STRING_PARAM, playerLabel);
-  }
 };
 
 const responsesKeysHandler = async (message: string): Promise<string | undefined> => {
@@ -277,19 +219,6 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
       value: formattedMessage.replace(originalCommand, '').trim(),
     });
 
-    return;
-  }
-
-  if (VALORANT_COMMANDS.has(command)) {
-    const value = formattedMessage.replace(originalCommand, '').trim();
-    const response = await getValorantCommandResponse(command, value);
-
-    if (!response) return;
-
-    logger.info(`BOT: ${response}`);
-    for (const message of splitChatMessage(response)) {
-      chat.say(channel, message);
-    }
     return;
   }
 

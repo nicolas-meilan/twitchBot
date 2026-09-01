@@ -46,7 +46,7 @@ export const getValorantRankUrl = (value?: string) => {
     throw new Error('INVALID_VALORANT_TAG');
   }
 
-  return `https://api.henrikdev.xyz/valorant/v1/mmr/${DEFAULT_VALORANT_REGION}/${username}/${tag}?season=e9a3`;
+  return `https://api.henrikdev.xyz/valorant/v1/mmr/${DEFAULT_VALORANT_REGION}/${username}/${tag}`;
 };
 
 export const fetchCurrentRank = async (value?: string): Promise<ValorantData> => {

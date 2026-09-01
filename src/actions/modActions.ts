@@ -63,20 +63,20 @@ const PLAYERS_QUEUE_PRIORITY_KEY = [
   'priority',
 ];
 
-const LOTTERY_DELAY = 18000; // 18 seconds
+const LOTTERY_DELAY = 18000;
 const LOTTERY_EVENT_USERS_LENGTH = 30;
 const DEFAULT_TIMEOUT_SECONDS = 5 * 60;
 const MAX_TIMEOUT_SECONDS = 14 * 24 * 60 * 60;
 
-let aiFullTtsByChannel = false;
+let aiFullTtsEnabled = false;
 
-export const toggleAiFullTts = (channel: string) => {
-  aiFullTtsByChannel = !aiFullTtsByChannel;
+export const toggleAiFullTts = () => {
+  aiFullTtsEnabled = !aiFullTtsEnabled;
 
-  return aiFullTtsByChannel;
+  return aiFullTtsEnabled;
 };
 
-export const isAiFullTtsEnabled = () => aiFullTtsByChannel;
+export const isAiFullTtsEnabled = () => aiFullTtsEnabled;
 
 type TimeoutAction = { duration: number } | { permanent: true };
 
@@ -224,13 +224,13 @@ const MOD_ACTIONS: {
   [FULL_TTS_ON_KEY]: ({ chat }) => {
     if(isAiFullTtsEnabled()) return;
 
-    toggleAiFullTts(BROADCAST_USERNAME);
+    toggleAiFullTts();
     chat.say(BROADCAST_USERNAME, FULL_TTS_ENABLED_MESSAGE);
   },
   [FULL_TTS_OFF_KEY]: ({ chat }) => {
     if(!isAiFullTtsEnabled()) return;
 
-    toggleAiFullTts(BROADCAST_USERNAME);
+    toggleAiFullTts();
     chat.say(BROADCAST_USERNAME, FULL_TTS_DISABLED_MESSAGE);
   },
   [ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY]: async ({ chat, value }) =>  {

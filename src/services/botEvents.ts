@@ -12,7 +12,6 @@ import {
   LOTTERY_EVENT,
 } from '../configuration/botEvents';
 import { STRING_PARAM, TTS_MESSAGE } from '../configuration/chat';
-import { Clip } from './twitch/clip';
 
 const BOT_EVENTS_PASSWORD = process.env.BOT_EVENTS_PASSWORD || '';
 const BOT_EVENTS_PORT = process.env.BOT_EVENTS_PORT || '';

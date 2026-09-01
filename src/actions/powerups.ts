@@ -98,7 +98,7 @@ export const userSacrifice = async (chat: tmi.Client, userId: string, userName: 
       .replace(`${STRING_PARAM}2`, `${duration} minutos`));
     logger
       .info(SACRIFICE_SUCCESS.replace(STRING_PARAM, userName)
-      .replace(`${STRING_PARAM}2`, `${duration} minutos`));
+        .replace(`${STRING_PARAM}2`, `${duration} minutos`));
   } catch {
     chat.say(BROADCAST_USERNAME, SACRIFICE_ERROR.replace(STRING_PARAM, userName));
     logger.error('error on execute sacrifice');

@@ -1,6 +1,4 @@
 import { sendEventStartStream } from '../services/botEvents';
-import { getBroadcastTokens } from '../services/twitch/auth';
-import { Clip, getLatestClips } from '../services/twitch/clip';
 import {
   STREAM_START_ALERT_LONG,
   START_ACTION_ERROR,

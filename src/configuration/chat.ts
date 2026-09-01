@@ -49,6 +49,7 @@ export const VALORANT_KEY = '!valorant';
 export const VALORANT_ID_ALIAS_KEY = '!id';
 export const CROSSHAIR_KEY = '!mira';
 export const LAST_RANKED_KEY = '!ultimarankedvalo';
+export const LAST_RANKED_2_KEY = '!ultimaranked';
 export const LAST_RANKED_ALIAS_KEY = '!ultimarankedvalorant';
 export const LAST_GAME_KEY = '!ultimapartida';
 export const COMMANDS_KEY = '!comandos';
@@ -107,6 +108,16 @@ export const USERS_ACTIONS_CONFIG = [
   LOTTERY_COMMAND,
   LOTTERY_STATUS_COMMAND,
   LOTTERY_LIST_COMMAND,
+  VALORANT_RANK_KEY,
+  VALORANT_RANK_ALIAS_KEY,
+  VALORANT_ELO_KEY,
+  VALORANT_RANK_ALIAS_2_KEY,
+  VALORANT_KEY,
+  VALORANT_ID_ALIAS_KEY,
+  LAST_RANKED_KEY,
+  LAST_RANKED_ALIAS_KEY,
+  LAST_GAME_KEY,
+  LAST_RANKED_2_KEY,
 ];
 
 export const VIP_ACTIONS_CONFIG = [
@@ -139,7 +150,7 @@ export const MODS_ACTIONS_CONFIG = [
 ];
 
 export const MESSAGES_CONFIG: {
-    [message: string]: string;
+  [message: string]: string;
 } = {
   [VALORANT_NICK_KEY]: `🎮 ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG}`,
   [VALORANT_ID_KEY]: `🎮 ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG}`,
