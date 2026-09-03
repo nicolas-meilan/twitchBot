@@ -74,7 +74,7 @@
               width: options.width,
               height: options.height,
               shutdown: true,
-}           
+            }
           });
 
           const updatedSceneItems = await obs.call('GetSceneItemList', { sceneName });
@@ -88,8 +88,8 @@
               url,
               is_local_file: false,
               shutdown: true,
-         }
-});
+            }
+          });
 
           return item;
         }
@@ -126,14 +126,14 @@
       if (!obs) return;
 
       try {
-          const { desktop1, desktop2, mic1, mic2, mic3 } = await obs.call('GetSpecialInputs');
-          const globalAudioSources = [desktop1, desktop2, mic1, mic2, mic3].filter(Boolean);
+        const { desktop1, desktop2, mic1, mic2, mic3 } = await obs.call('GetSpecialInputs');
+        const globalAudioSources = [desktop1, desktop2, mic1, mic2, mic3].filter(Boolean);
 
-          for (const sourceName of globalAudioSources) {
-              await obs.call('SetInputMute', { inputName: sourceName, inputMuted: true });
-          }
+        for (const sourceName of globalAudioSources) {
+          await obs.call('SetInputMute', { inputName: sourceName, inputMuted: true });
+        }
       } catch (error) {
-          console.error('Error muting global audio sources:', error);
+        console.error('Error muting global audio sources:', error);
       }
     }
 
@@ -168,12 +168,12 @@
             const videoTimeMs = (Number(data.duration || '0') * 1000) || DEFAULT_CLIP_TIME;
             setTimeout(async () => {
               await obs.call('SetInputSettings', {
-              inputName: OBS_CLIPS_FONT_NAME,
-              inputSettings: {
-                url: '',
-                is_local_file: false,
-              }
-            });
+                inputName: OBS_CLIPS_FONT_NAME,
+                inputSettings: {
+                  url: '',
+                  is_local_file: false,
+                }
+              });
             }, videoTimeMs + CLIP_PLUS_TIME);
           } catch (error) {
             console.error('Error changing obs font for clips', error);
@@ -212,7 +212,7 @@
             const currentScene = await obs.call('GetCurrentProgramScene');
             const { winner, users } = data;
             const url = `${LOTTERY_URL}?winner=${encodeURIComponent(winner)}&users=${encodeURIComponent(users.join(','))}`;
-            
+
             const lottery = await ensureBrowserItemExists(
               currentScene.currentProgramSceneName,
               LOTTERY_ITEM_NAME,
@@ -254,6 +254,16 @@
             await setSceneItemEnabled(OBS_OFFLINE_SCENE_NAME, offlineCountdown.sceneItemId, true);
 
             await muteGlobalAudioSources();
+            try {
+              await obs.call('CallVendorRequest', {
+                vendorName: 'aitum-stream-suite',
+                requestType: 'start_all_streams',
+                requestData: {}
+              });
+              return;
+            } catch (error) {
+              console.log('Aitum no está instalado o no respondió, continuando con OBS normal.');
+            }
             await obs.call('StartStream');
             return;
           } catch (error) {
