@@ -34,7 +34,7 @@ class GameQueue {
 
   constructor() {
     this.#gameQueue = [{
-      username: this.#BROADCAST_USERNAME,
+      username: this.#normalizeUsername(this.#BROADCAST_USERNAME),
       isMod: true,
       isVIP: true,
       isSub: true,
@@ -57,8 +57,12 @@ class GameQueue {
     return this.#joinStopped;
   }
 
+  #normalizeUsername(username: string) {
+    return (username || '').toLowerCase().trim().replace(/^@/, '');
+  }
+
   #isBroadcaster(username: string) {
-    return username.toLowerCase().trim() === this.#BROADCAST_USERNAME.toLowerCase().trim();
+    return this.#normalizeUsername(username) === this.#normalizeUsername(this.#BROADCAST_USERNAME);
   }
 
   #minToMs(minutes: number) {
@@ -66,8 +70,9 @@ class GameQueue {
   }
 
   #findUserInQueue(username: string) {
+    const normalized = this.#normalizeUsername(username);
     return this.#gameQueue.find((player) =>
-      player.username.toLowerCase().trim() === username.toLowerCase().trim()
+      this.#normalizeUsername(player.username) === normalized
     );
   }
 
@@ -99,10 +104,13 @@ class GameQueue {
       return false;
     }
 
-    if (this.#isBroadcaster(user.username) || this.#findUserInQueue(user.username)) return false;
+    const username = this.#normalizeUsername(user.username);
+
+    if (this.#isBroadcaster(username) || this.#findUserInQueue(username)) return false;
 
     this.#gameQueue.push({
       ...user,
+      username,
       addedManuallyWithPriority: false,
       timestamp: Date.now(),
     });
@@ -143,8 +151,9 @@ class GameQueue {
   removeFromQueue(username: string) {
     if (this.#isBroadcaster(username)) return false;
 
+    const normalized = this.#normalizeUsername(username);
     const index = this.#gameQueue.findIndex((player) =>
-      player.username.toLowerCase().trim() === username.toLowerCase().trim()
+      this.#normalizeUsername(player.username) === normalized
     );
 
     if (index === -1) return false;
@@ -158,7 +167,8 @@ class GameQueue {
   }
 
   joinQueueManually(value: string, maxPriority?: boolean) {
-    const username = value.split(' ')[0]?.trim();
+    const rawUsername = value.split(' ')[0]?.trim() || '';
+    const username = this.#normalizeUsername(rawUsername);
     const alreadyExists = !!this.#findUserInQueue(username);
 
     if (alreadyExists && !maxPriority) return false;
