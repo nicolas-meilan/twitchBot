@@ -16,6 +16,7 @@ const VALORANT_RANDOM_PICKER_URL = process.env.VALORANT_RANDOM_PICKER_URL || '';
 const BOT_EVENTS_PASSWORD = process.env.BOT_EVENTS_PASSWORD || '';
 const BOT_EVENTS_URL = process.env.BOT_EVENTS_URL || '';
 const LOTTERY_URL = process.env.LOTTERY_URL || '';
+const OBS_AITUM_OUTPUT_DENY_LIST = process.env.OBS_AITUM_OUTPUT_DENY_LIST || '';
 
 const startObsViewsServer = () => {
   try {
@@ -40,7 +41,8 @@ const startObsViewsServer = () => {
             .replace('__OBS_COUNTDOWN_MESSAGE__', STREAM_START_ALERT_SHORT)
             .replace('__VALORANT_RANDOM_PICKER_URL__', VALORANT_RANDOM_PICKER_URL)
             .replace('__LOTTERY_URL__', LOTTERY_URL)
-            .replace('__PASSWORD__', BOT_EVENTS_PASSWORD);
+            .replace('__PASSWORD__', BOT_EVENTS_PASSWORD)
+            .replace('__AITUM_DENY_LIST__', OBS_AITUM_OUTPUT_DENY_LIST);
 
           res.statusCode = 200;
           res.setHeader('Content-Type', 'text/html');
