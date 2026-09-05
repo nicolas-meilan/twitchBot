@@ -58,7 +58,7 @@ class GameQueue {
   }
 
   #normalizeUsername(username: string) {
-    return (username || '').toLowerCase().trim().replace(/^@/, '');
+    return (username || '').toLowerCase().trim().replace(/@/g, '');
   }
 
   #isBroadcaster(username: string) {
