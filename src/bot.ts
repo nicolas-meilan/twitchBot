@@ -139,7 +139,7 @@ const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, mes
           channel,
           tags,
           message: commandMessage,
-          self: false,
+          self: true,
           ttsUser: isTTS ? BOT_USERNAME : undefined,
         });
       }
