@@ -22,7 +22,13 @@ const sanitizeTitle = (title: string): string => {
   if (!title) return '';
 
   return title
-    .replace(/[\u0000-\u001F\u007F]/g, '')
+    .split('')
+    .filter((character) => {
+      const code = character.charCodeAt(0);
+
+      return code > 0x1F && code !== 0x7F;
+    })
+    .join('')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, MAX_TITLE_LENGTH)

@@ -1,50 +1,54 @@
-import axios from 'axios';
+import { PLAYERS_QUEUE_PRIORITY_BENEFITS } from '../../configuration/chat';
 
-import tmi from 'tmi.js';
+import gameQueue from '../../services/GameQueue';
 
-import logger from '../utils/logger';
+import { getCommandDefinitions, getCommandDescription } from '../../configuration/commandDescriptions';
 
-import { getAiCommandsGuide, formatKnownCommandsForChat } from '../configuration/aiCommands';
+export const AI_URL = process.env.AI_URL!;
 
-import {
-  AI_INVALID_RESPONSE_MESSAGE,
-  BROADCASTER_MESSAGES_CONFIG,
-  MESSAGES_CONFIG,
-  MODS_ACTIONS_CONFIG,
-  USERS_ACTIONS_CONFIG,
-  VIP_ACTIONS_CONFIG,
-} from '../configuration/chat';
+export const AI_MODEL = process.env.AI_MODEL!;
 
-import { isAiFullTtsEnabled } from '../actions/modActions';
+export const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS!);
 
-import { sendEventTTS } from './botEvents';
+export const AI_MEMORY_MESSAGES = Number(process.env.AI_MEMORY_MESSAGES!);
 
-const AI_URL = process.env.AI_URL!;
+export const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME!;
 
-const AI_MODEL = process.env.AI_MODEL!;
+export const BOT_USERNAME = process.env.BOT_USERNAME!;
 
-const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS!);
+export const AI_MENTION = `@${BOT_USERNAME}`;
 
-const AI_MEMORY_MESSAGES = Number(process.env.AI_MEMORY_MESSAGES!);
+export const AI_MAX_QUEUE_SIZE = 6;
 
-const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME!;
+export const formatKnownCommandsForChat = (text: string, commands: Iterable<string>) => {
+  const commandNames = [...commands]
+    .sort((firstCommand, secondCommand) => secondCommand.length - firstCommand.length)
+    .map((command) => command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|');
 
-const BOT_USERNAME = process.env.BOT_USERNAME!;
+  if (!commandNames) return text;
 
-const AI_MENTION = `@${BOT_USERNAME}`;
+  return text.replace(new RegExp(`(?<!\\()(${commandNames})(?![\\w-])`, 'gi'), '($1)');
+};
 
-// Cantidad máxima de consultas de IA pendientes o en ejecución por canal.
-const AI_MAX_QUEUE_SIZE = 6;
+const getAiCommandsGuide = () => {
+  const priorityBenefits = gameQueue.getPriorityBenefitsDescription();
 
-export const AI_EXECUTABLE_COMMANDS = new Set([
-  ...Object.keys(MESSAGES_CONFIG),
-  ...USERS_ACTIONS_CONFIG,
-  ...VIP_ACTIONS_CONFIG,
-  ...MODS_ACTIONS_CONFIG,
-  ...BROADCASTER_MESSAGES_CONFIG,
-]);
+  const commands = getCommandDefinitions();
 
-const SYSTEM_PROMPT = [
+  return [...commands.entries()]
+    .sort(([firstCommand], [secondCommand]) => firstCommand.localeCompare(secondCommand))
+    .map(([command, permission]) => {
+      const { description, usage } = getCommandDescription(command);
+
+      const details = `${description}; uso: ${usage}`.replace(PLAYERS_QUEUE_PRIORITY_BENEFITS, priorityBenefits);
+
+      return `- (${command}): ${details}; permiso: ${permission}`;
+    })
+    .join('\n');
+};
+
+export const SYSTEM_PROMPT = [
   // ============================================================
   // IDENTIDAD
   // ============================================================
@@ -223,13 +227,10 @@ const SYSTEM_PROMPT = [
   // ============================================================
 
   `GUÍA DE COMANDOS DISPONIBLES:\n${getAiCommandsGuide()}`,
+
 ].join('\n');
 
-type ChatCompletionResponse = {
-  choices?: Array<{ message?: { content?: string } }>;
-};
-
-const STRICT_RESPONSE_FORMAT = {
+export const STRICT_RESPONSE_FORMAT = {
   type: 'json_schema',
   json_schema: {
     name: 'ai_response',
@@ -237,19 +238,27 @@ const STRICT_RESPONSE_FORMAT = {
     schema: {
       type: 'object',
       properties: {
-        answer: { type: ['string', 'null'] },
+        answer: {
+          type: ['string', 'null'],
+        },
         command: {
           anyOf: [
             {
               type: 'object',
               properties: {
-                name: { type: 'string' },
-                value: { type: 'string' },
+                name: {
+                  type: 'string',
+                },
+                value: {
+                  type: 'string',
+                },
               },
               required: ['name', 'value'],
               additionalProperties: false,
             },
-            { type: 'null' },
+            {
+              type: 'null',
+            },
           ],
         },
       },
@@ -258,234 +267,3 @@ const STRICT_RESPONSE_FORMAT = {
     },
   },
 };
-
-type MemoryMessage = {
-  username: string;
-  role: 'user' | 'assistant';
-  content: string;
-};
-
-type AiQueueTask = () => Promise<void>;
-
-export type AiCommand = {
-  name: string;
-  value: string;
-};
-
-export type AiResult = {
-  answer?: string;
-  command?: AiCommand;
-};
-
-const memoryByChannel = new Map<string, MemoryMessage[]>();
-
-const aiQueueByChannel = new Map<string, Promise<void>>();
-
-const aiQueueSizeByChannel = new Map<string, number>();
-
-const cleanMention = (message: string) => message.replace(new RegExp(AI_MENTION, 'ig'), '').trim();
-
-export const formatAiResponseForChat = (message: string) => formatKnownCommandsForChat(message, AI_EXECUTABLE_COMMANDS);
-
-export const createMentionedChat = (chat: tmi.Client, username: string): tmi.Client => new Proxy(chat, {
-  get: (target, property, receiver) => {
-    if (property !== 'say') return Reflect.get(target, property, receiver);
-
-    return (channel: string, message: string) => target.say(channel, `@${username}, ${formatAiResponseForChat(message)}`);
-  },
-});
-
-export const sayAi = (chat: tmi.Client, channel: string, username: string, response: string) => {
-  const formattedResponse = formatAiResponseForChat(response);
-
-  const chatMessage = `@${username}, ${formattedResponse}`;
-
-  logger.info(`AI response: ${formattedResponse}`);
-
-  chat.say(channel, chatMessage);
-
-  if (isAiFullTtsEnabled()) {
-    sendEventTTS(formattedResponse, BOT_USERNAME, true);
-  }
-};
-
-const parseAiResult = (content: string): AiResult | undefined => {
-  try {
-    const parsed = JSON.parse(content) as Partial<AiResult>;
-
-    const hasAnswer = typeof parsed.answer === 'string';
-
-    const hasCommand = parsed.command && typeof parsed.command.name === 'string' && typeof parsed.command.value === 'string';
-
-    if (!hasAnswer && !hasCommand) return;
-
-    return {
-      answer: hasAnswer ? parsed.answer!.replace(/^!/, '').trim() : undefined,
-
-      command: hasCommand
-        ? { name: parsed.command!.name.toLowerCase(), value: parsed.command!.value.trim() }
-        : undefined,
-    };
-
-  } catch {
-    logger.warn('AI returned an invalid response format');
-
-    return;
-  }
-};
-
-const logAiError = (error: unknown) => {
-  if (axios.isAxiosError(error)) {
-    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
-      logger.error(`AI error: timeout after ${AI_TIMEOUT_MS}ms`);
-
-      return;
-    }
-
-    if (error.response?.status) {
-      logger.error(`AI error: HTTP ${error.response.status}`);
-
-      return;
-    }
-
-    logger.error('AI error: connection failed');
-
-    return;
-  }
-
-  logger.error('AI error: unknown failure');
-};
-
-const enqueueAi = async (channel: string, task: AiQueueTask): Promise<boolean> => {
-  const channelKey = channel.toLowerCase();
-
-  const queueSize = aiQueueSizeByChannel.get(channelKey) || 0;
-
-  if (queueSize >= AI_MAX_QUEUE_SIZE) {
-    logger.warn(`AI queue full for channel ${channel}: ${queueSize}/${AI_MAX_QUEUE_SIZE}`);
-
-    return false;
-  }
-
-  aiQueueSizeByChannel.set(channelKey, queueSize + 1);
-
-  const previousTask = aiQueueByChannel.get(channelKey) || Promise.resolve();
-
-  let currentTask: Promise<void>;
-
-  currentTask = previousTask
-    .catch(() => undefined)
-    .then(task)
-    .finally(() => {
-      const currentQueueSize = aiQueueSizeByChannel.get(channelKey) || 1;
-
-      if (currentQueueSize <= 1) {
-        aiQueueSizeByChannel.delete(channelKey);
-      } else {
-        aiQueueSizeByChannel.set(channelKey, currentQueueSize - 1);
-      }
-
-      if (aiQueueByChannel.get(channelKey) === currentTask) {
-        aiQueueByChannel.delete(channelKey);
-      }
-    });
-
-  aiQueueByChannel.set(channelKey, currentTask);
-
-  await currentTask;
-
-  return true;
-};
-
-export const askAi = async (channel: string, username: string, message: string): Promise<AiResult | undefined> => {
-  const question = cleanMention(message);
-
-  if (!question) return;
-
-  try {
-    const channelKey = channel.toLowerCase();
-
-    const history = memoryByChannel.get(channelKey) || [];
-
-    const requestBody = (responseFormat: object) => ({
-      model: AI_MODEL,
-      response_format: responseFormat,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-
-        ...history.map((item) => ({
-          role: item.role,
-          content: `[usuario: ${item.username}] ${item.content}`,
-        })),
-
-        { role: 'user', content: `[usuario: ${username}] ${question}` },
-      ],
-    });
-
-    let response;
-
-    try {
-      response = await axios.post<ChatCompletionResponse>(
-        `${AI_URL.replace(/\/$/, '')}/v1/chat/completions`,
-        requestBody(STRICT_RESPONSE_FORMAT),
-        { timeout: AI_TIMEOUT_MS },
-      );
-
-    } catch (error) {
-      if (!axios.isAxiosError(error) || ![400, 422].includes(error.response?.status || 0)) throw error;
-
-      logger.warn('AI does not support JSON Schema; falling back to JSON object mode');
-
-      response = await axios.post<ChatCompletionResponse>(
-        `${AI_URL.replace(/\/$/, '')}/v1/chat/completions`,
-        requestBody({ type: 'json_object' }),
-        { timeout: AI_TIMEOUT_MS },
-      );
-    }
-
-    const content = response.data.choices?.[0]?.message?.content?.trim();
-
-    if (!content) return;
-
-    const result = parseAiResult(content);
-
-    if (!result) {
-      return { answer: AI_INVALID_RESPONSE_MESSAGE };
-    }
-
-    const updatedHistory = [
-      ...history,
-
-      { username, role: 'user' as const, content: question },
-
-      { username: BOT_USERNAME, role: 'assistant' as const, content: result.answer || JSON.stringify(result.command) },
-    ];
-
-    memoryByChannel.set(channelKey, updatedHistory.slice(-AI_MEMORY_MESSAGES));
-
-    return result;
-
-  } catch (error) {
-    logAiError(error);
-
-    return;
-  }
-};
-
-export const askAiQueued = async (channel: string, username: string, message: string): Promise<AiResult | undefined> => {
-  let result: AiResult | undefined;
-
-  const queued = await enqueueAi(channel, async () => {
-    result = await askAi(channel, username, message);
-  });
-
-  if (!queued) {
-    logger.info(`AI request discarded because queue is full: ${channel}`);
-
-    return;
-  }
-
-  return result;
-};
-
-export const isAiMention = (message: string) => message.toLowerCase().includes(AI_MENTION.toLowerCase());

@@ -29,7 +29,7 @@ import {
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 import USER_ACTIONS from './actions/userActions';
 import VIP_ACTIONS from './actions/vipActions';
-import { AI_EXECUTABLE_COMMANDS, askAiQueued, isAiMention, sayAi, createMentionedChat } from './services/aiService';
+import { AI_EXECUTABLE_COMMANDS, askAiQueued, isAiMention, sayAi, createMentionedChat } from './services/aiService/aiService';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || '';
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
