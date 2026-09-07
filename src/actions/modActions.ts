@@ -145,12 +145,11 @@ const changeGameCategory: ActionsType = async ({ chat, value }) => {
     }
   }
 
-  if (gameData && gameTitle?.trim()) {
-    gameData = {
-      ...gameData,
-      title: gameTitle.trim(),
-    };
-  }
+  gameData = {
+    ...gameData,
+    title: gameTitle?.trim() || gameData.title,
+    tags: gameTags?.split(',') || gameData.tags,
+  };
 
   try {
     await updateChannelInfo(token.access_token, gameData, async () => {
@@ -222,18 +221,18 @@ const MOD_ACTIONS: {
     sendEventTTS(value, ttsUser || username || TTS_MOD_SENDER);
   },
   [FULL_TTS_ON_KEY]: ({ chat }) => {
-    if(isAiFullTtsEnabled()) return;
+    if (isAiFullTtsEnabled()) return;
 
     toggleAiFullTts();
     chat.say(BROADCAST_USERNAME, FULL_TTS_ENABLED_MESSAGE);
   },
   [FULL_TTS_OFF_KEY]: ({ chat }) => {
-    if(!isAiFullTtsEnabled()) return;
+    if (!isAiFullTtsEnabled()) return;
 
     toggleAiFullTts();
     chat.say(BROADCAST_USERNAME, FULL_TTS_DISABLED_MESSAGE);
   },
-  [ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY]: async ({ chat, value }) =>  {
+  [ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY]: async ({ chat, value }) => {
     if (!value) return;
 
     const [username, extraValue] = value.split(' ');
@@ -243,33 +242,33 @@ const MOD_ACTIONS: {
     const list = gameQueue.getOrderedQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
   },
-  [MOVE_PLAYER_FROM_QUEUE_KEY]: async ({ chat, value }) =>  {
+  [MOVE_PLAYER_FROM_QUEUE_KEY]: async ({ chat, value }) => {
     if (!value) return;
 
     gameQueue.moveToEndFromQueue(value);
     const list = gameQueue.getOrderedQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
   },
-  [DELETE_PLAYER_FROM_QUEUE_KEY]: async ({ chat, value }) =>  {
+  [DELETE_PLAYER_FROM_QUEUE_KEY]: async ({ chat, value }) => {
     if (!value) return;
 
     gameQueue.removeFromQueue(value);
     const list = gameQueue.getOrderedQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_SUCCESS_MESSAGE.replace(STRING_PARAM, list));
   },
-  [CLEAN_PLAYERS_QUEUE_KEY]: async ({ chat }) =>  {
+  [CLEAN_PLAYERS_QUEUE_KEY]: async ({ chat }) => {
     gameQueue.deleteQueue();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_CLEAN_SUCCESS_MESSAGE);
   },
-  [PLAYERS_QUEUE_ON]: async ({ chat }) =>  {
+  [PLAYERS_QUEUE_ON]: async ({ chat }) => {
     gameQueue.resumeJoin();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_ON_MESSAGE);
   },
-  [PLAYERS_QUEUE_OFF]: async ({ chat }) =>  {
+  [PLAYERS_QUEUE_OFF]: async ({ chat }) => {
     gameQueue.stopJoin();
     chat.say(BROADCAST_USERNAME, PLAYERS_QUEUE_OFF_MESSAGE);
   },
-  [MOST_POPULAR_CLIP_KEY]: async ({ chat }) =>  {
+  [MOST_POPULAR_CLIP_KEY]: async ({ chat }) => {
     try {
       const token = await getBroadcastTokens({ avoidLogin: true });
       if (!token || !token.access_token) return;
