@@ -4,13 +4,21 @@ import tmi from 'tmi.js';
 
 import logger from '../../utils/logger';
 
-import { formatKnownCommandsForChat } from './aiConfig';
+import { splitChatMessage, formatKnownCommandsForChat } from '../../utils/chatMessage';
+
+import { UserRole, userHasAccess } from '../../actions/userRoles';
+
+import { executeCommand, getCommandRequiredRole } from '../../commandDispatcher';
 
 import {
+  ACTION_NOT_ALLOWED,
+  AI_COMMAND_ERROR_MESSAGE,
   AI_INVALID_RESPONSE_MESSAGE,
+  AI_NO_RESPONSE_MESSAGE,
   BROADCASTER_MESSAGES_CONFIG,
   MESSAGES_CONFIG,
   MODS_ACTIONS_CONFIG,
+  TTS_KEY,
   USERS_ACTIONS_CONFIG,
   VIP_ACTIONS_CONFIG,
 } from '../../configuration/chat';
@@ -263,3 +271,96 @@ export const askAiQueued = async (channel: string, username: string, message: st
 };
 
 export const isAiMention = (message: string) => message.toLowerCase().includes(AI_MENTION.toLowerCase());
+
+const getRoleDescription = (role: UserRole): string => {
+  if (role === UserRole.VIP) return 'VIP, moderador o broadcaster';
+  if (role === UserRole.MOD) return 'moderador o broadcaster';
+  return 'broadcaster';
+};
+
+const executeAiCommand = async (
+  chat: tmi.Client,
+  mentionedChat: tmi.Client,
+  channel: string,
+  tags: tmi.ChatUserstate,
+  username: string,
+  result: AiResult,
+): Promise<void> => {
+  const command = result.command!.name;
+  const commandValue = result.command!.value;
+
+  if (!AI_EXECUTABLE_COMMANDS.has(command) || !command.startsWith('!')) {
+    sayAi(chat, channel, username, AI_COMMAND_ERROR_MESSAGE);
+    return;
+  }
+
+  const requiredRole = getCommandRequiredRole(command);
+
+  if (requiredRole && !userHasAccess(tags, requiredRole)) {
+    sayAi(chat, channel, username, `${ACTION_NOT_ALLOWED}: necesitás ser ${getRoleDescription(requiredRole)} para usar ${command}.`);
+    logger.info(`AI command rejected for permissions: ${command}`);
+
+    return;
+  }
+
+  const isTTS = command === TTS_KEY;
+  const ignoreCommand = isTTS && isAiFullTtsEnabled();
+
+  if (!ignoreCommand) {
+    await executeCommand({
+      chat: mentionedChat,
+      channel,
+      tags,
+      command,
+      value: commandValue,
+      ttsUser: isTTS ? BOT_USERNAME : undefined,
+    });
+  }
+
+  logger.info(`AI command processed: ${command}`);
+
+  if (result.answer) {
+    for (const responseMessage of splitChatMessage(result.answer)) {
+      sayAi(chat, channel, username, responseMessage);
+    }
+
+    return;
+  }
+
+  if (command !== '!game' && command !== '!categoria') {
+    sayAi(chat, channel, username, `Listo, ejecuté ${command}.`);
+  }
+};
+
+export const handleAiMention = async (
+  chat: tmi.Client,
+  channel: string,
+  tags: tmi.ChatUserstate,
+  message: string,
+): Promise<void> => {
+  const username = tags.username || 'chat';
+  const mentionedChat = createMentionedChat(chat, username);
+  const result = await askAiQueued(channel, username, message);
+
+  if (!result) {
+    sayAi(chat, channel, username, AI_NO_RESPONSE_MESSAGE);
+    return;
+  }
+
+  if (result.command) {
+    await executeAiCommand(chat, mentionedChat, channel, tags, username, result);
+    return;
+  }
+
+  if (result.answer) {
+    logger.info(`AI: ${result.answer}`);
+
+    for (const responseMessage of splitChatMessage(result.answer)) {
+      sayAi(chat, channel, username, responseMessage);
+    }
+
+    return;
+  }
+
+  sayAi(chat, channel, username, AI_NO_RESPONSE_MESSAGE);
+};
