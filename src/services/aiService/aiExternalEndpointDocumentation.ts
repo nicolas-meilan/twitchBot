@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 
 import path from 'path';
 
-import { AiExternalEndpointDocumentation } from './aiExternalEndpoints';
+import { AiExternalEndpoints } from './aiExternalEndpoints';
 
 const AI_EXTRA_DATA_DIRECTORY = path.resolve(process.cwd(), 'aiExtraData');
 
@@ -255,9 +255,9 @@ const generateAiExternalEndpointDocumentation = async (
   endpointName: string,
 ) => {
   const openApiUrl =
-    AiExternalEndpointDocumentation[
-      endpointName as keyof typeof AiExternalEndpointDocumentation
-    ];
+    AiExternalEndpoints[
+      endpointName as keyof typeof AiExternalEndpoints
+    ].documentation;
 
   if (!openApiUrl) {
     throw new Error(

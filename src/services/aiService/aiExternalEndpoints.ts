@@ -44,12 +44,21 @@ const getTwitchEndpoint = async (): Promise<AiExternalEndpoint> => {
   };
 };
 
-export const AiExternalEndpointsGetters = {
-  twitch: getTwitchEndpoint,
-  valorant: getValorantEndpoint,
-};
-
-export const AiExternalEndpointDocumentation = {
-  twitch: twitchEndpoint.openApi,
-  valorant: valorantEndpoint.openApi,
+export const AiExternalEndpoints: {
+  [key: string]: {
+    baseEndpoint: AiExternalEndpoint;
+    endpointGetter: () => Promise<AiExternalEndpoint>;
+    documentation: string;
+  };
+} = {
+  twitch: {
+    baseEndpoint: twitchEndpoint,
+    endpointGetter: getTwitchEndpoint,
+    documentation: twitchEndpoint.openApi,
+  },
+  valorant: {
+    baseEndpoint: valorantEndpoint,
+    endpointGetter: getValorantEndpoint,
+    documentation: valorantEndpoint.openApi,
+  },
 };

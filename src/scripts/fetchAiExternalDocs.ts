@@ -1,8 +1,8 @@
-import { AiExternalEndpointsGetters } from '../services/aiService/aiExternalEndpoints';
+import { AiExternalEndpoints } from '../services/aiService/aiExternalEndpoints';
 import { updateAiExternalEndpointDocumentation } from '../services/aiService/aiExternalEndpointDocumentation';
 
 const fetchAiExternalDocs = async () => {
-  for (const endpointName of Object.keys(AiExternalEndpointsGetters)) {
+  for (const endpointName of Object.keys(AiExternalEndpoints)) {
     console.log(`Fetching AI external API docs: ${endpointName}`);
 
     const result = await updateAiExternalEndpointDocumentation(endpointName);
