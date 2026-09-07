@@ -15,6 +15,7 @@ import {
   AI_COMMAND_ERROR_MESSAGE,
   AI_INVALID_RESPONSE_MESSAGE,
   AI_NO_RESPONSE_MESSAGE,
+  AI_EXTERNAL_INFO_LIMIT_MESSAGE,
   BROADCASTER_MESSAGES_CONFIG,
   MESSAGES_CONFIG,
   MODS_ACTIONS_CONFIG,
@@ -28,12 +29,25 @@ import { isAiFullTtsEnabled } from '../../actions/modActions';
 import { sendEventTTS } from '../botEvents';
 
 import {
+  getAiExternalEndpointDocumentation,
+  getAiExternalEndpointDetail,
+} from './aiExternalEndpointDocumentation';
+
+import { executeAiExternalEndpointRequest } from './aiExternalEndpointRequest';
+
+import {
   AI_MENTION,
   AI_MEMORY_MESSAGES,
   AI_MAX_QUEUE_SIZE,
+  AI_MAX_EXTERNAL_STEPS,
   AI_MODEL,
   AI_TIMEOUT_MS,
   AI_URL,
+  AI_EXTERNAL_CONTEXT_FONT,
+  AI_EXTERNAL_CONTEXT_ENDPOINTS_LIST,
+  AI_EXTERNAL_CONTEXT_DETAIL_ENDPOINT,
+  AI_EXTERNAL_CONTEXT_REQUEST_RESULT,
+  AiExternalContextType,
   BOT_USERNAME,
   STRICT_RESPONSE_FORMAT,
   SYSTEM_PROMPT,
@@ -51,6 +65,13 @@ type ChatCompletionResponse = {
   choices?: Array<{ message?: { content?: string } }>;
 };
 
+type ChatRole = 'system' | 'user' | 'assistant';
+
+type ChatMessage = {
+  role: ChatRole;
+  content: string;
+};
+
 type MemoryMessage = {
   username: string;
   role: 'user' | 'assistant';
@@ -59,14 +80,36 @@ type MemoryMessage = {
 
 type AiQueueTask = () => Promise<void>;
 
+type ExternalActions = 'list_endpoints' | 'get_endpoint_detail' | 'execute_request';
+
 export type AiCommand = {
   name: string;
   value: string;
 };
 
+export type AiExternalInformationRequest = {
+  action: ExternalActions;
+  endpoint: string;
+  method?: string | null;
+  route?: string | null;
+  params?: string | null;
+  body?: string | null;
+};
+
 export type AiResult = {
   answer?: string;
   command?: AiCommand;
+};
+
+type AiRawResult = AiResult & {
+  externalInformation?: AiExternalInformationRequest;
+};
+
+type AiExternalResolution = {
+  success: boolean;
+  hasData: boolean;
+  retryable: boolean;
+  output: string;
 };
 
 const memoryByChannel = new Map<string, MemoryMessage[]>();
@@ -101,27 +144,88 @@ export const sayAi = (chat: tmi.Client, channel: string, username: string, respo
   }
 };
 
-const parseAiResult = (content: string): AiResult | undefined => {
+const parseAiRawResult = (content: string): AiRawResult | undefined => {
   try {
-    const parsed = JSON.parse(content) as Partial<AiResult>;
+    const parsed = JSON.parse(content) as Partial<AiRawResult> & { command?: Partial<AiCommand> | null };
 
     const hasAnswer = typeof parsed.answer === 'string';
 
-    const hasCommand = parsed.command && typeof parsed.command.name === 'string' && typeof parsed.command.value === 'string';
+    const hasCommand = !!parsed.command && typeof parsed.command.name === 'string' && typeof parsed.command.value === 'string';
 
-    if (!hasAnswer && !hasCommand) return;
+    const hasExternalInformation = !!parsed.externalInformation
+      && typeof parsed.externalInformation.action === 'string'
+      && typeof parsed.externalInformation.endpoint === 'string';
+
+    if (!hasAnswer && !hasCommand && !hasExternalInformation) return;
 
     return {
       answer: hasAnswer ? parsed.answer!.replace(/^!/, '').trim() : undefined,
       command: hasCommand
-        ? { name: parsed.command!.name.toLowerCase(), value: parsed.command!.value.trim() }
+        ? { name: parsed.command!.name!.toLowerCase(), value: parsed.command!.value!.trim() }
         : undefined,
+      externalInformation: hasExternalInformation ? parsed.externalInformation : undefined,
     };
   } catch {
     logger.warn('AI returned an invalid response format');
 
     return;
   }
+};
+
+const parseJsonSafely = (value?: string | null): Record<string, unknown> | undefined => {
+  if (!value) return undefined;
+
+  try {
+    const parsed = JSON.parse(value);
+
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return undefined;
+
+    return parsed as Record<string, unknown>;
+  } catch {
+    return undefined;
+  }
+};
+
+const hasExternalData = (value: unknown): boolean => {
+  if (value === undefined || value === null) return false;
+
+  if (typeof value === 'string') {
+    return value.trim().length > 0;
+  }
+
+  if (Array.isArray(value)) {
+    return value.length > 0;
+  }
+
+  if (typeof value === 'object') {
+    return Object.keys(value as Record<string, unknown>).length > 0;
+  }
+
+  return true;
+};
+
+const isExternalErrorResult = (value: unknown): boolean => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+
+  const result = value as Record<string, unknown>;
+
+  if (typeof result.status === 'number' && result.status >= 400) {
+    return true;
+  }
+
+  if (result.error !== undefined && result.error !== null) {
+    if (typeof result.error === 'string') return result.error.trim().length > 0;
+
+    return true;
+  }
+
+  if (result.errors !== undefined && result.errors !== null) {
+    if (Array.isArray(result.errors)) return result.errors.length > 0;
+
+    return true;
+  }
+
+  return false;
 };
 
 const logAiError = (error: unknown) => {
@@ -144,6 +248,238 @@ const logAiError = (error: unknown) => {
   }
 
   logger.error('AI error: unknown failure');
+};
+
+const requestAiCompletion = async (messages: ChatMessage[]): Promise<string | undefined> => {
+  const requestBody = (responseFormat: object) => ({
+    model: AI_MODEL,
+    response_format: responseFormat,
+    messages,
+  });
+
+  let response;
+
+  try {
+    response = await axios.post<ChatCompletionResponse>(
+      `${AI_URL.replace(/\/$/, '')}/v1/chat/completions`,
+      requestBody(STRICT_RESPONSE_FORMAT),
+      { timeout: AI_TIMEOUT_MS },
+    );
+  } catch (error) {
+    if (!axios.isAxiosError(error) || ![400, 422].includes(error.response?.status || 0)) throw error;
+
+    logger.warn('AI does not support JSON Schema; falling back to JSON object mode');
+
+    response = await axios.post<ChatCompletionResponse>(
+      `${AI_URL.replace(/\/$/, '')}/v1/chat/completions`,
+      requestBody({ type: 'json_object' }),
+      { timeout: AI_TIMEOUT_MS },
+    );
+  }
+
+  return response.data.choices?.[0]?.message?.content?.trim();
+};
+
+const getExternalContextTag = (
+  endpoint: string,
+  type: AiExternalContextType,
+  route?: string,
+) => {
+  const endpointKey = endpoint
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+
+  const routeKey = route
+    ? route
+      .toUpperCase()
+      .replace(/[{}]/g, '')
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+    : '';
+
+  const contextTemplate = type === 'ENDPOINTS_LIST'
+    ? AI_EXTERNAL_CONTEXT_ENDPOINTS_LIST
+    : type === 'DETAIL_ENDPOINT'
+      ? AI_EXTERNAL_CONTEXT_DETAIL_ENDPOINT
+      : AI_EXTERNAL_CONTEXT_REQUEST_RESULT;
+
+  const contextTag = contextTemplate.replace(AI_EXTERNAL_CONTEXT_FONT, endpointKey);
+
+  return routeKey && type !== 'ENDPOINTS_LIST'
+    ? contextTag.replace(`_${type}`, `_${routeKey}_${type}`)
+    : contextTag;
+};
+
+const formatExternalContext = (
+  endpoint: string,
+  type: AiExternalContextType,
+  content: string,
+  route?: string,
+) => {
+  const tag = getExternalContextTag(endpoint, type, route);
+
+  return [
+    tag,
+    content,
+    tag.replace(/^\[/, '[/'),
+  ].join('\n');
+};
+
+const resolveExternalInformationRequest = async (
+  request: AiExternalInformationRequest,
+): Promise<AiExternalResolution> => {
+  try {
+    if (request.action === 'list_endpoints') {
+      const documentation = await getAiExternalEndpointDocumentation(request.endpoint);
+
+      if (!documentation.trim()) {
+        return {
+          success: true,
+          hasData: false,
+          retryable: false,
+          output: '',
+        };
+      }
+
+      return {
+        success: true,
+        hasData: true,
+        retryable: false,
+        output: formatExternalContext(
+          request.endpoint,
+          'ENDPOINTS_LIST',
+          documentation,
+        ),
+      };
+    }
+
+    if (request.action === 'get_endpoint_detail') {
+      if (!request.method || !request.route) {
+        return {
+          success: false,
+          hasData: false,
+          retryable: false,
+          output: 'ERROR: falta method o route para get_endpoint_detail.',
+        };
+      }
+
+      const detail = await getAiExternalEndpointDetail(request.endpoint, request.method, request.route);
+
+      if (!detail.trim()) {
+        return {
+          success: true,
+          hasData: false,
+          retryable: false,
+          output: '',
+        };
+      }
+
+      return {
+        success: true,
+        hasData: true,
+        retryable: false,
+        output: formatExternalContext(
+          request.endpoint,
+          'DETAIL_ENDPOINT',
+          detail,
+          request.route,
+        ),
+      };
+    }
+
+    if (request.action === 'execute_request') {
+      if (!request.method || !request.route) {
+        return {
+          success: false,
+          hasData: false,
+          retryable: false,
+          output: 'ERROR: falta method o route para execute_request.',
+        };
+      }
+
+      if (request.params && !parseJsonSafely(request.params)) {
+        return {
+          success: false,
+          hasData: false,
+          retryable: false,
+          output: 'ERROR: params no contiene un JSON válido.',
+        };
+      }
+
+      if (request.body && !parseJsonSafely(request.body)) {
+        return {
+          success: false,
+          hasData: false,
+          retryable: false,
+          output: 'ERROR: body no contiene un JSON válido.',
+        };
+      }
+
+      const params = parseJsonSafely(request.params) || {};
+      const body = parseJsonSafely(request.body);
+
+      const result = await executeAiExternalEndpointRequest(
+        request.endpoint,
+        request.method,
+        request.route,
+        params as Record<string, string | number | boolean>,
+        body,
+      );
+
+      if (isExternalErrorResult(result)) {
+        logger.warn(`External endpoint returned an error: ${JSON.stringify(result)}`);
+
+        return {
+          success: false,
+          hasData: false,
+          retryable: false,
+          output: `ERROR: el endpoint "${request.endpoint}" devolvió un error.`,
+        };
+      }
+
+      if (!hasExternalData(result)) {
+        logger.warn(`External endpoint returned no data: ${request.endpoint} ${request.method} ${request.route}`);
+
+        return {
+          success: true,
+          hasData: false,
+          retryable: false,
+          output: '',
+        };
+      }
+
+      return {
+        success: true,
+        hasData: true,
+        retryable: false,
+        output: formatExternalContext(
+          request.endpoint,
+          'REQUEST_RESULT',
+          JSON.stringify(result),
+          request.route,
+        ),
+      };
+    }
+
+    return {
+      success: false,
+      hasData: false,
+      retryable: false,
+      output: `ERROR: acción desconocida "${request.action}".`,
+    };
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+
+    logger.error(`Error resolving external information request: ${errorMessage}`);
+
+    return {
+      success: false,
+      hasData: false,
+      retryable: true,
+      output: `ERROR_REINTENTABLE: ${errorMessage}\nLa solicitud externa anterior falló porque la ruta utilizada no está documentada o no es válida.\nNO vuelvas a utilizar esa misma ruta.\nVolvé a revisar ENDPOINTS_LIST y, si corresponde, DETAIL_ENDPOINT antes de generar una nueva solicitud.\nGenerá una nueva externalInformation usando únicamente una ruta que esté documentada.`,
+    };
+  }
 };
 
 const enqueueAi = async (channel: string, task: AiQueueTask): Promise<boolean> => {
@@ -195,58 +531,95 @@ export const askAi = async (channel: string, username: string, message: string):
 
     const history = memoryByChannel.get(channelKey) || [];
 
-    const requestBody = (responseFormat: object) => ({
-      model: AI_MODEL,
-      response_format: responseFormat,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...history.map((item) => ({
-          role: item.role,
-          content: `[usuario: ${item.username}] ${item.content}`,
-        })),
-        { role: 'user', content: `[usuario: ${username}] ${question}` },
-      ],
-    });
+    const conversationMessages: ChatMessage[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...history.map((item) => ({
+        role: item.role,
+        content: `[usuario: ${item.username}] ${item.content}`,
+      })),
+      { role: 'user', content: `[usuario: ${username}] ${question}` },
+    ];
 
-    let response;
+    let finalResult: AiResult | undefined;
 
-    try {
-      response = await axios.post<ChatCompletionResponse>(
-        `${AI_URL.replace(/\/$/, '')}/v1/chat/completions`,
-        requestBody(STRICT_RESPONSE_FORMAT),
-        { timeout: AI_TIMEOUT_MS },
-      );
-    } catch (error) {
-      if (!axios.isAxiosError(error) || ![400, 422].includes(error.response?.status || 0)) throw error;
+    for (let step = 0; step <= AI_MAX_EXTERNAL_STEPS; step += 1) {
+      const content = await requestAiCompletion(conversationMessages);
 
-      logger.warn('AI does not support JSON Schema; falling back to JSON object mode');
+      if (!content) return;
 
-      response = await axios.post<ChatCompletionResponse>(
-        `${AI_URL.replace(/\/$/, '')}/v1/chat/completions`,
-        requestBody({ type: 'json_object' }),
-        { timeout: AI_TIMEOUT_MS },
-      );
+      const parsed = parseAiRawResult(content);
+
+      if (!parsed) {
+        finalResult = { answer: AI_INVALID_RESPONSE_MESSAGE };
+        break;
+      }
+
+      if (!parsed.externalInformation) {
+        finalResult = { answer: parsed.answer, command: parsed.command };
+        break;
+      }
+
+      if (step === AI_MAX_EXTERNAL_STEPS) {
+        logger.warn(`AI reached the maximum amount of external information steps for channel ${channel}`);
+
+        finalResult = { answer: AI_EXTERNAL_INFO_LIMIT_MESSAGE };
+        break;
+      }
+
+      logger.info(`AI external information step: ${JSON.stringify(parsed.externalInformation)}`);
+
+      const externalResolution = await resolveExternalInformationRequest(parsed.externalInformation);
+
+      if (!externalResolution.success) {
+        logger.warn(`AI external information request failed: ${externalResolution.output}`);
+
+        if (externalResolution.retryable && step < AI_MAX_EXTERNAL_STEPS) {
+          conversationMessages.push({ role: 'assistant', content });
+          conversationMessages.push({
+            role: 'system',
+            content: externalResolution.output,
+          });
+
+          continue;
+        }
+
+        finalResult = {
+          answer: 'No pude obtener esa información.',
+        };
+
+        break;
+      }
+
+      if (!externalResolution.hasData) {
+        logger.warn(`AI external information request returned no data: ${JSON.stringify(parsed.externalInformation)}`);
+
+        finalResult = {
+          answer: 'No encontré datos para esa consulta.',
+        };
+
+        break;
+      }
+
+      conversationMessages.push({ role: 'assistant', content });
+      conversationMessages.push({
+        role: 'system',
+        content: externalResolution.output,
+      });
     }
 
-    const content = response.data.choices?.[0]?.message?.content?.trim();
-
-    if (!content) return;
-
-    const result = parseAiResult(content);
-
-    if (!result) {
-      return { answer: AI_INVALID_RESPONSE_MESSAGE };
+    if (!finalResult) {
+      finalResult = { answer: AI_NO_RESPONSE_MESSAGE };
     }
 
     const updatedHistory = [
       ...history,
       { username, role: 'user' as const, content: question },
-      { username: BOT_USERNAME, role: 'assistant' as const, content: result.answer || JSON.stringify(result.command) },
+      { username: BOT_USERNAME, role: 'assistant' as const, content: finalResult.answer || JSON.stringify(finalResult.command) },
     ];
 
     memoryByChannel.set(channelKey, updatedHistory.slice(-AI_MEMORY_MESSAGES));
 
-    return result;
+    return finalResult;
   } catch (error) {
     logAiError(error);
 

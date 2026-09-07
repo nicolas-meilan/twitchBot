@@ -212,6 +212,7 @@ export const PRIME_SPAM_MESSAGES = [
 export const ACTION_NOT_ALLOWED = 'No podés hacer eso';
 export const AI_COMMAND_ERROR_MESSAGE = 'No pude ejecutar esa acción: necesito un comando válido y sus argumentos.';
 export const AI_NO_RESPONSE_MESSAGE = 'Me quedé pensando en el limbo digital y no pude responder. Probá de nuevo en un toque.';
+export const AI_EXTERNAL_INFO_LIMIT_MESSAGE = 'Che, me colgué buscando esa info externa. Probá preguntar de nuevo en un rato.';
 export const AI_INVALID_RESPONSE_MESSAGE = 'La IA me devolvió una respuesta con formato inválido. Probá de nuevo, che.';
 
 export const TTS_MOD_SENDER = 'Un moderador';

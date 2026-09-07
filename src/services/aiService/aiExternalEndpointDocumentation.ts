@@ -49,11 +49,10 @@ const HTTP_METHODS = new Set([
 
 const sanitizeFileName = (value: string) => {
   const sanitized = value
-    .replace(/^\//, '')
+    .replace(/^\/+/, '')
     .replace(/[{}]/g, '')
     .replace(/[^a-zA-Z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
-
   return sanitized || 'root';
 };
 
@@ -76,18 +75,75 @@ const getEndpointFilePath = (
     getEndpointFileName(method, route),
   );
 
+const normalizeRoute = (route: string) => {
+  let normalizedRoute = route.trim();
+
+  if (/^https?:\/\//i.test(normalizedRoute)) {
+    try {
+      normalizedRoute = new URL(normalizedRoute).pathname;
+    } catch {
+      return normalizedRoute;
+    }
+  }
+
+  normalizedRoute = normalizedRoute
+    .split('?')[0]
+    .split('#')[0]
+    .trim();
+
+  if (!normalizedRoute) return '/';
+
+  return normalizedRoute.startsWith('/')
+    ? normalizedRoute
+    : `/${normalizedRoute}`;
+};
+
+const routeMatches = (documentedRoute: string, requestedRoute: string) => {
+  const normalizedDocumentedRoute = normalizeRoute(documentedRoute);
+  const normalizedRequestedRoute = normalizeRoute(requestedRoute);
+
+  if (normalizedDocumentedRoute === normalizedRequestedRoute) {
+    return true;
+  }
+
+  const documentedSegments = normalizedDocumentedRoute
+    .split('/')
+    .filter(Boolean);
+
+  const requestedSegments = normalizedRequestedRoute
+    .split('/')
+    .filter(Boolean);
+
+  if (documentedSegments.length !== requestedSegments.length) {
+    return false;
+  }
+
+  return documentedSegments.every((segment, index) => {
+    const requestedSegment = requestedSegments[index];
+
+    if (
+      segment.startsWith('{')
+      && segment.endsWith('}')
+    ) {
+      return requestedSegment.length > 0;
+    }
+
+    return segment === requestedSegment;
+  });
+};
+
 const cleanText = (value: string) => value
   .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-  .replace(/\*\*([^*]+)\*\*/g, '$1')
-  .replace(/__([^_]+)__/g, '$1')
-  .replace(/`([^`]+)`/g, '$1')
+  .replace(/\*\*([^\*]+)\*\*/g, '$1')
+  .replace(/\_\_([^\_]+)\_\_/g, '$1')
+  .replace(/\`([^\`]+)\`/g, '$1')
   .replace(/\r\n/g, '\n')
   .replace(/\n{3,}/g, '\n\n')
   .trim();
 
 const removeAuthorizationSection = (value: string) => {
   const authorizationPatterns = [
-    /(?:^|\n)(?:__)?Authorization:(?:__)?[\s\S]*?(?=\n(?:__)?(?:Parameters|Request Body|Responses|Errors|Examples):(?:__)?|\s*$)/i,
+    /(?:^|\n)(?:\_\_)?Authorization:(?:\_\_)?[\s\S]*?(?=\n(?:\_\_)?(?:Parameters|Request Body|Responses|Errors|Examples):(?:\_\_)?|\s*$)/i,
     /(?:^|\n)Authorization:\s*[\s\S]*?(?=\n(?:Parameters|Request Body|Responses|Errors|Examples):|\s*$)/i,
   ];
 
@@ -254,16 +310,17 @@ const hasDocumentation = async (endpointName: string) => {
 const generateAiExternalEndpointDocumentation = async (
   endpointName: string,
 ) => {
-  const openApiUrl =
-    AiExternalEndpoints[
-      endpointName as keyof typeof AiExternalEndpoints
-    ].documentation;
+  const endpoint = AiExternalEndpoints[
+    endpointName as keyof typeof AiExternalEndpoints
+  ];
 
-  if (!openApiUrl) {
+  if (!endpoint?.documentation) {
     throw new Error(
       `Unknown AI external endpoint documentation: ${endpointName}`,
     );
   }
+
+  const openApiUrl = endpoint.documentation;
 
   const response = await axios.get(openApiUrl);
 
@@ -285,6 +342,7 @@ const generateAiExternalEndpointDocumentation = async (
       if (!HTTP_METHODS.has(method)) continue;
 
       const summary = cleanText(operation.summary || '');
+
       const fileName = getEndpointFileName(method, route);
 
       endpoints.push({
@@ -307,7 +365,7 @@ const generateAiExternalEndpointDocumentation = async (
   }
 
   const endpointsFile = endpoints
-    .map((item) => `${item.route} - ${item.summary}`)
+    .map((item) => `${item.method} ${item.route} - ${item.summary}`)
     .join('\n');
 
   await fs.writeFile(
@@ -343,15 +401,64 @@ export const getAiExternalEndpointDocumentation = async (
   );
 };
 
-export const getAiExternalEndpointDetail = async (
+export const resolveAiExternalEndpointRoute = async (
   endpointName: string,
   method: string,
   route: string,
 ) => {
   await ensureAiExternalEndpointDocumentation(endpointName);
 
+  const endpointDirectory = getEndpointDirectory(endpointName);
+
+  const files = await fs.readdir(endpointDirectory);
+
+  const normalizedMethod = method.toLowerCase();
+
+  for (const fileName of files) {
+    if (!fileName.endsWith('.txt') || fileName === 'endpoints.txt') {
+      continue;
+    }
+
+    const filePath = path.join(endpointDirectory, fileName);
+
+    const documentation = await fs.readFile(filePath, 'utf8');
+
+    const methodMatch = documentation.match(/^METHOD:\s*(.+)$/m);
+    const pathMatch = documentation.match(/^PATH:\s*(.+)$/m);
+
+    if (!methodMatch || !pathMatch) {
+      continue;
+    }
+
+    if (methodMatch[1].trim().toLowerCase() !== normalizedMethod) {
+      continue;
+    }
+
+    const documentedRoute = pathMatch[1].trim();
+
+    if (routeMatches(documentedRoute, route)) {
+      return documentedRoute;
+    }
+  }
+
+  throw new Error(
+    `No documented route found for ${method.toUpperCase()} ${route} in "${endpointName}".`,
+  );
+};
+
+export const getAiExternalEndpointDetail = async (
+  endpointName: string,
+  method: string,
+  route: string,
+) => {
+  const documentedRoute = await resolveAiExternalEndpointRoute(
+    endpointName,
+    method,
+    route,
+  );
+
   return fs.readFile(
-    getEndpointFilePath(endpointName, method, route),
+    getEndpointFilePath(endpointName, method, documentedRoute),
     'utf8',
   );
 };
