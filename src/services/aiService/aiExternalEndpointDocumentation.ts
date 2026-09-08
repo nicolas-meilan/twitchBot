@@ -35,6 +35,9 @@ type OpenApiOperation = {
 
 type OpenApiDocument = {
   paths?: Record<string, Record<string, OpenApiOperation>>;
+  components?: {
+    schemas?: Record<string, Record<string, unknown>>;
+  };
 };
 
 const HTTP_METHODS = new Set([
@@ -77,7 +80,6 @@ const getEndpointFilePath = (
 
 const normalizeRoute = (route: string) => {
   let normalizedRoute = route.trim();
-
   if (/^https?:\/\//i.test(normalizedRoute)) {
     try {
       normalizedRoute = new URL(normalizedRoute).pathname;
@@ -134,16 +136,16 @@ const routeMatches = (documentedRoute: string, requestedRoute: string) => {
 
 const cleanText = (value: string) => value
   .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-  .replace(/\*\*([^\*]+)\*\*/g, '$1')
-  .replace(/\_\_([^\_]+)\_\_/g, '$1')
-  .replace(/\`([^\`]+)\`/g, '$1')
+  .replace(/\*\*([^*]+)\*\*/g, '$1')
+  .replace(/__([^_]+)__/g, '$1')
+  .replace(/`([^`]+)`/g, '$1')
   .replace(/\r\n/g, '\n')
   .replace(/\n{3,}/g, '\n\n')
   .trim();
 
 const removeAuthorizationSection = (value: string) => {
   const authorizationPatterns = [
-    /(?:^|\n)(?:\_\_)?Authorization:(?:\_\_)?[\s\S]*?(?=\n(?:\_\_)?(?:Parameters|Request Body|Responses|Errors|Examples):(?:\_\_)?|\s*$)/i,
+    /(?:^|\n)(?:__)?Authorization:(?:__)?[\s\S]*?(?=\n(?:__)?(?:Parameters|Request Body|Responses|Errors|Examples):(?:__)?|\s*$)/i,
     /(?:^|\n)Authorization:\s*[\s\S]*?(?=\n(?:Parameters|Request Body|Responses|Errors|Examples):|\s*$)/i,
   ];
 
@@ -161,21 +163,134 @@ const formatValue = (value: unknown) => {
   return JSON.stringify(value, null, 2);
 };
 
+const indentText = (value: string, spaces: number) => value
+  .split('\n')
+  .map((line) => `${' '.repeat(spaces)}${line}`)
+  .join('\n');
+
 const formatSchema = (
   schema: Record<string, unknown> | undefined,
+  schemas: Record<string, Record<string, unknown>> = {},
+  resolvingRefs: Set<string> = new Set(),
 ): string => {
   if (!schema) return 'unknown';
 
   if (schema.$ref && typeof schema.$ref === 'string') {
-    return schema.$ref.replace('#/components/schemas/', '');
+    const schemaName = schema.$ref.replace(
+      '#/components/schemas/',
+      '',
+    );
+
+    const referencedSchema = schemas[schemaName];
+
+    if (!referencedSchema) {
+      return schemaName;
+    }
+
+    if (resolvingRefs.has(schemaName)) {
+      return schemaName;
+    }
+
+    const nextResolvingRefs = new Set(resolvingRefs);
+    nextResolvingRefs.add(schemaName);
+
+    return formatSchema(
+      referencedSchema,
+      schemas,
+      nextResolvingRefs,
+    );
+  }
+
+  if (Array.isArray(schema.allOf)) {
+    const schemasText = schema.allOf
+      .map((item) =>
+        formatSchema(
+          item as Record<string, unknown>,
+          schemas,
+          resolvingRefs,
+        ),
+      )
+      .join('\n');
+
+    if (schema.properties) {
+      const propertiesText = formatSchema(
+        {
+          type: 'object',
+          properties: schema.properties,
+        },
+        schemas,
+        resolvingRefs,
+      );
+
+      return [
+        'allOf {',
+        indentText(schemasText, 2),
+        '}',
+        propertiesText,
+      ].join('\n');
+    }
+
+    return [
+      'allOf {',
+      indentText(schemasText, 2),
+      '}',
+    ].join('\n');
+  }
+
+  if (Array.isArray(schema.oneOf)) {
+    const schemasText = schema.oneOf
+      .map((item) =>
+        formatSchema(
+          item as Record<string, unknown>,
+          schemas,
+          resolvingRefs,
+        ),
+      )
+      .join('\n');
+
+    return [
+      'oneOf {',
+      indentText(schemasText, 2),
+      '}',
+    ].join('\n');
+  }
+
+  if (Array.isArray(schema.anyOf)) {
+    const schemasText = schema.anyOf
+      .map((item) =>
+        formatSchema(
+          item as Record<string, unknown>,
+          schemas,
+          resolvingRefs,
+        ),
+      )
+      .join('\n');
+
+    return [
+      'anyOf {',
+      indentText(schemasText, 2),
+      '}',
+    ].join('\n');
   }
 
   const type = schema.type;
 
   if (type === 'array') {
-    return `array<${formatSchema(
+    const itemSchema = formatSchema(
       schema.items as Record<string, unknown> | undefined,
-    )}>`;
+      schemas,
+      resolvingRefs,
+    );
+
+    if (itemSchema.includes('\n')) {
+      return [
+        'array<',
+        indentText(itemSchema, 2),
+        '>',
+      ].join('\n');
+    }
+
+    return `array<${itemSchema}>`;
   }
 
   if (type === 'object' || schema.properties) {
@@ -185,11 +300,21 @@ const formatSchema = (
 
     if (!properties) return 'object';
 
-    return Object.entries(properties)
+    const propertiesText = Object.entries(properties)
       .map(([name, property]) =>
-        `${name}: ${formatSchema(property)}`,
+        `${name}: ${formatSchema(
+          property,
+          schemas,
+          resolvingRefs,
+        )}`,
       )
       .join('\n');
+
+    return [
+      'object {',
+      indentText(propertiesText, 2),
+      '}',
+    ].join('\n');
   }
 
   if (schema.enum) {
@@ -200,19 +325,27 @@ const formatSchema = (
     return `${type || 'unknown'} (${schema.format})`;
   }
 
+  if (schema.nullable === true) {
+    return `${String(type || 'unknown')} | null`;
+  }
+
   return String(type || 'unknown');
 };
 
-const formatParameter = (parameter: OpenApiParameter) => [
+const formatParameter = (
+  parameter: OpenApiParameter,
+  schemas: Record<string, Record<string, unknown>>,
+) => [
   `NAME: ${cleanText(parameter.name || '')}`,
   `IN: ${cleanText(parameter.in || '')}`,
   `DESCRIPTION: ${cleanText(parameter.description || '')}`,
   `REQUIRED: ${parameter.required ? 'true' : 'false'}`,
-  `SCHEMA: ${formatValue(parameter.schema || {})}`,
+  `SCHEMA: ${formatSchema(parameter.schema || {}, schemas)}`,
 ].join('\n');
 
 const formatRequestBody = (
   requestBody: Record<string, unknown> | undefined,
+  schemas: Record<string, Record<string, unknown>>,
 ) => {
   if (!requestBody) return 'None';
 
@@ -228,7 +361,7 @@ const formatRequestBody = (
     .map(([contentType, value]) => [
       `CONTENT-TYPE: ${cleanText(contentType)}`,
       `SCHEMA:`,
-      formatSchema(value.schema),
+      formatSchema(value.schema, schemas),
     ].join('\n'))
     .join('\n\n');
 };
@@ -236,6 +369,7 @@ const formatRequestBody = (
 const formatResponse = (
   status: string,
   response: OpenApiResponse,
+  schemas: Record<string, Record<string, unknown>>,
 ) => {
   const content = response.content;
 
@@ -246,18 +380,18 @@ const formatResponse = (
     ].join('\n');
   }
 
-  const schemas = Object.entries(content)
+  const schemasText = Object.entries(content)
     .map(([contentType, value]) => [
       `CONTENT-TYPE: ${cleanText(contentType)}`,
       `SCHEMA:`,
-      formatSchema(value.schema),
+      formatSchema(value.schema, schemas),
     ].join('\n'))
     .join('\n\n');
 
   return [
     `STATUS: ${status}`,
     `DESCRIPTION: ${cleanText(response.description || '')}`,
-    schemas,
+    schemasText,
   ].join('\n');
 };
 
@@ -265,6 +399,7 @@ const formatEndpointDocumentation = (
   method: string,
   route: string,
   operation: OpenApiOperation,
+  schemas: Record<string, Record<string, unknown>>,
 ) => {
   const parameters = operation.parameters || [];
   const responses = operation.responses || {};
@@ -279,16 +414,20 @@ const formatEndpointDocumentation = (
     '',
     'PARAMETERS:',
     parameters.length
-      ? parameters.map(formatParameter).join('\n\n')
+      ? parameters
+        .map((parameter) => formatParameter(parameter, schemas))
+        .join('\n\n')
       : 'None',
     '',
     'REQUEST BODY:',
-    formatRequestBody(operation.requestBody),
+    formatRequestBody(operation.requestBody, schemas),
     '',
     'RESPONSES:',
     Object.keys(responses).length
       ? Object.entries(responses)
-        .map(([status, response]) => formatResponse(status, response))
+        .map(([status, response]) =>
+          formatResponse(status, response, schemas),
+        )
         .join('\n\n')
       : 'None',
   ].join('\n');
@@ -321,11 +460,9 @@ const generateAiExternalEndpointDocumentation = async (
   }
 
   const openApiUrl = endpoint.documentation;
-
   const response = await axios.get(openApiUrl);
-
   const openApi = response.data as OpenApiDocument;
-
+  const schemas = openApi.components?.schemas || {};
   const endpointDirectory = getEndpointDirectory(endpointName);
 
   await fs.mkdir(endpointDirectory, { recursive: true });
@@ -342,7 +479,6 @@ const generateAiExternalEndpointDocumentation = async (
       if (!HTTP_METHODS.has(method)) continue;
 
       const summary = cleanText(operation.summary || '');
-
       const fileName = getEndpointFileName(method, route);
 
       endpoints.push({
@@ -358,6 +494,7 @@ const generateAiExternalEndpointDocumentation = async (
           method,
           route,
           operation,
+          schemas,
         ),
         'utf8',
       );
@@ -409,9 +546,7 @@ export const resolveAiExternalEndpointRoute = async (
   await ensureAiExternalEndpointDocumentation(endpointName);
 
   const endpointDirectory = getEndpointDirectory(endpointName);
-
   const files = await fs.readdir(endpointDirectory);
-
   const normalizedMethod = method.toLowerCase();
 
   for (const fileName of files) {
@@ -420,9 +555,7 @@ export const resolveAiExternalEndpointRoute = async (
     }
 
     const filePath = path.join(endpointDirectory, fileName);
-
     const documentation = await fs.readFile(filePath, 'utf8');
-
     const methodMatch = documentation.match(/^METHOD:\s*(.+)$/m);
     const pathMatch = documentation.match(/^PATH:\s*(.+)$/m);
 

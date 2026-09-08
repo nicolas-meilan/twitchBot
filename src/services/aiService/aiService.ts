@@ -94,6 +94,7 @@ export type AiExternalInformationRequest = {
   route?: string | null;
   params?: string | null;
   body?: string | null;
+  responseFields?: string[] | null;
 };
 
 export type AiResult = {
@@ -419,13 +420,29 @@ const resolveExternalInformationRequest = async (
       const params = parseJsonSafely(request.params) || {};
       const body = parseJsonSafely(request.body);
 
+      const sanitizedResponseFields = Array.isArray(request.responseFields)
+        ? request.responseFields.filter((field): field is string => typeof field === 'string' && field.trim().length > 0)
+        : undefined;
+
       const result = await executeAiExternalEndpointRequest(
         request.endpoint,
         request.method,
         request.route,
         params as Record<string, string | number | boolean>,
         body,
+        sanitizedResponseFields,
       );
+
+      if (result.success && result.fieldsMatched === false) {
+        logger.warn(`AI responseFields did not match real response shape: ${JSON.stringify(sanitizedResponseFields)}`);
+
+        return {
+          success: false,
+          hasData: false,
+          retryable: true,
+          output: `ERROR_REINTENTABLE: ninguno de los campos indicados en "responseFields" existe en la respuesta real.\nEstructura real de la respuesta: ${result.shapeHint}\nGenerá un nuevo "responseFields" usando exactamente esos nombres y esa anidación, incluyendo claves contenedoras como "data" o "results" si están presentes.\nNo inventes nombres de campo que no aparezcan en esta estructura ni en DETAIL_ENDPOINT.`,
+        };
+      }
 
       if (isExternalErrorResult(result)) {
         logger.warn(`External endpoint returned an error: ${JSON.stringify(result)}`);

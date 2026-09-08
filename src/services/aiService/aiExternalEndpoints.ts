@@ -23,6 +23,7 @@ const valorantEndpoint: AiExternalEndpoint = {
   },
   documentation: 'https://api.henrikdev.xyz/openapi.json',
   filterUrlsInResponse: true,
+  maxResponseLength: 40000,
   extraInformation: `
 REGLAS OBLIGATORIAS PARA INFORMACIÓN EXTERNA DE VALORANT:
 
