@@ -25,19 +25,24 @@ const valorantEndpoint: AiExternalEndpoint = {
   filterUrlsInResponse: true,
   maxResponseLength: 40000,
   extraInformation: `
-REGLAS OBLIGATORIAS PARA INFORMACIÓN EXTERNA DE VALORANT:
+INFORMACIÓN EXTERNA DE VALORANT:
+
+- Descripcion:
+Buscar informacion detallada sobre valorant, o sobre un usuario de valorant.
 
 - Rutas:
   - Prioriza siempre las rutas /v1.
+  - Prioriza siempre rutas "by name".
+  - Prioriza siempre las rutas con menos parametros.
   - Para jugadores, usa {name}/{tag}.
-  - No uses rutas con {puuid} si existe una alternativa con {name}/{tag}.
+  - Si tienes name#tag, debes usar name/tag y rutas "by name", evita usar # en las rutas.
 
 - Valores por defecto:
-  - Si no especifican {affinity}, usa "latam".
-  - Si no especifican {platform}, usa "pc".
+  - Si no especifican el {affinity} de la ruta, usa "latam".
+  - Si no especifican el {platform} de la ruta, usa "pc".
 
 - Datos históricos:
-  - Si piden datos históricos, máximos, mínimos, récords o valores anteriores, prioriza los endpoints Stored.
+  - Si piden datos históricos, máximos, mínimos, récords o valores que puedan ser de fechas muy viejas, prioriza los endpoints Stored y sin el param size.
   - Los endpoints Stored tienen un historial más amplio.
 `,
 };

@@ -51,6 +51,7 @@ import {
   BOT_USERNAME,
   STRICT_RESPONSE_FORMAT,
   SYSTEM_PROMPT,
+  EXTERNAL_INFORMATION_SYSTEM_PROMPT,
 } from './aiConfig';
 
 export const AI_EXECUTABLE_COMMANDS = new Set([
@@ -80,7 +81,7 @@ type MemoryMessage = {
 
 type AiQueueTask = () => Promise<void>;
 
-type ExternalActions = 'list_endpoints' | 'get_endpoint_detail' | 'execute_request';
+type ExternalActions = 'get_system_prompt' | 'list_endpoints' | 'get_endpoint_detail' | 'execute_request';
 
 export type AiCommand = {
   name: string;
@@ -89,11 +90,11 @@ export type AiCommand = {
 
 export type AiExternalInformationRequest = {
   action: ExternalActions;
-  endpoint: string;
+  font: string;
   method?: string | null;
   route?: string | null;
-  params?: string | null;
-  body?: string | null;
+  params?: Record<string, unknown>;
+  body?: Record<string, unknown> | null;
   responseFields?: string[] | null;
 };
 
@@ -155,7 +156,7 @@ const parseAiRawResult = (content: string): AiRawResult | undefined => {
 
     const hasExternalInformation = !!parsed.externalInformation
       && typeof parsed.externalInformation.action === 'string'
-      && typeof parsed.externalInformation.endpoint === 'string';
+      && typeof parsed.externalInformation.font === 'string';
 
     if (!hasAnswer && !hasCommand && !hasExternalInformation) return;
 
@@ -170,20 +171,6 @@ const parseAiRawResult = (content: string): AiRawResult | undefined => {
     logger.warn('AI returned an invalid response format');
 
     return;
-  }
-};
-
-const parseJsonSafely = (value?: string | null): Record<string, unknown> | undefined => {
-  if (!value) return undefined;
-
-  try {
-    const parsed = JSON.parse(value);
-
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return undefined;
-
-    return parsed as Record<string, unknown>;
-  } catch {
-    return undefined;
   }
 };
 
@@ -282,11 +269,11 @@ const requestAiCompletion = async (messages: ChatMessage[]): Promise<string | un
 };
 
 const getExternalContextTag = (
-  endpoint: string,
+  font: string,
   type: AiExternalContextType,
   route?: string,
 ) => {
-  const endpointKey = endpoint
+  const fontKey = font
     .toUpperCase()
     .replace(/[^A-Z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
@@ -305,7 +292,7 @@ const getExternalContextTag = (
       ? AI_EXTERNAL_CONTEXT_DETAIL_ENDPOINT
       : AI_EXTERNAL_CONTEXT_REQUEST_RESULT;
 
-  const contextTag = contextTemplate.replace(AI_EXTERNAL_CONTEXT_FONT, endpointKey);
+  const contextTag = contextTemplate.replace(AI_EXTERNAL_CONTEXT_FONT, fontKey);
 
   return routeKey && type !== 'ENDPOINTS_LIST'
     ? contextTag.replace(`_${type}`, `_${routeKey}_${type}`)
@@ -313,12 +300,12 @@ const getExternalContextTag = (
 };
 
 const formatExternalContext = (
-  endpoint: string,
+  font: string,
   type: AiExternalContextType,
   content: string,
   route?: string,
 ) => {
-  const tag = getExternalContextTag(endpoint, type, route);
+  const tag = getExternalContextTag(font, type, route);
 
   return [
     tag,
@@ -332,7 +319,7 @@ const resolveExternalInformationRequest = async (
 ): Promise<AiExternalResolution> => {
   try {
     if (request.action === 'list_endpoints') {
-      const documentation = await getAiExternalEndpointDocumentation(request.endpoint);
+      const documentation = await getAiExternalEndpointDocumentation(request.font);
 
       if (!documentation.trim()) {
         return {
@@ -348,7 +335,7 @@ const resolveExternalInformationRequest = async (
         hasData: true,
         retryable: false,
         output: formatExternalContext(
-          request.endpoint,
+          request.font,
           'ENDPOINTS_LIST',
           documentation,
         ),
@@ -365,7 +352,7 @@ const resolveExternalInformationRequest = async (
         };
       }
 
-      const detail = await getAiExternalEndpointDetail(request.endpoint, request.method, request.route);
+      const detail = await getAiExternalEndpointDetail(request.font, request.method, request.route);
 
       if (!detail.trim()) {
         return {
@@ -381,7 +368,7 @@ const resolveExternalInformationRequest = async (
         hasData: true,
         retryable: false,
         output: formatExternalContext(
-          request.endpoint,
+          request.font,
           'DETAIL_ENDPOINT',
           detail,
           request.route,
@@ -399,37 +386,16 @@ const resolveExternalInformationRequest = async (
         };
       }
 
-      if (request.params && !parseJsonSafely(request.params)) {
-        return {
-          success: false,
-          hasData: false,
-          retryable: false,
-          output: 'ERROR: params no contiene un JSON válido.',
-        };
-      }
-
-      if (request.body && !parseJsonSafely(request.body)) {
-        return {
-          success: false,
-          hasData: false,
-          retryable: false,
-          output: 'ERROR: body no contiene un JSON válido.',
-        };
-      }
-
-      const params = parseJsonSafely(request.params) || {};
-      const body = parseJsonSafely(request.body);
-
       const sanitizedResponseFields = Array.isArray(request.responseFields)
         ? request.responseFields.filter((field): field is string => typeof field === 'string' && field.trim().length > 0)
         : undefined;
 
       const result = await executeAiExternalEndpointRequest(
-        request.endpoint,
+        request.font,
         request.method,
         request.route,
-        params as Record<string, string | number | boolean>,
-        body,
+        request.params || {},
+        request.body,
         sanitizedResponseFields,
       );
 
@@ -451,12 +417,12 @@ const resolveExternalInformationRequest = async (
           success: false,
           hasData: false,
           retryable: false,
-          output: `ERROR: el endpoint "${request.endpoint}" devolvió un error.`,
+          output: `ERROR: el endpoint "${request.font}" devolvió un error.`,
         };
       }
 
       if (!hasExternalData(result)) {
-        logger.warn(`External endpoint returned no data: ${request.endpoint} ${request.method} ${request.route}`);
+        logger.warn(`External endpoint returned no data: ${request.font} ${request.method} ${request.route}`);
 
         return {
           success: true,
@@ -471,7 +437,7 @@ const resolveExternalInformationRequest = async (
         hasData: true,
         retryable: false,
         output: formatExternalContext(
-          request.endpoint,
+          request.font,
           'REQUEST_RESULT',
           JSON.stringify(result),
           request.route,
@@ -584,6 +550,33 @@ export const askAi = async (channel: string, username: string, message: string):
       }
 
       logger.info(`AI external information step: ${JSON.stringify(parsed.externalInformation)}`);
+
+      if (parsed.externalInformation.action === 'get_system_prompt') {
+        conversationMessages[0] = {
+          role: 'system',
+          content: EXTERNAL_INFORMATION_SYSTEM_PROMPT,
+        };
+
+        conversationMessages.push({
+          role: 'assistant',
+          content,
+        });
+
+        conversationMessages.push({
+          role: 'system',
+          content: [
+            'ESTADO DEL FLUJO EXTERNO',
+            'get_system_prompt fue completado correctamente.',
+            'PRÓXIMO PASO OBLIGATORIO: list_endpoints.',
+            'No ejecutes get_endpoint_detail todavía.',
+            'No ejecutes execute_request todavía.',
+            'No inventes rutas, métodos, parámetros ni resultados.',
+            'Devolvé exclusivamente el JSON correspondiente a list_endpoints.',
+          ].join('\n'),
+        });
+
+        continue;
+      }
 
       const externalResolution = await resolveExternalInformationRequest(parsed.externalInformation);
 

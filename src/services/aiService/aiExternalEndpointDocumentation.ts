@@ -59,22 +59,22 @@ const sanitizeFileName = (value: string) => {
   return sanitized || 'root';
 };
 
-const getEndpointDirectory = (endpointName: string) =>
-  path.join(AI_EXTRA_DATA_DIRECTORY, endpointName);
+const getEndpointDirectory = (fontName: string) =>
+  path.join(AI_EXTRA_DATA_DIRECTORY, fontName);
 
-const getEndpointsFilePath = (endpointName: string) =>
-  path.join(getEndpointDirectory(endpointName), 'endpoints.txt');
+const getEndpointsFilePath = (fontName: string) =>
+  path.join(getEndpointDirectory(fontName), 'endpoints.txt');
 
 const getEndpointFileName = (method: string, route: string) =>
   `${method.toUpperCase()}_${sanitizeFileName(route)}.txt`;
 
 const getEndpointFilePath = (
-  endpointName: string,
+  fontName: string,
   method: string,
   route: string,
 ) =>
   path.join(
-    getEndpointDirectory(endpointName),
+    getEndpointDirectory(fontName),
     getEndpointFileName(method, route),
   );
 
@@ -437,9 +437,9 @@ const formatEndpointDocumentation = (
     .trim();
 };
 
-const hasDocumentation = async (endpointName: string) => {
+const hasDocumentation = async (fontName: string) => {
   try {
-    await fs.access(getEndpointsFilePath(endpointName));
+    await fs.access(getEndpointsFilePath(fontName));
     return true;
   } catch {
     return false;
@@ -447,15 +447,15 @@ const hasDocumentation = async (endpointName: string) => {
 };
 
 const generateAiExternalEndpointDocumentation = async (
-  endpointName: string,
+  fontName: string,
 ) => {
   const endpoint = AiExternalEndpoints[
-    endpointName as keyof typeof AiExternalEndpoints
+    fontName as keyof typeof AiExternalEndpoints
   ];
 
   if (!endpoint?.documentation) {
     throw new Error(
-      `Unknown AI external endpoint documentation: ${endpointName}`,
+      `Unknown AI external endpoint documentation: ${fontName}`,
     );
   }
 
@@ -463,7 +463,7 @@ const generateAiExternalEndpointDocumentation = async (
   const response = await axios.get(openApiUrl);
   const openApi = response.data as OpenApiDocument;
   const schemas = openApi.components?.schemas || {};
-  const endpointDirectory = getEndpointDirectory(endpointName);
+  const endpointDirectory = getEndpointDirectory(fontName);
 
   await fs.mkdir(endpointDirectory, { recursive: true });
 
@@ -502,50 +502,50 @@ const generateAiExternalEndpointDocumentation = async (
   }
 
   const endpointsFile = endpoints
-    .map((item) => `${item.method} ${item.route} - ${item.summary}`)
+    .map((item) => `${item.method} - ${item.route} - ${item.summary}`)
     .join('\n');
 
   await fs.writeFile(
-    getEndpointsFilePath(endpointName),
+    getEndpointsFilePath(fontName),
     endpointsFile,
     'utf8',
   );
 
   return {
-    endpoint: endpointName,
+    endpoint: fontName,
     endpoints: endpoints.length,
   };
 };
 
 export const ensureAiExternalEndpointDocumentation = async (
-  endpointName: string,
+  fontName: string,
 ) => {
-  if (await hasDocumentation(endpointName)) {
+  if (await hasDocumentation(fontName)) {
     return;
   }
 
-  await generateAiExternalEndpointDocumentation(endpointName);
+  await generateAiExternalEndpointDocumentation(fontName);
 };
 
 export const getAiExternalEndpointDocumentation = async (
-  endpointName: string,
+  fontName: string,
 ) => {
-  await ensureAiExternalEndpointDocumentation(endpointName);
+  await ensureAiExternalEndpointDocumentation(fontName);
 
   return fs.readFile(
-    getEndpointsFilePath(endpointName),
+    getEndpointsFilePath(fontName),
     'utf8',
   );
 };
 
 export const resolveAiExternalEndpointRoute = async (
-  endpointName: string,
+  fontName: string,
   method: string,
   route: string,
 ) => {
-  await ensureAiExternalEndpointDocumentation(endpointName);
+  await ensureAiExternalEndpointDocumentation(fontName);
 
-  const endpointDirectory = getEndpointDirectory(endpointName);
+  const endpointDirectory = getEndpointDirectory(fontName);
   const files = await fs.readdir(endpointDirectory);
   const normalizedMethod = method.toLowerCase();
 
@@ -575,29 +575,29 @@ export const resolveAiExternalEndpointRoute = async (
   }
 
   throw new Error(
-    `No documented route found for ${method.toUpperCase()} ${route} in "${endpointName}".`,
+    `No documented route found for ${method.toUpperCase()} ${route} in "${fontName}".`,
   );
 };
 
 export const getAiExternalEndpointDetail = async (
-  endpointName: string,
+  fontName: string,
   method: string,
   route: string,
 ) => {
   const documentedRoute = await resolveAiExternalEndpointRoute(
-    endpointName,
+    fontName,
     method,
     route,
   );
 
   return fs.readFile(
-    getEndpointFilePath(endpointName, method, documentedRoute),
+    getEndpointFilePath(fontName, method, documentedRoute),
     'utf8',
   );
 };
 
 export const updateAiExternalEndpointDocumentation = async (
-  endpointName: string,
+  fontName: string,
 ) => {
-  return generateAiExternalEndpointDocumentation(endpointName);
+  return generateAiExternalEndpointDocumentation(fontName);
 };

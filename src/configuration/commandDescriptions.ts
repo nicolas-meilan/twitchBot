@@ -100,18 +100,18 @@ export const COMMAND_DESCRIPTIONS: Record<string, CommandDescription> = {
   [SCHEDULE_KEY]: noArguments('mostrar los horarios habituales de stream'),    
   [LAUGHTER_KEY]: noArguments('enviar un mensaje de humor al chat'),    
   [APOLOGY_KEY]: noArguments('enviar un mensaje de disculpas al chat'),    
-  [VALORANT_RANK_KEY]: withArguments(`mostrar el rango actual de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_RANK_KEY} [usuario#tag]`),    
-  [VALORANT_RANK_ALIAS_KEY]: withArguments(`mostrar el rango actual de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_RANK_ALIAS_KEY} [usuario#tag]`),    
-  [VALORANT_ELO_KEY]: withArguments(`mostrar el rango actual de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_ELO_KEY} [usuario#tag]`),    
-  [VALORANT_RANK_ALIAS_2_KEY]: withArguments(`mostrar el rango actual de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_RANK_ALIAS_2_KEY} [usuario#tag]`),    
-  [VALORANT_KEY]: withArguments(`mostrar el rango actual de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_KEY} [usuario#tag]`),    
-  [VALORANT_ID_ALIAS_KEY]: withArguments(`mostrar el rango actual de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_ID_ALIAS_KEY} [usuario#tag]`),    
+  [VALORANT_RANK_KEY]: withArguments(`mostrar el rango ACTUAL de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_RANK_KEY} [usuario#tag]`),    
+  [VALORANT_RANK_ALIAS_KEY]: withArguments(`mostrar el rango ACTUAL de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_RANK_ALIAS_KEY} [usuario#tag]`),    
+  [VALORANT_ELO_KEY]: withArguments(`mostrar el rango ACTUAL de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_ELO_KEY} [usuario#tag]`),    
+  [VALORANT_RANK_ALIAS_2_KEY]: withArguments(`mostrar el rango ACTUAL de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_RANK_ALIAS_2_KEY} [usuario#tag]`),    
+  [VALORANT_KEY]: withArguments(`mostrar el rango ACTUAL de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_KEY} [usuario#tag]`),    
+  [VALORANT_ID_ALIAS_KEY]: withArguments(`mostrar el rango ACTUAL de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_ID_ALIAS_KEY} [usuario#tag]`),    
   [LAST_RANKED_KEY]: withArguments(`mostrar el resultado de la última partida ranked de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${LAST_RANKED_KEY} [usuario#tag]`),    
   [LAST_RANKED_ALIAS_KEY]: withArguments(`mostrar el resultado de la última partida ranked de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${LAST_RANKED_ALIAS_KEY} [usuario#tag]`),  
   [LAST_RANKED_2_KEY]: withArguments(`mostrar el resultado de la última partida ranked de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${LAST_RANKED_2_KEY} [usuario#tag]`),  
   [LAST_GAME_KEY]: withArguments(`mostrar el resultado de la última partida ranked de Valorant. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${LAST_GAME_KEY} [usuario#tag]`),  
   [CROSSHAIR_KEY]: noArguments('mostrar la configuración de la mira del streamer'),  
-  [COMMANDS_KEY]: noArguments('mostrar los comandos disponibles para todos los usuarios'),    
+  [COMMANDS_KEY]: noArguments('mostrar los comandos disponibles para todos los usuarios'),
   [MOD_COMMANDS_KEY]: noArguments('mostrar los comandos disponibles para moderadores'),    
   [VIP_COMMANDS_KEY]: noArguments('mostrar los comandos disponibles para VIPs'),    
   [PLAYERS_LIST_KEY]: noArguments(`mostrar la lista de jugadores y sus prioridades. Beneficio de la lista: ${PLAYERS_QUEUE_PRIORITY_BENEFITS}`),    
@@ -170,7 +170,7 @@ export const getCommandDefinitions = () => {
   return commands;
 };
 
-export const getCommandDescription = (command: string): CommandDescription => COMMAND_DESCRIPTIONS[command] || noArguments('comando disponible');
+export const getCommandDescription = (command: string): CommandDescription => COMMAND_DESCRIPTIONS[command] || '';
 
 export const getCommandHelp = (command: string) => {
   const requestedCommand = command.trim() || HELP_COMMAND;

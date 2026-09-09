@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import { AiExternalEndpoints } from './aiExternalEndpoints';
 
-type ExternalRequestParams = Record<string, string | number | boolean>;
+type ExternalRequestParams = Record<string, unknown>;
 
 type ExternalRequestResult = {
   success: boolean;
@@ -184,11 +184,11 @@ const truncateResponseText = (value: string, maxlength?: number) => (
 const buildRequestUrl = (baseUrl: string, route: string, params: ExternalRequestParams) => {
   const remainingParams: ExternalRequestParams = { ...params };
   const resolvedRoute = route.replace(/\{([^}]+)\}|:([a-zA-Z0-9_]+)/g,(_match, braced, colon) => {
-      const key = braced || colon;
-      const value = remainingParams[key];
-      delete remainingParams[key];
-      return value !== undefined ? encodeURIComponent(String(value)) : '';
-    });
+    const key = braced || colon;
+    const value = remainingParams[key];
+    delete remainingParams[key];
+    return value !== undefined ? encodeURIComponent(String(value)) : '';
+  });
   const normalizedRoute = resolvedRoute.startsWith('/') ? resolvedRoute : `/${resolvedRoute}`;
   return {
     url: `${baseUrl.replace(/\/$/, '')}${normalizedRoute}`,
