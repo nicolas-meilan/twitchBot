@@ -532,10 +532,21 @@ export const getAiExternalEndpointDocumentation = async (
 ) => {
   await ensureAiExternalEndpointDocumentation(fontName);
 
-  return fs.readFile(
+  const endpointsList = await fs.readFile(
     getEndpointsFilePath(fontName),
     'utf8',
   );
+
+  const extraInformation = AiExternalEndpoints[fontName]?.extraInformation;
+
+  if (!extraInformation?.trim()) {
+    return endpointsList;
+  }
+
+  return [
+    extraInformation.trim(),
+    endpointsList,
+  ].join('\n\n');
 };
 
 export const resolveAiExternalEndpointRoute = async (

@@ -4,6 +4,7 @@ const VALORANT_API_KEY = process.env.VALORANT_API_KEY || '';
 
 export type AiExternalEndpoint = {
   endpoint: string;
+  description: string;
   baseBody?: Record<string, unknown>;
   baseHeader?: Record<string, string>;
   documentation: string;
@@ -24,6 +25,7 @@ const valorantEndpoint: AiExternalEndpoint = {
   documentation: 'https://api.henrikdev.xyz/openapi.json',
   filterUrlsInResponse: true,
   maxResponseLength: 40000,
+  description: `Una base de datos integral sobre estadísticas de partidas, rangos competitivos, perfiles de jugadores, habilidades de agentes, mapas, metadatos, etc. Sobre Valorant.`,
   extraInformation: `
 INFORMACIÓN EXTERNA DE VALORANT:
 
@@ -74,6 +76,7 @@ export const AiExternalEndpoints: {
   [key: string]: {
     baseEndpoint: AiExternalEndpoint;
     endpointGetter: () => Promise<AiExternalEndpoint>;
+    description: string;
     documentation: string;
     extraInformation?: string;
     filterUrlsInResponse?: boolean;

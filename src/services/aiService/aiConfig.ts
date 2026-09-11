@@ -61,13 +61,7 @@ const getAiCommandsGuide = () => {
 
 const getAiExternalFontsGuide = () => Object.entries(AiExternalEndpoints)
   .sort(([first], [second]) => first.localeCompare(second))
-  .map(([name, configuration]) => {
-    const extraInformation = configuration.extraInformation
-      ? `; información adicional: ${configuration.extraInformation}`
-      : '';
-
-    return `- ${name}${extraInformation}`;
-  })
+  .map(([name, configuration]) => `Fuente Externa: ${name} - Descripción: ${configuration.description}`)
   .join('\n');
 
 const replaceExternalContextFont = (value: string, endpoint: string) => value
@@ -103,12 +97,12 @@ const AI_DECISION_PROMPT = [
   `Para cada mensaje debés elegir exactamente una de estas acciones:`,
   `1. COMMAND`,
   `2. EXTERNAL_INFORMATION`,
-  `3. NORMAL_RESPONSE`,
+  `3. SMALL_CONVERSATION`,
 
   `PRIORIDAD`,
-  `La prioridad obligatoria es: 1. COMMAND > 2. EXTERNAL_INFORMATION > 3. NORMAL_RESPONSE.`,
+  `La prioridad obligatoria es: 1. COMMAND > 2. EXTERNAL_INFORMATION > 3. SMALL_CONVERSATION.`,
   `Nunca saltees ni inviertas este orden.`,
-  `Si ningún COMMAND puede resolver completamente la solicitud y existe una fuente externa relacionada con la temática de la solicitud, no elijas NORMAL_RESPONSE: elegí EXTERNAL_INFORMATION.`,
+  `Si ningún COMMAND puede resolver completamente la solicitud y existe una fuente externa relacionada con la temática de la solicitud, no elijas SMALL_CONVERSATION: elegí EXTERNAL_INFORMATION.`,
 ].join('\n');
 
 const AI_COMMANDS_PROMPT = [
@@ -150,9 +144,9 @@ const AI_EXTERNAL_DECISION_PROMPT = [
   `No inventes información externa.`,
 ].join('\n');
 
-const AI_NORMAL_RESPONSE_PROMPT = [
-  `NORMAL_RESPONSE`,
-  `Utilizá NORMAL_RESPONSE únicamente cuando:`,
+const AI_SMALL_CONVERSATION_PROMPT = [
+  `SMALL_CONVERSATION`,
+  `Utilizá SMALL_CONVERSATION únicamente cuando:`,
   `- ningún COMMAND disponible pueda resolver la solicitud;`,
   `- no sea necesaria información externa;`,
   `- y la respuesta pueda construirse utilizando información disponible y confiable.`,
@@ -192,7 +186,7 @@ const AI_OUTPUT_FORMAT_PROMPT = [
   `command y externalInformation son mutuamente excluyentes.`,
   `Si corresponde utilizar COMMAND, command debe contener el comando y externalInformation debe ser null.`,
   `Si corresponde utilizar EXTERNAL_INFORMATION, externalInformation debe contener la acción y command debe ser null.`,
-  `Si corresponde NORMAL_RESPONSE, command y externalInformation deben ser null.`,
+  `Si corresponde SMALL_CONVERSATION, command y externalInformation deben ser null.`,
   `answer tiene que ser texto limpio, no uses negrita, cursiva, subrayado, encabezados o markdown.`,
 ].join('\n');
 
@@ -278,7 +272,7 @@ export const SYSTEM_PROMPT = [
   AI_COMMANDS_PROMPT,
   AI_EXTERNAL_DECISION_PROMPT,
   AI_EXTERNAL_INFORMATION_SOURCES_PROMPT,
-  AI_NORMAL_RESPONSE_PROMPT,
+  AI_SMALL_CONVERSATION_PROMPT,
   AI_VERACITY_PROMPT,
   AI_OUTPUT_FORMAT_PROMPT,
 ].join('\n');
