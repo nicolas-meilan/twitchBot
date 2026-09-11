@@ -168,6 +168,27 @@ const indentText = (value: string, spaces: number) => value
   .map((line) => `${' '.repeat(spaces)}${line}`)
   .join('\n');
 
+const normalizeType = (
+  type: unknown,
+): { type: string | undefined; nullable: boolean } => {
+  if (Array.isArray(type)) {
+    const nonNullTypes = type.filter((t) => t !== 'null');
+    return {
+      type: nonNullTypes[0] as string | undefined,
+      nullable: type.includes('null'),
+    };
+  }
+
+  return { type: type as string | undefined, nullable: false };
+};
+
+const isNullSchema = (value: unknown) =>
+  Boolean(
+    value
+    && typeof value === 'object'
+    && (value as Record<string, unknown>).type === 'null',
+  );
+
 const formatSchema = (
   schema: Record<string, unknown> | undefined,
   schemas: Record<string, Record<string, unknown>> = {},
@@ -237,43 +258,34 @@ const formatSchema = (
     ].join('\n');
   }
 
-  if (Array.isArray(schema.oneOf)) {
-    const schemasText = schema.oneOf
-      .map((item) =>
-        formatSchema(
-          item as Record<string, unknown>,
-          schemas,
-          resolvingRefs,
-        ),
-      )
+  if (Array.isArray(schema.oneOf) || Array.isArray(schema.anyOf)) {
+    const variants = (schema.oneOf || schema.anyOf) as Record<string, unknown>[];
+    const nonNullVariants = variants.filter((item) => !isNullSchema(item));
+    const hasNull = nonNullVariants.length !== variants.length;
+
+    if (nonNullVariants.length === 1) {
+      const inner = formatSchema(nonNullVariants[0], schemas, resolvingRefs);
+      return hasNull ? `${inner} | null` : inner;
+    }
+
+    const schemasText = nonNullVariants
+      .map((item) => formatSchema(item, schemas, resolvingRefs))
       .join('\n');
 
-    return [
-      'oneOf {',
+    const wrapperLabel = Array.isArray(schema.oneOf) ? 'oneOf' : 'anyOf';
+    const block = [
+      `${wrapperLabel} {`,
       indentText(schemasText, 2),
       '}',
     ].join('\n');
+
+    return hasNull ? `${block} | null` : block;
   }
 
-  if (Array.isArray(schema.anyOf)) {
-    const schemasText = schema.anyOf
-      .map((item) =>
-        formatSchema(
-          item as Record<string, unknown>,
-          schemas,
-          resolvingRefs,
-        ),
-      )
-      .join('\n');
-
-    return [
-      'anyOf {',
-      indentText(schemasText, 2),
-      '}',
-    ].join('\n');
-  }
-
-  const type = schema.type;
+  const { type, nullable: nullableFromTypeArray } = normalizeType(
+    schema.type,
+  );
+  const isNullable = nullableFromTypeArray || schema.nullable === true;
 
   if (type === 'array') {
     const itemSchema = formatSchema(
@@ -282,15 +294,15 @@ const formatSchema = (
       resolvingRefs,
     );
 
-    if (itemSchema.includes('\n')) {
-      return [
+    const result = itemSchema.includes('\n')
+      ? [
         'array<',
         indentText(itemSchema, 2),
         '>',
-      ].join('\n');
-    }
+      ].join('\n')
+      : `array<${itemSchema}>`;
 
-    return `array<${itemSchema}>`;
+    return isNullable ? `${result} | null` : result;
   }
 
   if (type === 'object' || schema.properties) {
@@ -298,7 +310,7 @@ const formatSchema = (
       | Record<string, Record<string, unknown>>
       | undefined;
 
-    if (!properties) return 'object';
+    if (!properties) return isNullable ? 'object | null' : 'object';
 
     const propertiesText = Object.entries(properties)
       .map(([name, property]) =>
@@ -310,26 +322,28 @@ const formatSchema = (
       )
       .join('\n');
 
-    return [
+    const result = [
       'object {',
       indentText(propertiesText, 2),
       '}',
     ].join('\n');
+
+    return isNullable ? `${result} | null` : result;
   }
 
   if (schema.enum) {
-    return `${type || 'string'} (${formatValue(schema.enum)})`;
+    const result = `${type || 'string'} (${formatValue(schema.enum)})`;
+    return isNullable ? `${result} | null` : result;
   }
 
   if (schema.format) {
-    return `${type || 'unknown'} (${schema.format})`;
+    const result = `${type || 'unknown'} (${schema.format})`;
+    return isNullable ? `${result} | null` : result;
   }
 
-  if (schema.nullable === true) {
-    return `${String(type || 'unknown')} | null`;
-  }
-
-  return String(type || 'unknown');
+  return isNullable
+    ? `${String(type || 'unknown')} | null`
+    : String(type || 'unknown');
 };
 
 const formatParameter = (

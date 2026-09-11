@@ -19,6 +19,7 @@ const MAX_SHAPE_KEYS = 25;
 const normalizeFieldPath = (path: string): string => (
   path
     .replace(/\[\d*\]/g, '')
+    .replace(/\*/g, '')
     .replace(/(^|\.)(\d+)(?=\.|$)/g, '$1')
     .split('.')
     .map((segment) => segment.trim())
@@ -183,7 +184,7 @@ const truncateResponseText = (value: string, maxlength?: number) => (
 
 const buildRequestUrl = (baseUrl: string, route: string, params: ExternalRequestParams) => {
   const remainingParams: ExternalRequestParams = { ...params };
-  const resolvedRoute = route.replace(/\{([^}]+)\}|:([a-zA-Z0-9_]+)/g,(_match, braced, colon) => {
+  const resolvedRoute = route.replace(/\{([^}]+)\}|:([a-zA-Z0-9_]+)/g, (_match, braced, colon) => {
     const key = braced || colon;
     const value = remainingParams[key];
     delete remainingParams[key];
@@ -233,11 +234,15 @@ export const executeAiExternalEndpointRequest = async (
     const filteredIsEmpty = isEffectivelyEmpty(filteredData);
     const fieldsMatched = !hasResponseFields || originalIsEmpty || !filteredIsEmpty;
 
+    const dataWithUrls = filteredIsEmpty && !originalIsEmpty
+      ? response.data
+      : filteredData;
+
     const data = truncateResponseText(
       JSON.stringify(
         externalEndpoint.filterUrlsInResponse
-          ? removeObjectUrls(filteredData as Record<string, unknown> | unknown[])
-          : filteredData,
+          ? removeObjectUrls(dataWithUrls as Record<string, unknown> | unknown[])
+          : dataWithUrls,
       ),
       externalEndpoint.maxResponseLength,
     );
