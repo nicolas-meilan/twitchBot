@@ -3,7 +3,7 @@ import axios from "axios";
 export const DEFAULT_VALORANT_USERNAME = 'rungekutta93';
 export const DEFAULT_VALORANT_TAG = 'RK93';
 
-const DEFAULT_VALORANT_REGION = 'latam';
+export const DEFAULT_VALORANT_REGION = 'latam';
 const VALORANT_API_KEY = process.env.VALORANT_API_KEY || '';
 const VALID_VALORANT_TAG_REGEX = /^[A-Za-z0-9]{1,5}$/;
 
