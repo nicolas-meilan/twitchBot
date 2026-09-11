@@ -27,6 +27,7 @@
     const VALORANT_RANDOM_PICKER_VISIBLE_TIME = 8000; 
     const LOTTERY_ITEM_NAME = "LOTTERY"; 
     const LOTTERY_VISIBLE_TIME = 40000; 
+    const AITUM_START_DELAY = 5000;
  
     let ws; 
     let obs; 
@@ -289,6 +290,7 @@
             await muteGlobalAudioSources();
 
             await obs.call('StartStream');
+            await new Promise(resolve => setTimeout(resolve, AITUM_START_DELAY));
             await startAitumStreams();
  
             return; 
