@@ -26,7 +26,7 @@ const valorantEndpoint: AiExternalEndpoint = {
   },
   documentation: 'https://api.henrikdev.xyz/openapi.json',
   filterUrlsInResponse: true,
-  maxResponseLength: 20000,
+  maxResponseLength: 8000,
   description: `Todo tipo de datos de Valorant, historial extendido de partidas y rangos, análisis de partidas, perfiles de jugadores, datos de agentes, mapas, metadatos, etc.`,
   extraInformation: `
 - Rutas:
@@ -44,12 +44,12 @@ const valorantEndpoint: AiExternalEndpoint = {
   - Si no especifican el {platform} de la ruta o el param, usa "pc".
   - Si el streamer te hace la consulta y no te dice el name y tag, que puede venir como name#tag, usá en la ruta, o como param: {name} "${DEFAULT_VALORANT_USERNAME}", {tag} "${DEFAULT_VALORANT_TAG}",
 
-- Listados
-  - Los listados vienen ordenados del mas reciente al mas antiguo, si te piden datos sobre eventos recientes no uses los endpoints Stored, y si el dato es sobre el evento más reciente, partida o lo que fuese, usa como param: size=1.
-
 - Datos históricos:
   - Si piden datos históricos, máximos, mínimos, récords o valores que puedan ser de fechas muy viejas, prioriza los endpoints Stored y sin el param size o size=0.
   - Los endpoints Stored tienen un historial más amplio.
+
+- Listados
+  - Los listados vienen ordenados del mas reciente al mas antiguo, si te piden datos sobre eventos recientes no uses los endpoints Stored, y si el dato es sobre el evento más reciente, partida o lo que fuese, usa como param: size=1.
 `,
 };
 

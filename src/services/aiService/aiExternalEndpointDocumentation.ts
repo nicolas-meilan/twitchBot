@@ -8,12 +8,19 @@ import { AiExternalEndpoints } from './aiExternalEndpoints';
 
 const AI_EXTRA_DATA_DIRECTORY = path.resolve(process.cwd(), 'aiExtraData');
 
+const RESPONSES_SECTION = '\nRESPONSES:\n';
+
 type OpenApiParameter = {
   name?: string;
   in?: string;
   description?: string;
   required?: boolean;
   schema?: Record<string, unknown>;
+};
+
+type DocumentedRequiredParameter = {
+  name: string;
+  location: string;
 };
 
 type OpenApiResponseContent = {
@@ -49,6 +56,8 @@ const HTTP_METHODS = new Set([
   'options',
   'head',
 ]);
+
+const AUTHENTICATION_PARAMETER_PATTERN = /^(authorization|authentication|api[-_]?key|x[-_]?api[-_]?key|token|access[-_]?token|bearer|cookie|client[-_]?id)$/i;
 
 const sanitizeFileName = (value: string) => {
   const sanitized = value
@@ -142,6 +151,122 @@ const cleanText = (value: string) => value
   .replace(/\r\n/g, '\n')
   .replace(/\n{3,}/g, '\n\n')
   .trim();
+
+const isAuthenticationParameter = (parameter: OpenApiParameter): boolean => (
+  parameter.in === 'header' && AUTHENTICATION_PARAMETER_PATTERN.test(parameter.name || '')
+);
+
+const selectSuccessfulResponse = (responses: string): string => {
+  const responseBlocks = responses
+    .split(/(?=^STATUS:\s*)/m)
+    .filter((block) => block.trim());
+
+  return responseBlocks.find((block) => /^STATUS:\s*2\d\d/m.test(block))
+    || responseBlocks.find((block) => /^STATUS:\s*default/m.test(block))
+    || responseBlocks[0]
+    || 'None';
+};
+
+export const compactAiExternalEndpointDetail = (documentation: string): string => {
+  const [definition, responses] = documentation.split(RESPONSES_SECTION, 2);
+  if (!responses) return documentation;
+
+  return [
+    definition,
+    'RESPONSES:',
+    selectSuccessfulResponse(responses),
+  ].join('\n');
+};
+
+const getRequiredDocumentedParameters = (documentation: string): DocumentedRequiredParameter[] => {
+  const parametersSection = documentation.match(/PARAMETERS:\n([\s\S]*?)\n\nREQUEST BODY:/)?.[1];
+  if (!parametersSection || parametersSection === 'None') return [];
+
+  return parametersSection
+    .split(/\n\n(?=NAME:)/)
+    .map((block) => ({
+      name: block.match(/^NAME:\s*(.+)$/m)?.[1]?.trim() || '',
+      location: block.match(/^IN:\s*(.+)$/m)?.[1]?.trim().toLowerCase() || '',
+      required: block.match(/^REQUIRED:\s*true$/mi),
+    }))
+    .filter((parameter) => (
+      !!parameter.required
+      && !!parameter.name
+      && ['path', 'query'].includes(parameter.location)
+      && !AUTHENTICATION_PARAMETER_PATTERN.test(parameter.name)
+    ))
+    .map(({ name, location }) => ({ name, location }));
+};
+
+const hasProvidedValue = (value: unknown): boolean => (
+  value !== undefined
+  && value !== null
+  && (typeof value !== 'string' || value.trim().length > 0)
+);
+
+const getRequiredBodyFields = (documentation: string): string[] => {
+  const requestBodySection = documentation.match(/REQUEST BODY:\n([\s\S]*?)\n\nRESPONSES:/)?.[1];
+  if (!requestBodySection) return [];
+
+  return [...requestBodySection.matchAll(/^ {2}(.+?) \(required\):/gm)]
+    .map((match) => match[1]?.trim())
+    .filter((name): name is string => !!name);
+};
+
+const getProvidedPathParameters = (documentation: string, route?: string): Set<string> => {
+  if (!route) return new Set();
+
+  const documentedPath = documentation.match(/^PATH:\s*(.+)$/m)?.[1]?.trim();
+  if (!documentedPath) return new Set();
+
+  const documentedSegments = documentedPath.split('/').filter(Boolean);
+  const requestedSegments = route.split(/[?#]/)[0].split('/').filter(Boolean);
+  if (documentedSegments.length !== requestedSegments.length) return new Set();
+
+  return new Set(
+    documentedSegments
+      .map((segment, index) => {
+        const parameterName = segment.match(/^\{([^}]+)\}$/)?.[1]
+          || segment.match(/^:([a-zA-Z0-9_]+)$/)?.[1];
+        const requestedValue = requestedSegments[index];
+        const isResolved = requestedValue
+          && !/^\{[^}]+\}$/.test(requestedValue)
+          && !/^:[a-zA-Z0-9_]+$/.test(requestedValue);
+
+        return parameterName && isResolved ? parameterName : undefined;
+      })
+      .filter((name): name is string => !!name),
+  );
+};
+
+export const getMissingAiExternalRequestData = (
+  documentation: string,
+  params: Record<string, unknown>,
+  body?: Record<string, unknown> | null,
+  route?: string,
+): string[] => {
+  const providedPathParameters = getProvidedPathParameters(documentation, route);
+  const missingParameters = getRequiredDocumentedParameters(documentation)
+    .filter((parameter) => (
+      parameter.location === 'path'
+      && providedPathParameters.has(parameter.name)
+        ? false
+        : !hasProvidedValue(params[parameter.name])
+    ))
+    .map((parameter) => `${parameter.location}.${parameter.name}`);
+  const requestBodyIsRequired = /REQUEST BODY:\nREQUIRED:\s*true$/mi.test(documentation);
+  const missingBodyFields = body
+    ? getRequiredBodyFields(documentation)
+      .filter((field) => !hasProvidedValue(body[field]))
+      .map((field) => `body.${field}`)
+    : [];
+
+  return [
+    ...missingParameters,
+    ...(requestBodyIsRequired && !body ? ['body'] : []),
+    ...missingBodyFields,
+  ];
+};
 
 const removeAuthorizationSection = (value: string) => {
   const authorizationPatterns = [
@@ -312,14 +437,21 @@ const formatSchema = (
 
     if (!properties) return isNullable ? 'object | null' : 'object';
 
+    const requiredProperties = new Set(
+      Array.isArray(schema.required)
+        ? schema.required.filter((name): name is string => typeof name === 'string')
+        : [],
+    );
+
     const propertiesText = Object.entries(properties)
-      .map(([name, property]) =>
-        `${name}: ${formatSchema(
+      .map(([name, property]) => {
+        const propertyName = requiredProperties.has(name) ? `${name} (required)` : name;
+        return `${propertyName}: ${formatSchema(
           property,
           schemas,
           resolvingRefs,
-        )}`,
-      )
+        )}`;
+      })
       .join('\n');
 
     const result = [
@@ -362,22 +494,29 @@ const formatRequestBody = (
   schemas: Record<string, Record<string, unknown>>,
 ) => {
   if (!requestBody) return 'None';
+  const required = requestBody.required === true;
 
   const content = requestBody.content as
     | Record<string, OpenApiResponseContent>
     | undefined;
 
   if (!content) {
-    return formatValue(requestBody);
+    return [
+      `REQUIRED: ${required ? 'true' : 'false'}`,
+      formatValue(requestBody),
+    ].join('\n');
   }
 
-  return Object.entries(content)
-    .map(([contentType, value]) => [
-      `CONTENT-TYPE: ${cleanText(contentType)}`,
-      `SCHEMA:`,
-      formatSchema(value.schema, schemas),
-    ].join('\n'))
-    .join('\n\n');
+  return [
+    `REQUIRED: ${required ? 'true' : 'false'}`,
+    Object.entries(content)
+      .map(([contentType, value]) => [
+        `CONTENT-TYPE: ${cleanText(contentType)}`,
+        `SCHEMA:`,
+        formatSchema(value.schema, schemas),
+      ].join('\n'))
+      .join('\n\n'),
+  ].join('\n');
 };
 
 const formatResponse = (
@@ -415,7 +554,9 @@ const formatEndpointDocumentation = (
   operation: OpenApiOperation,
   schemas: Record<string, Record<string, unknown>>,
 ) => {
-  const parameters = operation.parameters || [];
+  const parameters = (operation.parameters || []).filter(
+    (parameter) => !isAuthenticationParameter(parameter),
+  );
   const responses = operation.responses || {};
 
   const documentation = [
@@ -615,10 +756,12 @@ export const getAiExternalEndpointDetail = async (
     route,
   );
 
-  return fs.readFile(
+  const documentation = await fs.readFile(
     getEndpointFilePath(fontName, method, documentedRoute),
     'utf8',
   );
+
+  return compactAiExternalEndpointDetail(documentation);
 };
 
 export const updateAiExternalEndpointDocumentation = async (

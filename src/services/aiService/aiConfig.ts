@@ -1,5 +1,7 @@
 import { PLAYERS_QUEUE_PRIORITY_BENEFITS } from '../../configuration/chat';
 
+import { UserRole } from '../../actions/userRoles';
+
 import gameQueue from '../../services/GameQueue';
 
 import {
@@ -8,34 +10,107 @@ import {
 } from '../../configuration/commandDescriptions';
 
 import { AiExternalEndpoints } from './aiExternalEndpoints';
+import { AI_EXTERNAL_ACTIONS } from './types';
 
 export const AI_URL = process.env.AI_URL!;
 export const AI_MODEL = process.env.AI_MODEL!;
 export const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS!);
 export const AI_MEMORY_MESSAGES = Number(process.env.AI_MEMORY_MESSAGES!);
+export const AI_LOG_TOKEN_USAGE = process.env.AI_LOG_TOKEN_USAGE === 'true';
 export const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME!;
 export const BOT_USERNAME = process.env.BOT_USERNAME!;
 
 export const AI_MENTION = `@${BOT_USERNAME}`;
 export const AI_MAX_QUEUE_SIZE = 6;
-export const AI_MAX_EXTERNAL_STEPS = 7;
+export const AI_MAX_EXTERNAL_STEPS = 10;
+export const AI_EXTERNAL_CATALOG_MAX_CHARS = 30000;
+export const AI_EXTERNAL_RESPONSE_MAX_CHARS = 30000;
 
 const END_LINE = '--------------------------------------------------------------------------';
 
 export const AI_EXTERNAL_INFO_ERROR_MESSAGE = 'No pude obtener esa información.';
 export const AI_EXTERNAL_INFO_NO_DATA_MESSAGE = 'No encontré datos para esa consulta.';
+export const AI_DECISION_TYPES = {
+  COMMAND: 'COMMAND',
+  EXTERNAL_INFORMATION: 'EXTERNAL_INFORMATION',
+  SMALL_CONVERSATION: 'SMALL_CONVERSATION',
+} as const;
+export const AI_EXTERNAL_FIELD_TRANSLATIONS: Record<string, string> = {
+  path: 'ruta',
+  query: 'consulta',
+  body: 'cuerpo',
+  method: 'método',
+  route: 'ruta',
+  responseFields: 'campos de respuesta',
+};
+export const AI_EXTERNAL_FIELD_PATTERN = new RegExp(
+  `\\b(${Object.keys(AI_EXTERNAL_FIELD_TRANSLATIONS).join('|')})\\b`,
+  'g',
+);
+export const AI_CONTENT_TO_PROTECT_PATTERN = /https?:\/\/\S+|`[^`]*`/g;
+export const AI_PROTECTED_CONTENT_TOKEN = '__AI_PROTECTED_CONTENT_';
+export const AI_PROTECTED_CONTENT_PATTERN = new RegExp(
+  `${AI_PROTECTED_CONTENT_TOKEN}(\\d+)__`,
+  'g',
+);
+
+export const translateAiExternalField = (field: string): string => field
+  .split('.')
+  .map((part) => AI_EXTERNAL_FIELD_TRANSLATIONS[part] || part)
+  .join('.');
+
+export const AI_EXTERNAL_CATALOG_DELIVERED_PROMPT = [
+  'ESTADO DEL FLUJO EXTERNO',
+  'El backend ya obtuvo y entregó ENDPOINTS_LIST.',
+  'PRÓXIMO PASO OBLIGATORIO: get_endpoint_detail.',
+  'Elegí una ruta del catálogo y devolvé exclusivamente el JSON correspondiente.',
+].join('\n');
+export const getAiExternalMissingRequestMessage = (action: string): string => (
+  `ERROR: falta method o route para ${action}.`
+);
+
+export const getAiExternalRequiredDataMessage = (fields: string[]): string => (
+  `ERROR_REINTENTABLE: faltan datos obligatorios para ejecutar la consulta: ${fields.map(translateAiExternalField).join(', ')}.\nNo ejecutes el endpoint ni inventes valores. Respondé al usuario pidiendo únicamente esos datos para poder continuar.`
+);
+
+export const getAiExternalEndpointErrorMessage = (font: string): string => (
+  `ERROR: el endpoint "${font}" devolvió un error.`
+);
+
+export const getAiResponseFieldsMismatchMessage = (shapeHint?: string): string => (
+  `ERROR_REINTENTABLE: ninguno de los campos indicados en "responseFields" existe en la respuesta real.\nEstructura real de la respuesta: ${shapeHint}\nGenerá un nuevo "responseFields" usando exactamente esos nombres y esa anidación, incluyendo claves contenedoras como "data" o "results" si están presentes.\nNo inventes nombres de campo que no aparezcan en esta estructura ni en DETAIL_ENDPOINT.`
+);
+
+export const getAiExternalRequestRetryMessage = (errorMessage: string): string => (
+  `ERROR_REINTENTABLE: ${errorMessage}\nLa solicitud externa anterior falló porque la ruta utilizada no está documentada o no es válida.\nNO vuelvas a utilizar esa misma ruta.\nVolvé a revisar ENDPOINTS_LIST y, si corresponde, DETAIL_ENDPOINT antes de generar una nueva solicitud.\nGenerá una nueva externalInformation usando únicamente una ruta que esté documentada.`
+);
+
+export const getAiUnknownExternalActionMessage = (action: string): string => (
+  `ERROR: acción desconocida "${action}".`
+);
+
+export const getAiRequiredRoleDescription = (role: UserRole): string => {
+  if (role === UserRole.VIP) return 'VIP, moderador o broadcaster';
+  if (role === UserRole.MOD) return 'moderador o broadcaster';
+  return 'broadcaster';
+};
+
+export const getAiAccessDeniedMessage = (actionNotAllowed: string, role: UserRole, command: string): string => (
+  `${actionNotAllowed}: necesitás ser ${getAiRequiredRoleDescription(role)} para usar ${command}.`
+);
+
+export const getAiCommandCompletedMessage = (command: string): string => `Listo, ejecuté ${command}.`;
 export const AI_EXTERNAL_CONTEXT_FONT = '__FONT__';
-export const AI_EXTERNAL_CONTEXT_ENDPOINTS_LIST = `[${AI_EXTERNAL_CONTEXT_FONT}_ENDPOINTS_LIST]`;
-export const AI_EXTERNAL_CONTEXT_DETAIL_ENDPOINT = `[${AI_EXTERNAL_CONTEXT_FONT}_DETAIL_ENDPOINT]`;
-export const AI_EXTERNAL_CONTEXT_REQUEST_RESULT = `[${AI_EXTERNAL_CONTEXT_FONT}_REQUEST_RESULT]`;
-
-export const ADVANCED_SEARCH_COMMAND = '!busquedaAvanzada';
-
 export const AI_EXTERNAL_CONTEXT_TYPES = {
   ENDPOINTS_LIST: 'ENDPOINTS_LIST',
   DETAIL_ENDPOINT: 'DETAIL_ENDPOINT',
   REQUEST_RESULT: 'REQUEST_RESULT',
-} as const;
+};
+export const AI_EXTERNAL_CONTEXT_ENDPOINTS_LIST = `[${AI_EXTERNAL_CONTEXT_FONT}_${AI_EXTERNAL_CONTEXT_TYPES.ENDPOINTS_LIST}]`;
+export const AI_EXTERNAL_CONTEXT_DETAIL_ENDPOINT = `[${AI_EXTERNAL_CONTEXT_FONT}_${AI_EXTERNAL_CONTEXT_TYPES.DETAIL_ENDPOINT}]`;
+export const AI_EXTERNAL_CONTEXT_REQUEST_RESULT = `[${AI_EXTERNAL_CONTEXT_FONT}_${AI_EXTERNAL_CONTEXT_TYPES.REQUEST_RESULT}]`;
+
+export const ADVANCED_SEARCH_COMMAND = '!busquedaAvanzada';
 
 export type AiExternalContextType = typeof AI_EXTERNAL_CONTEXT_TYPES[
   keyof typeof AI_EXTERNAL_CONTEXT_TYPES
@@ -61,7 +136,12 @@ const getAiCommandsGuide = () => {
 
 const getAiExternalFontsGuide = () => Object.entries(AiExternalEndpoints)
   .sort(([first], [second]) => first.localeCompare(second))
-  .map(([name, configuration]) => `Fuente Externa: ${name} - Descripción: ${configuration.description}`)
+  .map(([name, configuration]) => [
+    `Fuente Externa: ${name} - Descripción: ${configuration.description}`,
+    configuration.extraInformation?.trim()
+      ? `Reglas adicionales de ${name}:\n${configuration.extraInformation.trim()}`
+      : '',
+  ].filter(Boolean).join('\n'))
   .join('\n');
 
 const replaceExternalContextFont = (value: string, endpoint: string) => value
@@ -80,15 +160,15 @@ const AI_IDENTITY_PROMPT = [
 
 const AI_DECISION_PROMPT = [
   `FLUJO DE DECISIÓN`,
-  `Elegí una acción por mensaje respetando esta prioridad: 1. COMMAND > 2. EXTERNAL_INFORMATION > 3. SMALL_CONVERSATION.`,
-  `Si crees no tener acceso a algún dato/información, probá las reglas EXTERNAL_INFORMATION envez de SMALL_CONVERSATION`,
+  `Elegí una acción por mensaje respetando esta prioridad: 1. ${AI_DECISION_TYPES.COMMAND} > 2. ${AI_DECISION_TYPES.EXTERNAL_INFORMATION} > 3. ${AI_DECISION_TYPES.SMALL_CONVERSATION}.`,
+  `Si crees no tener acceso a algún dato/información, probá las reglas ${AI_DECISION_TYPES.EXTERNAL_INFORMATION} envez de ${AI_DECISION_TYPES.SMALL_CONVERSATION}`,
 ].join('\n');
 
 const AI_COMMANDS_PROMPT = [
-  `COMMAND`,
+  `${AI_DECISION_TYPES.COMMAND}`,
   `Analizá si algún comando del listado [AVAILABLE_COMMANDS] soluciona el 100% del pedido basado en su descripción.`,
-  `Si el usuario pide información extra que el comando no tiene, NO USES EL COMANDO, pasa directamente a EXTERNAL_INFORMATION`,
-  `Aplicar el comando quiere decir devolver el JSON con "command" completo (ej: {"command":{"name":"!comando","value":"args"}, "answer": "Ejecuté (!comando)", "externalInformation": null}).`,
+  `Si el usuario pide información extra que el comando no tiene, NO USES EL COMANDO: pasá directamente a ${AI_DECISION_TYPES.EXTERNAL_INFORMATION}.`,
+  `Aplicar el comando quiere decir devolver el campo "command" completo y mantener "externalInformation" en null.`,
   `No inventes ni asumas que el comando hace más de lo descrito.`,
   `[AVAILABLE_COMMANDS]`,
   `${getAiCommandsGuide()}`,
@@ -96,10 +176,11 @@ const AI_COMMANDS_PROMPT = [
 ].join('\n');
 
 const AI_EXTERNAL_DECISION_PROMPT = [
-  `EXTERNAL_INFORMATION`,
+  `${AI_DECISION_TYPES.EXTERNAL_INFORMATION}`,
   `Revisá el listado [AVAILABLE_EXTERNAL_INFORMATION_SOURCES].`,
-  `Si la descripción o nombre de la fuente externa coincide MÍNIMAMENTE con la consulta, elegí EXTERNAL_INFORMATION (usando action "get_system_prompt").`,
-  `Formato requerido: "externalInformation":{"action":"get_system_prompt","font":"NOMBRE_FUENTE", "route": null, "responseFields": null, "method": null, "params": null, "body": null}.`,
+  `Si la descripción o nombre de la fuente externa coincide MÍNIMAMENTE con la consulta, elegí ${AI_DECISION_TYPES.EXTERNAL_INFORMATION} (usando action "${AI_EXTERNAL_ACTIONS.GET_SYSTEM_PROMPT}").`,
+  `Formato requerido: "externalInformation":{"action":"${AI_EXTERNAL_ACTIONS.GET_SYSTEM_PROMPT}","font":"NOMBRE_FUENTE", "query":"consulta resuelta", "route": null, "responseFields": null, "method": null, "params": null, "body": null}.`,
+  `La "query" debe sintetizar todo el pedido usando el mensaje actual y el historial relevante: entidad, usuario/tag, región, período, métrica y restricciones. No inventes datos faltantes.`,
 ].join('\n');
 
 const AI_EXTERNAL_INFORMATION_SOURCES_PROMPT = [
@@ -109,8 +190,8 @@ const AI_EXTERNAL_INFORMATION_SOURCES_PROMPT = [
 ].join('\n');
 
 const AI_SMALL_CONVERSATION_PROMPT = [
-  `SMALL_CONVERSATION`,
-  `Usá SMALL_CONVERSATION SOLO si no aplica COMMAND ni EXTERNAL_INFORMATION.`,
+  `${AI_DECISION_TYPES.SMALL_CONVERSATION}`,
+  `Usá ${AI_DECISION_TYPES.SMALL_CONVERSATION} SOLO si no aplica ${AI_DECISION_TYPES.COMMAND} ni ${AI_DECISION_TYPES.EXTERNAL_INFORMATION}.`,
   `Si es una consulta de datos y no sabés la respuesta, decí que no sabés. No asumas ni inventes.`,
   `PROHIBIDO USAR PARA DATOS: Si la consulta del usuario involucra una petición de información o ejecución de acción, JAMÁS inventes una respuesta conversacional.`,
 ].join('\n');
@@ -124,12 +205,12 @@ const AI_VERACITY_PROMPT = [
 const AI_OUTPUT_FORMAT_PROMPT = [
   `FORMATO DE SALIDA`,
   `Devolvé estrictamente el JSON requerido por el schema.`,
-  `"command" y "externalInformation" son mutuamente excluyentes (uno siempre debe ser null).`,
+  `"command" y "externalInformation" son mutuamente excluyentes: nunca los devuelvas juntos; usá null en el campo que no corresponda.`,
   `"answer" debe ser texto limpio, sin formato markdown (sin negritas, cursivas ni encabezados).`,
 ].join('\n');
 
 export const AI_EXTERNAL_INFORMATION_PROMPT = [
-  `Tu única función es ejecutar el flujo EXTERNAL_INFORMATION para obtener datos reales.`,
+  `Tu única función es ejecutar el flujo ${AI_DECISION_TYPES.EXTERNAL_INFORMATION} para obtener datos reales.`,
 
   `FLUJO OBLIGATORIO (3 PASOS SECUENCIALES)`,
   `No saltees ni inviertas etapas. Está estrictamente prohibido inventar o asumir rutas, métodos, parámetros, body, campos o resultados.`,
@@ -137,6 +218,7 @@ export const AI_EXTERNAL_INFORMATION_PROMPT = [
   `Paso 1: ${replaceExternalContextFont(AI_EXTERNAL_CONTEXT_ENDPOINTS_LIST, 'FUENTE')}`,
   `- Objetivo: Solicitar el listado de rutas disponibles para analizar sus descripciones y evaluar cuál es la correcta para la consulta del usuario.`,
   `- Acción: Usá "list_endpoints" (el nombre de la fuente va en "font").`,
+  `- Query: conservá la consulta resuelta recibida; no la reemplaces ni inventes datos.`,
   `- Restricción: method, route, params, body y responseFields DEBEN ser null.`,
 
   `Paso 2: ${replaceExternalContextFont(AI_EXTERNAL_CONTEXT_DETAIL_ENDPOINT, 'FUENTE')}`,
@@ -209,14 +291,10 @@ export const STRICT_RESPONSE_FORMAT = {
               properties: {
                 action: {
                   type: 'string',
-                  enum: [
-                    'get_system_prompt',
-                    'list_endpoints',
-                    'get_endpoint_detail',
-                    'execute_request',
-                  ],
+                  enum: Object.values(AI_EXTERNAL_ACTIONS),
                 },
                 font: { type: 'string' },
+                query: { type: ['string', 'null'] },
                 method: { type: ['string', 'null'] },
                 route: { type: ['string', 'null'] },
                 params: { type: ['object', 'null'] },
@@ -229,6 +307,7 @@ export const STRICT_RESPONSE_FORMAT = {
               required: [
                 'action',
                 'font',
+                'query',
                 'method',
                 'route',
                 'params',
