@@ -158,8 +158,8 @@ export const AI_EXTERNAL_INFORMATION_PROMPT = [
   `- Tratá los arrays como objetos: no uses índices numéricos, corchetes "[]" ni "*" (Ej: "array.object.attr1" o "array.attr").`,
   `- No ignores Arrays, el Array padre, ni objetos Padre`,
 
-  `RESPUESTA FINAL`,
-  `Al recibir el resultado de la petición, formulá tu "answer" basándote ÚNICAMENTE en esos datos reales. Si el resultado no tiene datos suficientes, indicalo. Nunca inventes información para completar la respuesta.`,
+  `Paso 4: RESPUESTA FINAL`,
+  `Al recibir el resultado obtenido en el Paso 3, formulá tu "answer" basándote ÚNICAMENTE en esos datos reales. Si el resultado no tiene datos suficientes, indicalo. Nunca inventes información para completar la respuesta.`,
 ].join('\n');
 
 export const SYSTEM_PROMPT = [

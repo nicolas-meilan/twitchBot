@@ -26,7 +26,7 @@ const valorantEndpoint: AiExternalEndpoint = {
   },
   documentation: 'https://api.henrikdev.xyz/openapi.json',
   filterUrlsInResponse: true,
-  maxResponseLength: 40000,
+  maxResponseLength: 20000,
   description: `Todo tipo de datos de Valorant, historial extendido de partidas y rangos, análisis de partidas, perfiles de jugadores, datos de agentes, mapas, metadatos, etc.`,
   extraInformation: `
 - Rutas:
