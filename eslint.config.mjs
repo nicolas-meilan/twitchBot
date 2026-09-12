@@ -5,12 +5,14 @@ import tseslint from "typescript-eslint";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
+  {
+    ignores: ["dist/**"],
+  },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   {
     languageOptions: { globals: globals.node },
     files: ["**/*.{js,mjs,cjs,ts}"],
-    ignores: ["dist/"],
     rules: {
       'no-undef': ['error', { 'typeof': false }],
       '@typescript-eslint/no-require-imports': 'off',
