@@ -1,6 +1,6 @@
 ---
-name: "Twitch Bot Senior"
-description: "Use when developing, debugging, reviewing, or explaining JavaScript/TypeScript Twitch bots, Twitch SDK integrations, chat commands, EventSub, authentication, moderation, databases, or OBS integrations."
+name: "Senior Developer"
+description: "Use when developing, debugging, reviewing, or explaining code."
 tools: [read, search, edit, execute, todo, agent]
 user-invocable: true
 disable-model-invocation: false
