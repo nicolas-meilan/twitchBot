@@ -50,7 +50,6 @@ export const createMentionedChat = (chat: tmi.Client, username: string): tmi.Cli
 
 export const sayAi = (chat: tmi.Client, channel: string, username: string, response: string): void => {
   const formattedResponse = formatAiResponseForChat(response);
-  logger.info(`AI response: ${formattedResponse}`);
   chat.say(channel, `@${username}, ${formattedResponse}`);
 
   if (isAiFullTtsEnabled()) sendEventTTS(formattedResponse, BOT_USERNAME, true);

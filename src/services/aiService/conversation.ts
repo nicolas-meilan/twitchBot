@@ -2,7 +2,7 @@ import {
   AI_MEMORY_MESSAGES,
   AI_MENTION,
   BOT_USERNAME,
-  EXTERNAL_INFORMATION_SYSTEM_PROMPT,
+  AI_EXTERNAL_EXECUTION_PROMPT,
   SYSTEM_PROMPT,
 } from './aiConfig';
 import { AiResult, ChatMessage, MemoryMessage } from './types';
@@ -37,8 +37,9 @@ export const buildExternalConversation = (
   username: string,
   question: string,
   workflowMessages: ChatMessage[],
+  systemPrompt = AI_EXTERNAL_EXECUTION_PROMPT,
 ): ChatMessage[] => [
-  { role: 'system', content: EXTERNAL_INFORMATION_SYSTEM_PROMPT },
+  { role: 'system', content: systemPrompt },
   createUserMessage(username, question),
   ...workflowMessages,
 ];

@@ -12,7 +12,6 @@ export type AiExternalEndpoint = {
   documentation: string;
   extraInformation?: string;
   filterUrlsInResponse?: boolean;
-  maxResponseLength?: number;
 };
 
 // const CLIENT_ID = process.env.CLIENT_ID || '';
@@ -26,7 +25,6 @@ const valorantEndpoint: AiExternalEndpoint = {
   },
   documentation: 'https://api.henrikdev.xyz/openapi.json',
   filterUrlsInResponse: true,
-  maxResponseLength: 8000,
   description: `Todo tipo de datos de Valorant, historial extendido de partidas y rangos, análisis de partidas, perfiles de jugadores, datos de agentes, mapas, metadatos, etc.`,
   extraInformation: `
 - Rutas:
@@ -50,6 +48,14 @@ const valorantEndpoint: AiExternalEndpoint = {
 
 - Listados
   - Los listados vienen ordenados del mas reciente al mas antiguo, si te piden datos sobre eventos recientes no uses los endpoints Stored, y si el dato es sobre el evento más reciente, partida o lo que fuese, usa como param: size=1.
+
+- Parametro size
+  - Si el endpoint documenta el param size, usalo para limitar la cantidad de resultados desde la API, no trunques la respuesta despues.
+  - Para el ultimo o mas reciente resultado usa size=1.
+  - Para los ultimos resultados usa size=5, salvo que el usuario pida una cantidad especifica.
+  - Para rankings o listados acotados usa size=10 si no se indico otra cantidad.
+  - Si el usuario pide todo el historial, maximos, minimos o datos antiguos, no agregues size o usa size=0 solo cuando la documentacion indique que es valido.
+  - Nunca envies size a un endpoint que no lo documente.
 `,
 };
 
@@ -84,7 +90,6 @@ export const AiExternalEndpoints: {
     documentation: string;
     extraInformation?: string;
     filterUrlsInResponse?: boolean;
-    maxResponseLength?: number;
   };
 } = {
   valorant: {

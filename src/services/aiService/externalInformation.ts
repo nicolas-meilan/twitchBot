@@ -7,6 +7,7 @@ import {
   AI_EXTERNAL_CONTEXT_REQUEST_RESULT,
   AI_EXTERNAL_CONTEXT_TYPES,
   AI_EXTERNAL_CATALOG_MAX_CHARS,
+  AI_MAX_RESPONSE_FIELDS,
   AI_EXTERNAL_RESPONSE_MAX_CHARS,
   AiExternalContextType,
   getAiExternalEndpointErrorMessage,
@@ -84,7 +85,11 @@ const invalidRequest = (action: string): AiExternalResolution => ({
 
 const sanitizeResponseFields = (fields: string[] | null | undefined): string[] | undefined => (
   Array.isArray(fields)
-    ? fields.filter((field): field is string => typeof field === 'string' && field.trim().length > 0)
+    ? [...new Set(
+      fields
+        .filter((field): field is string => typeof field === 'string' && field.trim().length > 0)
+        .map((field) => field.trim()),
+    )].slice(0, AI_MAX_RESPONSE_FIELDS)
     : undefined
 );
 

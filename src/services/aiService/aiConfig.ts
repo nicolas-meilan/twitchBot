@@ -25,11 +25,29 @@ export const AI_MAX_QUEUE_SIZE = 6;
 export const AI_MAX_EXTERNAL_STEPS = 10;
 export const AI_EXTERNAL_CATALOG_MAX_CHARS = 30000;
 export const AI_EXTERNAL_RESPONSE_MAX_CHARS = 30000;
+export const AI_MAX_RESPONSE_FIELDS = 10;
+export const AI_EXTERNAL_ENDPOINT_FIELD_TITLES = {
+  METHOD: 'METHOD',
+  PATH: 'PATH',
+  SUMMARY: 'SUMMARY',
+} as const;
+export const AI_EXTERNAL_ENDPOINT_CATALOG_SEPARATOR = ' - ';
+export const AI_EXTERNAL_WORKFLOW_STAGES = {
+  INITIAL: 'initial',
+  CATALOG: 'catalog',
+  DETAIL: 'detail',
+  RESULT: 'result',
+} as const;
+export type AiExternalWorkflowStage = typeof AI_EXTERNAL_WORKFLOW_STAGES[
+  keyof typeof AI_EXTERNAL_WORKFLOW_STAGES
+];
 
 const END_LINE = '--------------------------------------------------------------------------';
 
 export const AI_EXTERNAL_INFO_ERROR_MESSAGE = 'No pude obtener esa información.';
 export const AI_EXTERNAL_INFO_NO_DATA_MESSAGE = 'No encontré datos para esa consulta.';
+export const AI_EXTERNAL_CATALOG_REQUIRED_ERROR_MESSAGE = 'ERROR_REINTENTABLE: primero debés usar list_endpoints para recibir ENDPOINTS_LIST antes de solicitar DETAIL_ENDPOINT.';
+export const AI_EXTERNAL_COMMAND_FORBIDDEN_ERROR_MESSAGE = 'ERROR_REINTENTABLE: durante el flujo de información externa no uses command. Devolvé externalInformation con la acción correspondiente a la etapa actual.';
 export const AI_DECISION_TYPES = {
   COMMAND: 'COMMAND',
   EXTERNAL_INFORMATION: 'EXTERNAL_INFORMATION',
@@ -209,29 +227,36 @@ const AI_OUTPUT_FORMAT_PROMPT = [
   `"answer" debe ser texto limpio, sin formato markdown (sin negritas, cursivas ni encabezados).`,
 ].join('\n');
 
-export const AI_EXTERNAL_INFORMATION_PROMPT = [
-  `Tu única función es ejecutar el flujo ${AI_DECISION_TYPES.EXTERNAL_INFORMATION} para obtener datos reales.`,
-
+const AI_EXTERNAL_CATALOG_STAGE_PROMPT = [
   `FLUJO OBLIGATORIO (3 PASOS SECUENCIALES)`,
   `No saltees ni inviertas etapas. Está estrictamente prohibido inventar o asumir rutas, métodos, parámetros, body, campos o resultados.`,
-
   `Paso 1: ${replaceExternalContextFont(AI_EXTERNAL_CONTEXT_ENDPOINTS_LIST, 'FUENTE')}`,
   `- Objetivo: Solicitar el listado de rutas disponibles para analizar sus descripciones y evaluar cuál es la correcta para la consulta del usuario.`,
   `- Acción: Usá "list_endpoints" (el nombre de la fuente va en "font").`,
   `- Query: conservá la consulta resuelta recibida; no la reemplaces ni inventes datos.`,
+  `- Cada entrada del catálogo usa el formato "${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.METHOD}: método${AI_EXTERNAL_ENDPOINT_CATALOG_SEPARATOR}${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.PATH}: ruta${AI_EXTERNAL_ENDPOINT_CATALOG_SEPARATOR}${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.SUMMARY}: descripción".`,
   `- Restricción: method, route, params, body y responseFields DEBEN ser null.`,
+].join('\n');
 
+const AI_EXTERNAL_DETAIL_STAGE_PROMPT = [
+  `FLUJO OBLIGATORIO (3 PASOS SECUENCIALES)`,
+  `No saltees ni inviertas etapas. Está estrictamente prohibido inventar o asumir rutas, métodos, parámetros, body, campos o resultados.`,
   `Paso 2: ${replaceExternalContextFont(AI_EXTERNAL_CONTEXT_DETAIL_ENDPOINT, 'FUENTE')}`,
   `- Objetivo: Seleccionar la ruta que mejor responda a la consulta y obtener su documentación técnica.`,
   `- Acción: Usá "get_endpoint_detail".`,
   `- Regla de ruta: Usá la ruta EXACTA y completa elegida del catálogo del Paso 1 (no inventes, no la recortes).`,
+  `- Copiá ${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.METHOD} y ${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.PATH} literalmente de una entrada de ENDPOINTS_LIST. No construyas rutas combinando segmentos ni agregues segmentos como /player o /user si no aparecen en la entrada.`,
   `- Restricción: method, params, body y responseFields DEBEN ser null.`,
+].join('\n');
 
+const AI_EXTERNAL_EXECUTION_STAGE_PROMPT = [
+  `FLUJO OBLIGATORIO (3 PASOS SECUENCIALES)`,
+  `No saltees ni inviertas etapas. Está estrictamente prohibido inventar o asumir rutas, métodos, parámetros, body, campos o resultados.`,
   `Paso 3: ${replaceExternalContextFont(AI_EXTERNAL_CONTEXT_REQUEST_RESULT, 'FUENTE')}`,
   `- Objetivo: Ejecutar la petición documentada.`,
   `- Acción: Usá "execute_request" respetando estrictamente el método, ruta, params (JSON) y body (JSON) de la documentación obtenida en el Paso 2.`,
   `- Restricción: responseFields NO debe ser null.`,
-
+  `- Devolvé command: null durante todo el flujo externo.`,
   `REGLAS PARA "responseFields" (Paso 3):`,
   `- Análisis previo obligatorio: Analizá en detalle la estructura de los objetos JSON de respuesta provistos en la documentación del Paso 2 antes de definir los campos.`,
   `- Formato estricto: Debe ser un array de strings con la ruta de puntos completa (Ej: ["object.subobject.attr1"]). Nunca separes los niveles en elementos independientes del array (Prohibido: ["object", "subobject", "attr1"]).`,
@@ -239,9 +264,36 @@ export const AI_EXTERNAL_INFORMATION_PROMPT = [
   `- Mantené la ruta estructural completa desde la raíz. Nunca omitas niveles intermedios (Ej positivo: "object.subobject.attr1". Ej negativo: "subobject.attr1", "attr1").`,
   `- Tratá los arrays como objetos: no uses índices numéricos, corchetes "[]" ni "*" (Ej: "array.object.attr1" o "array.attr").`,
   `- No ignores Arrays, el Array padre, ni objetos Padre`,
+].join('\n');
 
+const AI_EXTERNAL_FINAL_STAGE_PROMPT = [
   `Paso 4: RESPUESTA FINAL`,
+  `Devolvé command: null y externalInformation: null.`,
   `Al recibir el resultado obtenido en el Paso 3, formulá tu "answer" basándote ÚNICAMENTE en esos datos reales. Si el resultado no tiene datos suficientes, indicalo. Nunca inventes información para completar la respuesta.`,
+  `El resultado puede representar arrays de objetos como {"__ai_format":"table","columns":[...],"rows":[...]}; interpretá cada fila según el orden de "columns".`,
+].join('\n');
+
+const createExternalStagePrompt = (stagePrompt: string): string => [
+  AI_IDENTITY_PROMPT,
+  stagePrompt,
+  AI_VERACITY_PROMPT,
+  AI_OUTPUT_FORMAT_PROMPT,
+].join('\n');
+
+export const AI_EXTERNAL_CATALOG_PROMPT = createExternalStagePrompt(AI_EXTERNAL_CATALOG_STAGE_PROMPT);
+export const AI_EXTERNAL_DETAIL_PROMPT = createExternalStagePrompt(AI_EXTERNAL_DETAIL_STAGE_PROMPT);
+export const AI_EXTERNAL_EXECUTION_PROMPT = createExternalStagePrompt(AI_EXTERNAL_EXECUTION_STAGE_PROMPT);
+export const AI_EXTERNAL_FINAL_PROMPT = createExternalStagePrompt(AI_EXTERNAL_FINAL_STAGE_PROMPT);
+
+export const AI_EXTERNAL_INFORMATION_PROMPT = [
+  AI_IDENTITY_PROMPT,
+  `Tu única función es ejecutar el flujo ${AI_DECISION_TYPES.EXTERNAL_INFORMATION} para obtener datos reales.`,
+  AI_EXTERNAL_CATALOG_STAGE_PROMPT,
+  AI_EXTERNAL_DETAIL_STAGE_PROMPT,
+  AI_EXTERNAL_EXECUTION_STAGE_PROMPT,
+  AI_EXTERNAL_FINAL_STAGE_PROMPT,
+  AI_VERACITY_PROMPT,
+  AI_OUTPUT_FORMAT_PROMPT,
 ].join('\n');
 
 export const SYSTEM_PROMPT = [
@@ -255,12 +307,7 @@ export const SYSTEM_PROMPT = [
   AI_OUTPUT_FORMAT_PROMPT,
 ].join('\n');
 
-export const EXTERNAL_INFORMATION_SYSTEM_PROMPT = [
-  AI_IDENTITY_PROMPT,
-  AI_EXTERNAL_INFORMATION_PROMPT,
-  AI_VERACITY_PROMPT,
-  AI_OUTPUT_FORMAT_PROMPT,
-].join('\n');
+export const EXTERNAL_INFORMATION_SYSTEM_PROMPT = AI_EXTERNAL_EXECUTION_PROMPT;
 
 export const STRICT_RESPONSE_FORMAT = {
   type: 'json_schema',
@@ -301,6 +348,7 @@ export const STRICT_RESPONSE_FORMAT = {
                 body: { type: ['object', 'null'] },
                 responseFields: {
                   type: ['array', 'null'],
+                  maxItems: AI_MAX_RESPONSE_FIELDS,
                   items: { type: 'string' },
                 },
               },

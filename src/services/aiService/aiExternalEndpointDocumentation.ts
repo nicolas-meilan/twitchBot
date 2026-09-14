@@ -5,6 +5,10 @@ import fs from 'fs/promises';
 import path from 'path';
 
 import { AiExternalEndpoints } from './aiExternalEndpoints';
+import {
+  AI_EXTERNAL_ENDPOINT_CATALOG_SEPARATOR,
+  AI_EXTERNAL_ENDPOINT_FIELD_TITLES,
+} from './aiConfig';
 
 const AI_EXTRA_DATA_DIRECTORY = path.resolve(process.cwd(), 'aiExtraData');
 
@@ -141,6 +145,19 @@ const routeMatches = (documentedRoute: string, requestedRoute: string) => {
 
     return segment === requestedSegment;
   });
+};
+
+const getRouteSimilarity = (documentedRoute: string, requestedRoute: string): number => {
+  const documentedSegments = normalizeRoute(documentedRoute).split('/').filter(Boolean);
+  const requestedSegments = normalizeRoute(requestedRoute).split('/').filter(Boolean);
+
+  return documentedSegments.reduce((score, segment, index) => {
+    const requestedSegment = requestedSegments[index];
+    if (!requestedSegment) return score;
+    if (segment === requestedSegment) return score + 2;
+    if (segment.startsWith('{') && segment.endsWith('}')) return score + 1;
+    return score;
+  }, 0);
 };
 
 const cleanText = (value: string) => value
@@ -560,10 +577,10 @@ const formatEndpointDocumentation = (
   const responses = operation.responses || {};
 
   const documentation = [
-    `METHOD: ${method.toUpperCase()}`,
-    `PATH: ${route}`,
+    `${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.METHOD}: ${method.toUpperCase()}`,
+    `${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.PATH}: ${route}`,
     '',
-    `SUMMARY: ${cleanText(operation.summary || '')}`,
+    `${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.SUMMARY}: ${cleanText(operation.summary || '')}`,
     '',
     `DESCRIPTION: ${cleanText(operation.description || '')}`,
     '',
@@ -657,7 +674,11 @@ const generateAiExternalEndpointDocumentation = async (
   }
 
   const endpointsFile = endpoints
-    .map((item) => `${item.method} - ${item.route} - ${item.summary}`)
+    .map((item) => [
+      `${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.METHOD}: ${item.method}`,
+      `${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.PATH}: ${item.route}`,
+      `${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.SUMMARY}: ${item.summary}`,
+    ].join(AI_EXTERNAL_ENDPOINT_CATALOG_SEPARATOR))
     .join('\n');
 
   await fs.writeFile(
@@ -714,6 +735,7 @@ export const resolveAiExternalEndpointRoute = async (
   const endpointDirectory = getEndpointDirectory(fontName);
   const files = await fs.readdir(endpointDirectory);
   const normalizedMethod = method.toLowerCase();
+  const documentedRoutes: string[] = [];
 
   for (const fileName of files) {
     if (!fileName.endsWith('.txt') || fileName === 'endpoints.txt') {
@@ -722,8 +744,8 @@ export const resolveAiExternalEndpointRoute = async (
 
     const filePath = path.join(endpointDirectory, fileName);
     const documentation = await fs.readFile(filePath, 'utf8');
-    const methodMatch = documentation.match(/^METHOD:\s*(.+)$/m);
-    const pathMatch = documentation.match(/^PATH:\s*(.+)$/m);
+    const methodMatch = documentation.match(new RegExp(`^${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.METHOD}:\\s*(.+)$`, 'm'));
+    const pathMatch = documentation.match(new RegExp(`^${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.PATH}:\\s*(.+)$`, 'm'));
 
     if (!methodMatch || !pathMatch) {
       continue;
@@ -734,14 +756,26 @@ export const resolveAiExternalEndpointRoute = async (
     }
 
     const documentedRoute = pathMatch[1].trim();
+    documentedRoutes.push(documentedRoute);
 
     if (routeMatches(documentedRoute, route)) {
       return documentedRoute;
     }
   }
 
+  const similarRoutes = documentedRoutes
+    .sort((firstRoute, secondRoute) => (
+      getRouteSimilarity(secondRoute, route) - getRouteSimilarity(firstRoute, route)
+    ))
+    .slice(0, 5);
+  const suggestions = similarRoutes.length > 0
+    ? ` Rutas documentadas similares:\n${similarRoutes
+      .map((similarRoute) => `- ${method.toUpperCase()} ${similarRoute}`)
+      .join('\n')}`
+    : '';
+
   throw new Error(
-    `No documented route found for ${method.toUpperCase()} ${route} in "${fontName}".`,
+    `No documented route found for ${method.toUpperCase()} ${route} in "${fontName}".${suggestions}`,
   );
 };
 

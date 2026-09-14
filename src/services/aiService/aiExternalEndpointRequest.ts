@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { AiExternalEndpoints } from './aiExternalEndpoints';
+import { processAiExternalResponse } from './aiExternalResponseProcessor';
 
 type ExternalRequestParams = Record<string, unknown>;
 
@@ -176,12 +177,6 @@ const removeObjectUrls = (
   return parseValue(value) as Record<string, unknown> | unknown[];
 };
 
-const truncateResponseText = (value: string, maxlength?: number) => (
-  maxlength && value.length > maxlength
-    ? `${value.slice(0, maxlength)}... [truncated]`
-    : value
-);
-
 const buildRequestUrl = (baseUrl: string, route: string, params: ExternalRequestParams) => {
   const remainingParams: ExternalRequestParams = { ...params };
   const resolvedRoute = route.replace(/\{([^}]+)\}|:([a-zA-Z0-9_]+)/g, (_match, braced, colon) => {
@@ -238,14 +233,10 @@ export const executeAiExternalEndpointRequest = async (
       ? response.data
       : filteredData;
 
-    const data = truncateResponseText(
-      JSON.stringify(
-        externalEndpoint.filterUrlsInResponse
-          ? removeObjectUrls(dataWithUrls as Record<string, unknown> | unknown[])
-          : dataWithUrls,
-      ),
-      externalEndpoint.maxResponseLength,
-    );
+    const cleanedData = externalEndpoint.filterUrlsInResponse
+      ? removeObjectUrls(dataWithUrls as Record<string, unknown> | unknown[])
+      : dataWithUrls;
+    const data = JSON.stringify(processAiExternalResponse(cleanedData));
 
     return {
       success: true,
@@ -259,7 +250,7 @@ export const executeAiExternalEndpointRequest = async (
       return {
         success: false,
         status: error.response?.status,
-        data: truncateResponseText(JSON.stringify(error.response?.data ?? { message: error.message }), externalEndpoint.maxResponseLength),
+        data: JSON.stringify(error.response?.data ?? { message: error.message }),
       };
     }
 
