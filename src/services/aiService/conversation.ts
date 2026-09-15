@@ -34,15 +34,18 @@ export const buildConversation = (channel: string, username: string, question: s
 };
 
 export const buildExternalConversation = (
-  username: string,
+  _username: string,
   question: string,
   workflowMessages: ChatMessage[],
   systemPrompt = AI_EXTERNAL_EXECUTION_PROMPT,
-): ChatMessage[] => [
-  { role: 'system', content: systemPrompt },
-  createUserMessage(username, question),
-  ...workflowMessages,
-];
+): ChatMessage[] => [{
+  role: 'system',
+  content: [
+    systemPrompt,
+    `CONSULTA: ${question}`,
+    ...workflowMessages.map((message) => message.content),
+  ].join('\n\n'),
+}];
 
 export const saveConversationResult = (
   channel: string,

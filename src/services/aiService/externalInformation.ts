@@ -6,9 +6,7 @@ import {
   AI_EXTERNAL_CONTEXT_FONT,
   AI_EXTERNAL_CONTEXT_REQUEST_RESULT,
   AI_EXTERNAL_CONTEXT_TYPES,
-  AI_EXTERNAL_CATALOG_MAX_CHARS,
   AI_MAX_RESPONSE_FIELDS,
-  AI_EXTERNAL_RESPONSE_MAX_CHARS,
   AiExternalContextType,
   getAiExternalEndpointErrorMessage,
   getAiExternalMissingRequestMessage,
@@ -35,11 +33,10 @@ const normalizeContextKey = (value: string): string => value
   .replace(/[^A-Z0-9]+/g, '_')
   .replace(/^_+|_+$/g, '');
 
-const limitContext = (content: string, maxCharacters: number): string => (
-  content.length > maxCharacters
-    ? `${content.slice(0, maxCharacters)}\n[CONTEXTO RECORTADO PARA AHORRAR TOKENS]`
-    : content
-);
+const compactDocumentation = (content: string): string => content
+  .replace(/[ \t]+\n/g, '\n')
+  .replace(/\n{2,}/g, '\n')
+  .trim();
 
 const getExternalContextTag = (
   font: string,
@@ -108,7 +105,7 @@ export const resolveExternalInformationRequest = async (
         output: formatExternalContext(
           request.font,
           AI_EXTERNAL_CONTEXT_TYPES.ENDPOINTS_LIST,
-          limitContext(documentation, AI_EXTERNAL_CATALOG_MAX_CHARS),
+          compactDocumentation(documentation),
         ),
       };
     }
@@ -125,7 +122,7 @@ export const resolveExternalInformationRequest = async (
         output: formatExternalContext(
           request.font,
           AI_EXTERNAL_CONTEXT_TYPES.DETAIL_ENDPOINT,
-          detail,
+          compactDocumentation(detail),
           request.route,
         ),
       };
@@ -133,25 +130,25 @@ export const resolveExternalInformationRequest = async (
 
     if (request.action === AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST) {
       if (!request.method || !request.route) return invalidRequest(request.action);
-      const responseFields = sanitizeResponseFields(request.responseFields);
-      const documentation = await getAiExternalEndpointDetail(
+      const sanitizedResponseFields = sanitizeResponseFields(request.responseFields);
+      const endpointDocumentation = await getAiExternalEndpointDetail(
         request.font,
         request.method,
         request.route,
       );
-      const missingData = getMissingAiExternalRequestData(
-        documentation,
+      const missingRequiredFields = getMissingAiExternalRequestData(
+        endpointDocumentation,
         request.params || {},
         request.body,
         request.route,
       );
 
-      if (missingData.length > 0) {
+      if (missingRequiredFields.length > 0) {
         return {
           success: false,
           hasData: false,
           retryable: true,
-          output: getAiExternalRequiredDataMessage(missingData),
+          output: getAiExternalRequiredDataMessage(missingRequiredFields),
         };
       }
 
@@ -161,7 +158,7 @@ export const resolveExternalInformationRequest = async (
         request.route,
         request.params || {},
         request.body,
-        responseFields,
+        sanitizedResponseFields,
       );
 
       if (!result.success) {
@@ -175,7 +172,7 @@ export const resolveExternalInformationRequest = async (
       }
 
       if (result.fieldsMatched === false) {
-        logger.warn(`AI responseFields did not match real response shape: ${JSON.stringify(responseFields)}`);
+        logger.warn(`AI responseFields did not match real response shape: ${JSON.stringify(sanitizedResponseFields)}`);
         return {
           success: false,
           hasData: false,
@@ -195,7 +192,7 @@ export const resolveExternalInformationRequest = async (
         output: formatExternalContext(
           request.font,
           AI_EXTERNAL_CONTEXT_TYPES.REQUEST_RESULT,
-          limitContext(result.data, AI_EXTERNAL_RESPONSE_MAX_CHARS),
+          result.data,
           request.route,
         ),
       };

@@ -10,41 +10,76 @@ const isRecord = (value: unknown): value is JsonRecord => (
   !!value && typeof value === 'object' && !Array.isArray(value)
 );
 
+const isEmptyValue = (value: unknown): boolean => (
+  value === null
+  || value === undefined
+  || value === ''
+  || (Array.isArray(value) && value.length === 0)
+  || (isRecord(value) && Object.keys(value).length === 0)
+);
+
 const isTabularCandidate = (value: unknown[]): value is JsonRecord[] => (
   value.length > 1
   && value.every(isRecord)
   && value.every((item) => !('__ai_format' in item))
 );
 
+const flattenRecord = (record: JsonRecord): JsonRecord => {
+  const flattened: JsonRecord = {};
+
+  const addValue = (value: unknown, path: string): void => {
+    if (isEmptyValue(value)) return;
+
+    if (isRecord(value) && !('__ai_format' in value)) {
+      Object.entries(value).forEach(([key, child]) => {
+        addValue(child, path ? `${path}.${key}` : key);
+      });
+      return;
+    }
+
+    flattened[path] = value;
+  };
+
+  Object.entries(record).forEach(([key, value]) => addValue(value, key));
+  return flattened;
+};
+
 const toTabularValue = (items: JsonRecord[]): AiTabularValue => {
-  const columns = [...new Set(items.flatMap((item) => Object.keys(item)))];
+  const flattenedItems = items.map(flattenRecord);
+  const columns = [...new Set(flattenedItems.flatMap((item) => Object.keys(item)))];
 
   return {
     __ai_format: 'table',
     columns,
-    rows: items.map((item) => columns.map((column) => item[column] ?? null)),
+    rows: flattenedItems.map((item) => columns.map((column) => item[column] ?? null)),
   };
 };
 
-const processValue = (value: unknown): unknown => {
-  if (Array.isArray(value)) {
-    const processedItems = value.map(processValue);
+const processValue = (value: unknown): unknown => (
+  Array.isArray(value)
+    ? processArray(value)
+    : isRecord(value)
+      ? processRecord(value)
+      : value
+);
 
-    if (!isTabularCandidate(processedItems)) return processedItems;
+const processArray = (items: unknown[]): unknown[] | AiTabularValue => {
+  const processedItems = items
+    .map(processValue)
+    .filter((item) => !isEmptyValue(item));
 
-    const tabularValue = toTabularValue(processedItems);
-    return JSON.stringify(tabularValue).length < JSON.stringify(processedItems).length
-      ? tabularValue
-      : processedItems;
-  }
+  if (!isTabularCandidate(processedItems)) return processedItems;
 
-  if (isRecord(value)) {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, child]) => [key, processValue(child)]),
-    );
-  }
-
-  return value;
+  const tabularValue = toTabularValue(processedItems);
+  return JSON.stringify(tabularValue).length < JSON.stringify(processedItems).length
+    ? tabularValue
+    : processedItems;
 };
+
+const processRecord = (record: JsonRecord): JsonRecord => Object.fromEntries(
+  Object.entries(record)
+    .map(([key, child]) => [key, processValue(child)] as const)
+    .filter(([, child]) => !isEmptyValue(child)),
+);
 
 export const processAiExternalResponse = (value: unknown): unknown => processValue(value);

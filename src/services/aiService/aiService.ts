@@ -6,10 +6,11 @@ import {
   AI_EXTERNAL_INFO_ERROR_MESSAGE,
   AI_EXTERNAL_CATALOG_DELIVERED_PROMPT,
   AI_EXTERNAL_CATALOG_PROMPT,
+  AI_EXTERNAL_INITIAL_PROMPT,
   AI_EXTERNAL_DETAIL_PROMPT,
   AI_EXTERNAL_EXECUTION_PROMPT,
   AI_EXTERNAL_FINAL_PROMPT,
-  AI_EXTERNAL_CATALOG_REQUIRED_ERROR_MESSAGE,
+  AI_EXTERNAL_ACTION_STAGE_ERROR_MESSAGE,
   AI_EXTERNAL_COMMAND_FORBIDDEN_ERROR_MESSAGE,
   AI_EXTERNAL_INFO_NO_DATA_MESSAGE,
   AI_EXTERNAL_WORKFLOW_STAGES,
@@ -17,8 +18,14 @@ import {
   AI_MAX_EXTERNAL_STEPS,
   AI_MAX_QUEUE_SIZE,
   AI_MENTION,
+  getAiExternalFontGuide,
 } from './aiConfig';
-import { logAiRequestError, requestAiCompletion } from './aiClient';
+import {
+  AiContextLimitError,
+  AiContextLimitUnavailableError,
+  logAiRequestError,
+  requestAiCompletion,
+} from './aiClient';
 import {
   createMentionedChat,
   executeAiCommand,
@@ -26,6 +33,8 @@ import {
   sendAiAnswer,
 } from './chatResponder';
 import {
+  AI_CONTEXT_LIMIT_MESSAGE,
+  AI_CONTEXT_LIMIT_UNAVAILABLE_MESSAGE,
   AI_INVALID_RESPONSE_MESSAGE,
   AI_NO_RESPONSE_MESSAGE,
 } from '../../configuration/chat';
@@ -39,6 +48,7 @@ import {
 import { resolveExternalInformationRequest } from './externalInformation';
 import {
   AI_EXTERNAL_ACTIONS,
+  AiExternalAction,
   AiResult,
   ChatMessage,
   parseAiRawResult,
@@ -55,21 +65,51 @@ export {
 const aiQueue = new ChannelQueue(AI_MAX_QUEUE_SIZE);
 
 const createWorkflowMessages = (
-  content: string,
   context: string,
   stateInstruction?: string,
 ): ChatMessage[] => [
-  { role: 'assistant', content },
-  { role: 'system', content: context },
-  ...(stateInstruction ? [{ role: 'system' as const, content: stateInstruction }] : []),
+  {
+    role: 'system',
+    content: [context, stateInstruction].filter(Boolean).join('\n'),
+  },
 ];
 
-const getExternalStagePrompt = (stage: AiExternalWorkflowStage): string => {
-  if (stage === AI_EXTERNAL_WORKFLOW_STAGES.CATALOG) return AI_EXTERNAL_CATALOG_PROMPT;
-  if (stage === AI_EXTERNAL_WORKFLOW_STAGES.DETAIL) return AI_EXTERNAL_DETAIL_PROMPT;
-  if (stage === AI_EXTERNAL_WORKFLOW_STAGES.RESULT) return AI_EXTERNAL_FINAL_PROMPT;
-  return AI_EXTERNAL_CATALOG_PROMPT;
+const getExternalStagePrompt = (
+  stage: AiExternalWorkflowStage,
+  font?: string,
+): string => {
+  const prompts: Record<AiExternalWorkflowStage, string> = {
+    [AI_EXTERNAL_WORKFLOW_STAGES.INITIAL]: AI_EXTERNAL_INITIAL_PROMPT,
+    [AI_EXTERNAL_WORKFLOW_STAGES.CATALOG]: AI_EXTERNAL_DETAIL_PROMPT,
+    [AI_EXTERNAL_WORKFLOW_STAGES.DETAIL]: AI_EXTERNAL_EXECUTION_PROMPT,
+    [AI_EXTERNAL_WORKFLOW_STAGES.RESULT]: AI_EXTERNAL_FINAL_PROMPT,
+  };
+
+  return font
+    ? `${prompts[stage]}\n${getAiExternalFontGuide(font)}`
+    : prompts[stage];
 };
+
+const EXPECTED_EXTERNAL_ACTION_BY_STAGE: Record<
+  AiExternalWorkflowStage,
+  AiExternalAction | undefined
+> = {
+  [AI_EXTERNAL_WORKFLOW_STAGES.INITIAL]: AI_EXTERNAL_ACTIONS.LIST_ENDPOINTS,
+  [AI_EXTERNAL_WORKFLOW_STAGES.CATALOG]: AI_EXTERNAL_ACTIONS.GET_ENDPOINT_DETAIL,
+  [AI_EXTERNAL_WORKFLOW_STAGES.DETAIL]: AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST,
+  [AI_EXTERNAL_WORKFLOW_STAGES.RESULT]: AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST,
+};
+
+const isExpectedExternalAction = (
+  stage: AiExternalWorkflowStage,
+  action: AiExternalAction,
+): boolean => EXPECTED_EXTERNAL_ACTION_BY_STAGE[stage] === action;
+
+const createExternalQuery = (
+  username: string,
+  query: string | null | undefined,
+  fallbackQuestion: string,
+): string => `Usuario ${username}: ${query?.trim() || fallbackQuestion}`;
 
 type AiProgressHandler = (answer: string) => void | Promise<void>;
 const askAiInternal = async (
@@ -86,10 +126,12 @@ const askAiInternal = async (
     let externalQuery = question;
     let externalStage: AiExternalWorkflowStage = AI_EXTERNAL_WORKFLOW_STAGES.INITIAL;
     let externalWorkflowStarted = false;
+    let externalFont: string | undefined;
+    let externalDetailContext: string | undefined;
     let finalResult: AiResult | undefined;
 
     for (let step = 0; step < AI_MAX_EXTERNAL_STEPS; step += 1) {
-      const content = await requestAiCompletion(messages);
+      const content = await requestAiCompletion(messages, externalWorkflowStarted);
       if (!content) return;
 
       const parsed = parseAiRawResult(content);
@@ -103,8 +145,8 @@ const askAiInternal = async (
         messages = buildExternalConversation(
           username,
           externalQuery,
-          createWorkflowMessages(content, AI_EXTERNAL_COMMAND_FORBIDDEN_ERROR_MESSAGE),
-          getExternalStagePrompt(externalStage),
+          createWorkflowMessages(AI_EXTERNAL_COMMAND_FORBIDDEN_ERROR_MESSAGE),
+          getExternalStagePrompt(externalStage, externalFont),
         );
         continue;
       }
@@ -114,21 +156,45 @@ const askAiInternal = async (
         break;
       }
 
-      const request = parsed.externalInformation;
+      const parsedRequest = parsed.externalInformation;
+      const requestWithFont = externalWorkflowStarted && externalFont
+        ? {
+          ...parsedRequest,
+          font: externalFont,
+          query: externalQuery,
+        }
+        : parsedRequest;
+      const request = (
+        externalStage === AI_EXTERNAL_WORKFLOW_STAGES.INITIAL
+        && requestWithFont.action === AI_EXTERNAL_ACTIONS.LIST_ENDPOINTS
+      )
+        ? {
+          ...requestWithFont,
+          query: createExternalQuery(username, requestWithFont.query, question),
+        }
+        : requestWithFont;
       logger.info(`AI external information step: ${JSON.stringify(request)}`);
 
-      if (request.action === AI_EXTERNAL_ACTIONS.GET_SYSTEM_PROMPT) {
+      if (!isExpectedExternalAction(externalStage, request.action)) {
+        messages = buildExternalConversation(
+          username,
+          externalQuery,
+          createWorkflowMessages(AI_EXTERNAL_ACTION_STAGE_ERROR_MESSAGE),
+          getExternalStagePrompt(externalStage, externalFont || request.font),
+        );
+        continue;
+      }
+
+      if (
+        externalStage === AI_EXTERNAL_WORKFLOW_STAGES.INITIAL
+        && request.action === AI_EXTERNAL_ACTIONS.LIST_ENDPOINTS
+      ) {
         externalWorkflowStarted = true;
+        externalFont = request.font;
         if (parsed.answer) await onExternalInformationAnswer?.(parsed.answer);
-        externalQuery = request.query?.trim() || question;
-        externalStage = AI_EXTERNAL_WORKFLOW_STAGES.CATALOG;
-        logger.info(`AI external information internal step: ${JSON.stringify({
-          ...request,
-          action: AI_EXTERNAL_ACTIONS.LIST_ENDPOINTS,
-        })}`);
+        externalQuery = request.query!;
         const catalogResolution = await resolveExternalInformationRequest({
           ...request,
-          action: AI_EXTERNAL_ACTIONS.LIST_ENDPOINTS,
         });
 
         if (!catalogResolution.success) {
@@ -136,7 +202,7 @@ const askAiInternal = async (
             messages = buildExternalConversation(
               username,
               externalQuery,
-              createWorkflowMessages(content, catalogResolution.output),
+              createWorkflowMessages(catalogResolution.output),
               AI_EXTERNAL_CATALOG_PROMPT,
             );
             continue;
@@ -151,31 +217,15 @@ const askAiInternal = async (
           break;
         }
 
+        externalStage = AI_EXTERNAL_WORKFLOW_STAGES.CATALOG;
         messages = buildExternalConversation(
           username,
           externalQuery,
           createWorkflowMessages(
-            content,
             catalogResolution.output,
             AI_EXTERNAL_CATALOG_DELIVERED_PROMPT,
           ),
-          AI_EXTERNAL_DETAIL_PROMPT,
-        );
-        continue;
-      }
-
-      if (
-        request.action === AI_EXTERNAL_ACTIONS.GET_ENDPOINT_DETAIL
-        && externalStage !== AI_EXTERNAL_WORKFLOW_STAGES.CATALOG
-      ) {
-        messages = buildExternalConversation(
-          username,
-          externalQuery,
-          createWorkflowMessages(
-            content,
-            AI_EXTERNAL_CATALOG_REQUIRED_ERROR_MESSAGE,
-          ),
-          AI_EXTERNAL_CATALOG_PROMPT,
+          getExternalStagePrompt(externalStage, externalFont),
         );
         continue;
       }
@@ -195,23 +245,26 @@ const askAiInternal = async (
                 username,
                 externalQuery,
                 createWorkflowMessages(
-                  content,
                   [resolution.output, catalogResolution.output].join('\n\n'),
                   AI_EXTERNAL_CATALOG_DELIVERED_PROMPT,
                 ),
-                AI_EXTERNAL_DETAIL_PROMPT,
+                getExternalStagePrompt(externalStage, externalFont),
               );
               continue;
             }
           }
 
           const retryPrompt = request.action === AI_EXTERNAL_ACTIONS.GET_ENDPOINT_DETAIL
-            ? AI_EXTERNAL_DETAIL_PROMPT
+            ? getExternalStagePrompt(externalStage, externalFont)
             : AI_EXTERNAL_EXECUTION_PROMPT;
+          const retryContext = request.action === AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST
+            && externalDetailContext
+            ? [resolution.output, externalDetailContext].join('\n\n')
+            : resolution.output;
           messages = buildExternalConversation(
             username,
             externalQuery,
-            createWorkflowMessages(content, resolution.output),
+            createWorkflowMessages(retryContext),
             retryPrompt,
           );
           continue;
@@ -229,11 +282,12 @@ const askAiInternal = async (
 
       if (request.action === AI_EXTERNAL_ACTIONS.GET_ENDPOINT_DETAIL) {
         externalStage = AI_EXTERNAL_WORKFLOW_STAGES.DETAIL;
+        externalDetailContext = resolution.output;
         messages = buildExternalConversation(
           username,
           externalQuery,
-          createWorkflowMessages(content, resolution.output),
-          AI_EXTERNAL_EXECUTION_PROMPT,
+          createWorkflowMessages(resolution.output),
+          getExternalStagePrompt(externalStage, externalFont),
         );
         continue;
       }
@@ -242,8 +296,8 @@ const askAiInternal = async (
       messages = buildExternalConversation(
         username,
         externalQuery,
-        createWorkflowMessages(content, resolution.output),
-        AI_EXTERNAL_FINAL_PROMPT,
+        createWorkflowMessages(resolution.output),
+        getExternalStagePrompt(externalStage, externalFont),
       );
     }
 
@@ -251,6 +305,16 @@ const askAiInternal = async (
     saveConversationResult(channel, username, question, finalResult);
     return finalResult;
   } catch (error) {
+    if (error instanceof AiContextLimitError || error instanceof AiContextLimitUnavailableError) {
+      const result = {
+        answer: error instanceof AiContextLimitUnavailableError
+          ? AI_CONTEXT_LIMIT_UNAVAILABLE_MESSAGE
+          : AI_CONTEXT_LIMIT_MESSAGE,
+      };
+      saveConversationResult(channel, username, question, result);
+      return result;
+    }
+
     logAiRequestError(error);
     return;
   }

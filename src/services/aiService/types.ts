@@ -1,5 +1,4 @@
 export const AI_EXTERNAL_ACTIONS = {
-  GET_SYSTEM_PROMPT: 'get_system_prompt',
   LIST_ENDPOINTS: 'list_endpoints',
   GET_ENDPOINT_DETAIL: 'get_endpoint_detail',
   EXECUTE_REQUEST: 'execute_request',

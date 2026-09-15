@@ -4,6 +4,8 @@ export const KEY_DELIMITER = '__';
 export const STRING_PARAM = '__PARAM__';
 
 export const COMMANDS_SEPARATOR = ' 💻 ';
+export const AI_CONTEXT_LIMIT_MESSAGE = 'La consulta contiene más información de la que puedo procesar. Intentá hacer una consulta más simple o dividirla en varias partes.';
+export const AI_CONTEXT_LIMIT_UNAVAILABLE_MESSAGE = 'No pude verificar cuánto contexto admite el modelo de IA. Intentá nuevamente más tarde o usá una consulta más simple.';
 export const COMMANDS_RESPONSE_KEY = `${KEY_DELIMITER}COMMANDS${KEY_DELIMITER}`;
 export const MOD_COMMANDS_RESPONSE_KEY = `${KEY_DELIMITER}MOD_COMMANDS${KEY_DELIMITER}`;
 export const VIP_COMMANDS_RESPONSE_KEY = `${KEY_DELIMITER}VIP_COMMANDS${KEY_DELIMITER}`;

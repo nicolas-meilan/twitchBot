@@ -160,6 +160,16 @@ const getRouteSimilarity = (documentedRoute: string, requestedRoute: string): nu
   }, 0);
 };
 
+const getDocumentedRouteAlias = (route: string): string | undefined => {
+  const matchDetailsRoute = route.match(
+    /^\/valorant\/v4\/matches\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)$/,
+  );
+
+  return matchDetailsRoute
+    ? `/valorant/v4/match/${matchDetailsRoute[1]}/${matchDetailsRoute[5]}`
+    : undefined;
+};
+
 const cleanText = (value: string) => value
   .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
   .replace(/\*\*([^*]+)\*\*/g, '$1')
@@ -736,6 +746,7 @@ export const resolveAiExternalEndpointRoute = async (
   const files = await fs.readdir(endpointDirectory);
   const normalizedMethod = method.toLowerCase();
   const documentedRoutes: string[] = [];
+  const requestedRoute = getDocumentedRouteAlias(route) || route;
 
   for (const fileName of files) {
     if (!fileName.endsWith('.txt') || fileName === 'endpoints.txt') {
@@ -758,14 +769,14 @@ export const resolveAiExternalEndpointRoute = async (
     const documentedRoute = pathMatch[1].trim();
     documentedRoutes.push(documentedRoute);
 
-    if (routeMatches(documentedRoute, route)) {
+    if (routeMatches(documentedRoute, requestedRoute)) {
       return documentedRoute;
     }
   }
 
   const similarRoutes = documentedRoutes
     .sort((firstRoute, secondRoute) => (
-      getRouteSimilarity(secondRoute, route) - getRouteSimilarity(firstRoute, route)
+      getRouteSimilarity(secondRoute, requestedRoute) - getRouteSimilarity(firstRoute, requestedRoute)
     ))
     .slice(0, 5);
   const suggestions = similarRoutes.length > 0
