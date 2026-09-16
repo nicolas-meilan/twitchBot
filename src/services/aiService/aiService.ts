@@ -7,6 +7,7 @@ import {
   AI_EXTERNAL_CATALOG_DELIVERED_PROMPT,
   AI_EXTERNAL_CATALOG_PROMPT,
   AI_EXTERNAL_INITIAL_PROMPT,
+  AI_EXTERNAL_PARAMS_PROMPT,
   AI_EXTERNAL_DETAIL_PROMPT,
   AI_EXTERNAL_EXECUTION_PROMPT,
   AI_EXTERNAL_FINAL_PROMPT,
@@ -49,6 +50,7 @@ import { resolveExternalInformationRequest } from './externalInformation';
 import {
   AI_EXTERNAL_ACTIONS,
   AiExternalAction,
+  AiExternalInformationRequest,
   AiResult,
   ChatMessage,
   parseAiRawResult,
@@ -82,6 +84,7 @@ const getExternalStagePrompt = (
     [AI_EXTERNAL_WORKFLOW_STAGES.INITIAL]: AI_EXTERNAL_INITIAL_PROMPT,
     [AI_EXTERNAL_WORKFLOW_STAGES.CATALOG]: AI_EXTERNAL_DETAIL_PROMPT,
     [AI_EXTERNAL_WORKFLOW_STAGES.DETAIL]: AI_EXTERNAL_EXECUTION_PROMPT,
+    [AI_EXTERNAL_WORKFLOW_STAGES.PARAMS]: AI_EXTERNAL_PARAMS_PROMPT,
     [AI_EXTERNAL_WORKFLOW_STAGES.RESULT]: AI_EXTERNAL_FINAL_PROMPT,
   };
 
@@ -92,18 +95,33 @@ const getExternalStagePrompt = (
 
 const EXPECTED_EXTERNAL_ACTION_BY_STAGE: Record<
   AiExternalWorkflowStage,
-  AiExternalAction | undefined
+  AiExternalAction | AiExternalAction[] | undefined
 > = {
   [AI_EXTERNAL_WORKFLOW_STAGES.INITIAL]: AI_EXTERNAL_ACTIONS.LIST_ENDPOINTS,
   [AI_EXTERNAL_WORKFLOW_STAGES.CATALOG]: AI_EXTERNAL_ACTIONS.GET_ENDPOINT_DETAIL,
-  [AI_EXTERNAL_WORKFLOW_STAGES.DETAIL]: AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST,
-  [AI_EXTERNAL_WORKFLOW_STAGES.RESULT]: AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST,
+  [AI_EXTERNAL_WORKFLOW_STAGES.DETAIL]: [
+    AI_EXTERNAL_ACTIONS.OBTAIN_PARAMS,
+    AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST,
+  ],
+  [AI_EXTERNAL_WORKFLOW_STAGES.PARAMS]: [
+    AI_EXTERNAL_ACTIONS.OBTAIN_PARAMS,
+    AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST,
+  ],
+  [AI_EXTERNAL_WORKFLOW_STAGES.RESULT]: [
+    AI_EXTERNAL_ACTIONS.OBTAIN_PARAMS,
+    AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST,
+  ],
 };
 
 const isExpectedExternalAction = (
   stage: AiExternalWorkflowStage,
   action: AiExternalAction,
-): boolean => EXPECTED_EXTERNAL_ACTION_BY_STAGE[stage] === action;
+): boolean => {
+  const expectedAction = EXPECTED_EXTERNAL_ACTION_BY_STAGE[stage];
+  return Array.isArray(expectedAction)
+    ? expectedAction.includes(action)
+    : expectedAction === action;
+};
 
 const createExternalQuery = (
   username: string,
@@ -127,6 +145,7 @@ const askAiInternal = async (
     let externalStage: AiExternalWorkflowStage = AI_EXTERNAL_WORKFLOW_STAGES.INITIAL;
     let externalWorkflowStarted = false;
     let externalFont: string | undefined;
+    let externalCatalogContext: string | undefined;
     let externalDetailContext: string | undefined;
     let finalResult: AiResult | undefined;
 
@@ -164,7 +183,7 @@ const askAiInternal = async (
           query: externalQuery,
         }
         : parsedRequest;
-      const request = (
+      const request: AiExternalInformationRequest = (
         externalStage === AI_EXTERNAL_WORKFLOW_STAGES.INITIAL
         && requestWithFont.action === AI_EXTERNAL_ACTIONS.LIST_ENDPOINTS
       )
@@ -218,6 +237,7 @@ const askAiInternal = async (
         }
 
         externalStage = AI_EXTERNAL_WORKFLOW_STAGES.CATALOG;
+        externalCatalogContext = catalogResolution.output;
         messages = buildExternalConversation(
           username,
           externalQuery,
@@ -256,7 +276,9 @@ const askAiInternal = async (
 
           const retryPrompt = request.action === AI_EXTERNAL_ACTIONS.GET_ENDPOINT_DETAIL
             ? getExternalStagePrompt(externalStage, externalFont)
-            : AI_EXTERNAL_EXECUTION_PROMPT;
+            : request.action === AI_EXTERNAL_ACTIONS.OBTAIN_PARAMS
+              ? AI_EXTERNAL_PARAMS_PROMPT
+              : AI_EXTERNAL_EXECUTION_PROMPT;
           const retryContext = request.action === AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST
             && externalDetailContext
             ? [resolution.output, externalDetailContext].join('\n\n')
@@ -281,22 +303,37 @@ const askAiInternal = async (
       }
 
       if (request.action === AI_EXTERNAL_ACTIONS.GET_ENDPOINT_DETAIL) {
-        externalStage = AI_EXTERNAL_WORKFLOW_STAGES.DETAIL;
-        externalDetailContext = resolution.output;
+        externalStage = AI_EXTERNAL_WORKFLOW_STAGES.PARAMS;
+        externalDetailContext = [
+          externalCatalogContext,
+          resolution.output,
+        ].filter(Boolean).join('\n\n');
         messages = buildExternalConversation(
           username,
           externalQuery,
-          createWorkflowMessages(resolution.output),
+          createWorkflowMessages(externalDetailContext),
           getExternalStagePrompt(externalStage, externalFont),
         );
         continue;
       }
 
-      externalStage = AI_EXTERNAL_WORKFLOW_STAGES.RESULT;
+      const resultContext = request.action === AI_EXTERNAL_ACTIONS.OBTAIN_PARAMS
+        && externalDetailContext
+        ? [
+          resolution.output,
+          'DETALLE DE LA CONSULTA PRINCIPAL:',
+          externalDetailContext,
+        ].join('\n\n')
+        : resolution.output;
+
+      externalStage = request.action === AI_EXTERNAL_ACTIONS.OBTAIN_PARAMS
+        ? AI_EXTERNAL_WORKFLOW_STAGES.DETAIL
+        : AI_EXTERNAL_WORKFLOW_STAGES.RESULT;
+
       messages = buildExternalConversation(
         username,
         externalQuery,
-        createWorkflowMessages(resolution.output),
+        createWorkflowMessages(resultContext),
         getExternalStagePrompt(externalStage, externalFont),
       );
     }

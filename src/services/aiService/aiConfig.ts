@@ -34,6 +34,7 @@ export const AI_EXTERNAL_WORKFLOW_STAGES = {
   INITIAL: 'initial',
   CATALOG: 'catalog',
   DETAIL: 'detail',
+  PARAMS: 'params',
   RESULT: 'result',
 } as const;
 export type AiExternalWorkflowStage = typeof AI_EXTERNAL_WORKFLOW_STAGES[
@@ -262,16 +263,28 @@ const AI_EXTERNAL_EXECUTION_STAGE_PROMPT = [
   `Completá externalInformation con action "${AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST}".`,
   `Copiá font, method y route desde DETAIL_ENDPOINT.`,
   `Completá params y body con los valores documentados y disponibles para la consulta.`,
-  `Completá responseFields con el conjunto mínimo de rutas completas que responde la consulta, sin campos adicionales ni duplicados.`,
+  `No inventes parámetros ni identificadores. Completá responseFields con el conjunto mínimo de rutas completas que responde la consulta, sin campos adicionales ni duplicados.`,
   `Usá rutas completas con puntos, por ejemplo ["data.tier.name", "data.elo"]. Preferí pocos campos directamente relevantes.`,
   `Elegí los valores internos necesarios para responder y conservá todos los niveles desde la raíz.`,
   `En arrays, expresá la ruta mediante sus propiedades, por ejemplo "data.tier.name".`,
   `El backend devolverá REQUEST_RESULT con los datos reales para redactar la respuesta.`,
 ].join('\n');
 
+const AI_EXTERNAL_PARAMS_STAGE_PROMPT = [
+  `ETAPA: RESOLVER PARÁMETROS PREVIOS`,
+  `Analizá DETAIL_ENDPOINT y el estado del flujo para decidir la próxima solicitud.`,
+  `Si todos los parámetros de la consulta principal están disponibles, devolvé action "${AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST}".`,
+  `Si falta un parámetro, devolvé action "${AI_EXTERNAL_ACTIONS.OBTAIN_PARAMS}" y ejecutá un GET auxiliar documentado que permita obtenerlo.`,
+  `Para "${AI_EXTERNAL_ACTIONS.OBTAIN_PARAMS}", usá method y route del endpoint auxiliar, params disponibles y responseFields sólo con los campos necesarios para resolver el parámetro.`,
+  `responseFields siempre debe usar rutas completas desde la raíz documentada. Para arrays, omití el índice y usá las propiedades de cada elemento.`,
+  `La respuesta del GET auxiliar contendrá sólo los campos indicados por responseFields para que puedas extraer el valor real.`,
+  `No inventes parámetros, identificadores ni valores.`,
+  `Con el resultado de este paso, continuá en esta etapa para completar los parámetros restantes o ejecutar la consulta principal.`,
+].join('\n');
+
 const AI_EXTERNAL_FINAL_STAGE_PROMPT = [
   `ETAPA: REDACTAR RESPUESTA FINAL`,
-  `Completá answer usando únicamente los datos de REQUEST_RESULT.`,
+  `Si REQUEST_RESULT contiene todos los datos solicitados, completá answer usando únicamente esos datos.`,
   `Usá command: null y externalInformation: null.`,
   `Si los datos no alcanzan para responder, explicalo brevemente.`,
   `Las tablas con formato {"__ai_format":"table","columns":[...],"rows":[...]} representan filas cuyos valores corresponden por posición a columns.`,
@@ -287,6 +300,7 @@ const createExternalStagePrompt = (stagePrompt: string): string => [
 export const AI_EXTERNAL_CATALOG_PROMPT = createExternalStagePrompt(AI_EXTERNAL_CATALOG_STAGE_PROMPT);
 export const AI_EXTERNAL_INITIAL_PROMPT = createExternalStagePrompt(AI_EXTERNAL_INITIAL_STAGE_PROMPT);
 export const AI_EXTERNAL_DETAIL_PROMPT = createExternalStagePrompt(AI_EXTERNAL_DETAIL_STAGE_PROMPT);
+export const AI_EXTERNAL_PARAMS_PROMPT = createExternalStagePrompt(AI_EXTERNAL_PARAMS_STAGE_PROMPT);
 export const AI_EXTERNAL_EXECUTION_PROMPT = createExternalStagePrompt(AI_EXTERNAL_EXECUTION_STAGE_PROMPT);
 export const AI_EXTERNAL_FINAL_PROMPT = createExternalStagePrompt(AI_EXTERNAL_FINAL_STAGE_PROMPT);
 

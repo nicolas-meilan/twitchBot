@@ -42,12 +42,14 @@ type OpenApiOperation = {
   parameters?: OpenApiParameter[];
   requestBody?: Record<string, unknown>;
   responses?: Record<string, OpenApiResponse>;
+  security?: Array<Record<string, string[]>>;
 };
 
 type OpenApiDocument = {
   paths?: Record<string, Record<string, OpenApiOperation>>;
   components?: {
     schemas?: Record<string, Record<string, unknown>>;
+    securitySchemes?: Record<string, Record<string, unknown>>;
   };
 };
 
@@ -546,6 +548,20 @@ const formatRequestBody = (
   ].join('\n');
 };
 
+const formatSecurity = (
+  security: Array<Record<string, string[]>> | undefined,
+) => {
+  if (!security) return 'None';
+
+  return security.length === 0
+    ? 'None'
+    : security
+      .map((requirement) => Object.entries(requirement)
+        .map(([scheme, scopes]) => `${scheme}${scopes.length ? ` (${scopes.join(', ')})` : ''}`)
+        .join(' OR '))
+      .join('\n');
+};
+
 const formatResponse = (
   status: string,
   response: OpenApiResponse,
@@ -580,9 +596,10 @@ const formatEndpointDocumentation = (
   route: string,
   operation: OpenApiOperation,
   schemas: Record<string, Record<string, unknown>>,
+  allowAuthDocumentation: boolean,
 ) => {
   const parameters = (operation.parameters || []).filter(
-    (parameter) => !isAuthenticationParameter(parameter),
+    (parameter) => allowAuthDocumentation || !isAuthenticationParameter(parameter),
   );
   const responses = operation.responses || {};
 
@@ -593,6 +610,9 @@ const formatEndpointDocumentation = (
     `${AI_EXTERNAL_ENDPOINT_FIELD_TITLES.SUMMARY}: ${cleanText(operation.summary || '')}`,
     '',
     `DESCRIPTION: ${cleanText(operation.description || '')}`,
+    '',
+    'SECURITY:',
+    formatSecurity(operation.security),
     '',
     'PARAMETERS:',
     parameters.length
@@ -614,7 +634,7 @@ const formatEndpointDocumentation = (
       : 'None',
   ].join('\n');
 
-  return removeAuthorizationSection(documentation)
+  return (allowAuthDocumentation ? documentation : removeAuthorizationSection(documentation))
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 };
@@ -648,6 +668,12 @@ const generateAiExternalEndpointDocumentation = async (
   const endpointDirectory = getEndpointDirectory(fontName);
 
   await fs.mkdir(endpointDirectory, { recursive: true });
+  const generatedFiles = await fs.readdir(endpointDirectory);
+  await Promise.all(
+    generatedFiles
+      .filter((fileName) => fileName.endsWith('.txt'))
+      .map((fileName) => fs.unlink(path.join(endpointDirectory, fileName))),
+  );
 
   const endpoints: Array<{
     method: string;
@@ -659,6 +685,7 @@ const generateAiExternalEndpointDocumentation = async (
   for (const [route, pathItem] of Object.entries(openApi.paths || {})) {
     for (const [method, operation] of Object.entries(pathItem)) {
       if (!HTTP_METHODS.has(method)) continue;
+      if (endpoint.onlyGet && method !== 'get') continue;
 
       const summary = cleanText(operation.summary || '');
       const fileName = getEndpointFileName(method, route);
@@ -677,6 +704,7 @@ const generateAiExternalEndpointDocumentation = async (
           route,
           operation,
           schemas,
+          endpoint.allowAuthDocumentation === true,
         ),
         'utf8',
       );

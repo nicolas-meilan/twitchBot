@@ -1,6 +1,7 @@
 export const AI_EXTERNAL_ACTIONS = {
   LIST_ENDPOINTS: 'list_endpoints',
   GET_ENDPOINT_DETAIL: 'get_endpoint_detail',
+  OBTAIN_PARAMS: 'obtain_params',
   EXECUTE_REQUEST: 'execute_request',
 } as const;
 

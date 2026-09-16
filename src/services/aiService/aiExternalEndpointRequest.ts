@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { AiExternalEndpoints } from './aiExternalEndpoints';
 import { processAiExternalResponse } from './aiExternalResponseProcessor';
+import logger from '../../utils/logger';
 
 type ExternalRequestParams = Record<string, unknown>;
 
@@ -209,6 +210,13 @@ export const executeAiExternalEndpointRequest = async (
     };
   }
 
+  if (externalEndpoint.onlyGet && method.toLowerCase() !== 'get') {
+    return {
+      success: false,
+      data: JSON.stringify({ message: `El endpoint externo "${endpointName}" solo permite solicitudes GET.` }),
+    };
+  }
+
   const resolvedEndpoint = await externalEndpoint.endpointGetter();
   const { url, queryParams } = buildRequestUrl(resolvedEndpoint.endpoint, route, params);
 
@@ -221,6 +229,8 @@ export const executeAiExternalEndpointRequest = async (
       data: body ?? resolvedEndpoint.baseBody,
       timeout: 10000,
     });
+
+    logger.info(`AI external endpoint response: ${endpointName} ${method.toUpperCase()} ${url} params=${JSON.stringify(queryParams)} status=${response.status} data=${JSON.stringify(response.data)}`);
 
     const filteredData = filterResponseFields(response.data, responseFields);
 

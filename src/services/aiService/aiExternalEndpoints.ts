@@ -1,4 +1,4 @@
-// import { getBotTokens } from "../twitch/auth";
+import { getBotTokens } from '../twitch/auth';
 
 import { DEFAULT_VALORANT_REGION, DEFAULT_VALORANT_TAG, DEFAULT_VALORANT_USERNAME } from "../valorant";
 
@@ -12,9 +12,13 @@ export type AiExternalEndpoint = {
   documentation: string;
   extraInformation?: string;
   filterUrlsInResponse?: boolean;
+  onlyGet?: boolean;
+  allowAuthDocumentation?: boolean;
 };
 
-// const CLIENT_ID = process.env.CLIENT_ID || '';
+const CLIENT_ID = process.env.CLIENT_ID || '';
+const BROADCAST_ACCOUNT_ID = process.env.BROADCAST_ACCOUNT_ID || '';
+const BOT_ACCOUNT_ID = process.env.BOT_ACCOUNT_ID || '';
 
 const valorantEndpoint: AiExternalEndpoint = {
   endpoint: 'https://api.henrikdev.xyz',
@@ -59,26 +63,41 @@ const valorantEndpoint: AiExternalEndpoint = {
 `,
 };
 
-// const twitchEndpoint: AiExternalEndpoint = {
-//   endpoint: 'https://api.twitch.tv/helix',
-//   baseHeader: {
-//     'Client-Id': CLIENT_ID,
-//     'Content-Type': 'application/json',
-//   },
-//   documentation: 'https://twitch-api-swagger.surge.sh/openapi.json',
-// };
+const twitchEndpoint: AiExternalEndpoint = {
+  endpoint: 'https://api.twitch.tv/helix',
+  baseHeader: {
+    'Client-Id': CLIENT_ID,
+    'Content-Type': 'application/json',
+  },
+  documentation: 'https://twitch-api-swagger.surge.sh/openapi.json',
+  description: 'Datos públicos de Twitch: canales, streams, usuarios, juegos, categorías y clips.',
+  extraInformation: `
+- Sólo se permiten solicitudes GET. No ejecutes POST, PUT, PATCH ni DELETE.
+- El user access token disponible pertenece al bot moderador del broadcaster. El access token, los headers y las credenciales se completan automáticamente; no los solicites ni los construyas.
+- En la consulta externa, el nombre indicado después de "Usuario" es el remitente. Si no se especifica otro usuario, úsalo como sujeto de la consulta.
+- Antes de elegir un endpoint, distinguí el sujeto consultado, el broadcaster objetivo y el usuario dueño del user access token. Revisá la autorización documentada y usa sólo operaciones compatibles con el access token disponible.
+- Si el endpoint requiere que el user access token pertenezca al sujeto consultado, no lo ejecutes con el access token del bot. Buscá en la documentación una operación equivalente que consulte la relación o el recurso desde el broadcaster objetivo, conservando la misma intención y los mismos datos solicitados.
+- responseFields debe usar rutas completas desde la raíz documentada. Para arrays, omití el índice y usá las propiedades de cada elemento.
+- Si un endpoint requiere broadcaster_id, usa "${BROADCAST_ACCOUNT_ID}". Si requiere moderator_id, usa "${BOT_ACCOUNT_ID}", porque coincide con el usuario del token del bot.
+- Si falta un ID de usuario objetivo, no lo inventes: ejecuta GET /users con login=<nombre de usuario>, toma el id de la respuesta y continúa con la consulta original usando ese valor.
+- En GET /users, el ID se obtiene de data.id y el responseFields correcto para ese lookup es ["data.id"].
+- Elegí los parámetros según el significado documentado de cada uno; no intercambies sujeto, broadcaster ni propietario del token sólo porque sus nombres sean parecidos.
+`,
+  onlyGet: true,
+  allowAuthDocumentation: true,
+};
 
-// const getTwitchEndpoint = async (): Promise<AiExternalEndpoint> => {
-//   const token = await getBotTokens({ avoidLogin: true });
+const getTwitchEndpoint = async (): Promise<AiExternalEndpoint> => {
+  const token = await getBotTokens({ avoidLogin: true });
 
-//   return {
-//     ...twitchEndpoint,
-//     baseHeader: {
-//       ...twitchEndpoint.baseHeader,
-//       'Authorization': `Bearer ${token?.access_token}`,
-//     }
-//   };
-// };
+  return {
+    ...twitchEndpoint,
+    baseHeader: {
+      ...twitchEndpoint.baseHeader,
+      'Authorization': `Bearer ${token?.access_token}`,
+    },
+  };
+};
 
 const getValorantEndpoint = async () => valorantEndpoint;
 
@@ -90,6 +109,8 @@ export const AiExternalEndpoints: {
     documentation: string;
     extraInformation?: string;
     filterUrlsInResponse?: boolean;
+    onlyGet?: boolean;
+    allowAuthDocumentation?: boolean;
   };
 } = {
   valorant: {
@@ -97,10 +118,9 @@ export const AiExternalEndpoints: {
     baseEndpoint: valorantEndpoint,
     endpointGetter: getValorantEndpoint,
   },
-  // twitch: {
-  //   baseEndpoint: twitchEndpoint,
-  //   endpointGetter: getTwitchEndpoint,
-  //   documentation: twitchEndpoint.openApi,
-  //   extraInformation: twitchEndpoint?.extraInformation,
-  // },
+  twitch: {
+    ...twitchEndpoint,
+    baseEndpoint: twitchEndpoint,
+    endpointGetter: getTwitchEndpoint,
+  },
 };

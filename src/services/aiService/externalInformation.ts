@@ -128,7 +128,10 @@ export const resolveExternalInformationRequest = async (
       };
     }
 
-    if (request.action === AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST) {
+    if (
+      request.action === AI_EXTERNAL_ACTIONS.OBTAIN_PARAMS
+      || request.action === AI_EXTERNAL_ACTIONS.EXECUTE_REQUEST
+    ) {
       if (!request.method || !request.route) return invalidRequest(request.action);
       const sanitizedResponseFields = sanitizeResponseFields(request.responseFields);
       const endpointDocumentation = await getAiExternalEndpointDetail(
