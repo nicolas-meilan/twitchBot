@@ -51,6 +51,7 @@ export type AiExternalWorkflowStage = typeof AI_EXTERNAL_WORKFLOW_STAGES[
 ];
 
 const END_LINE = '--------------------------------------------------------------------------';
+const AVALIABLE_COMMANDS_LIST = '[AVAILABLE_COMMANDS]';
 
 export const AI_EXTERNAL_INFO_ERROR_MESSAGE = 'No pude obtener esa información.';
 export const AI_EXTERNAL_INFO_NO_DATA_MESSAGE = 'No encontré datos para esa consulta.';
@@ -199,17 +200,15 @@ const AI_DECISION_PROMPT_WITH_EXTERNAL_INFORMATION = [
 
 const AI_DECISION_PROMPT_WITHOUT_EXTERNAL_INFORMATION = [
   `FLUJO DE DECISIÓN`,
-  `Elegí ${AI_DECISION_TYPES.COMMAND} sólo si un único comando cubre completamente todos los pedidos y datos solicitados; en cualquier otro caso elegí ${AI_DECISION_TYPES.SMALL_CONVERSATION}.`,
-  `La información externa está desactivada: no uses externalInformation ni inventes datos.`,
+  `Prioridad: 1.${AI_DECISION_TYPES.COMMAND} > 2.${AI_DECISION_TYPES.SMALL_CONVERSATION}`,
+  `Elegí ${AI_DECISION_TYPES.COMMAND} si un único comando cubre MÍNIMAMENTE lo solicitado; caso contrario elegí ${AI_DECISION_TYPES.SMALL_CONVERSATION}.`,
 ].join('\n');
 
 const AI_COMMAND_PROMPT = [
   `${AI_DECISION_TYPES.COMMAND}`,
-  `Analizá si algún comando del listado [AVAILABLE_COMMANDS] soluciona el 100% del pedido basado únicamente en su descripción y uso.`,
-  `El comando debe cubrir todas las entidades, períodos, cantidades, métricas, cálculos y restricciones solicitadas. Si falta una sola capacidad, NO USES EL COMANDO.`,
-  `Aplicar el comando quiere decir devolver el campo "command" completo y mantener "externalInformation" en null.`,
-  `No inventes ni asumas que el comando hace más de lo descrito.`,
-  `[AVAILABLE_COMMANDS]`,
+  `Analizá si algún comando del listado ${AVALIABLE_COMMANDS_LIST} soluciona del pedido basado únicamente en su descripción y uso.`,
+  `Aplicar el comando quiere decir devolver el campo "command" completo. Ej: { command: { name: !command, value: value }, answer: 'Ejecuté !command' }`,
+  `${AVALIABLE_COMMANDS_LIST}`,
   `${getAiCommandsGuide()}`,
   END_LINE,
 ].join('\n');
@@ -247,10 +246,18 @@ const AI_VERACITY_PROMPT = [
   `El historial de chat da contexto, pero NO es evidencia de datos factuales. Validá siempre con comandos o fuentes.`,
 ].join('\n');
 
-const AI_OUTPUT_FORMAT_PROMPT = [
+const AI_OUTPUT_FORMAT_PROMPT_WITH_EXTERNAL_INFORMATION = [
   `FORMATO DE SALIDA`,
   `Devolvé estrictamente el JSON requerido por el schema.`,
   `"command" y "externalInformation" son mutuamente excluyentes: nunca los devuelvas juntos; usá null en el campo que no corresponda.`,
+  `"answer" debe ser texto limpio, sin formato markdown (sin negritas, cursivas ni encabezados).`,
+].join('\n');
+
+const AI_OUTPUT_FORMAT_PROMPT_WITHOUT_EXTERNAL_INFORMATION = [
+  `FORMATO DE SALIDA`,
+  `Devolvé estrictamente el JSON requerido por el schema.`,
+  `Usá únicamente ${AI_DECISION_TYPES.COMMAND} o ${AI_DECISION_TYPES.SMALL_CONVERSATION}.`,
+  `"externalInformation" debe ser null.`,
   `"answer" debe ser texto limpio, sin formato markdown (sin negritas, cursivas ni encabezados).`,
 ].join('\n');
 
@@ -315,7 +322,7 @@ const createExternalStagePrompt = (stagePrompt: string): string => [
   AI_IDENTITY_PROMPT,
   stagePrompt,
   AI_VERACITY_PROMPT,
-  AI_OUTPUT_FORMAT_PROMPT,
+  AI_OUTPUT_FORMAT_PROMPT_WITH_EXTERNAL_INFORMATION,
 ].join('\n');
 
 export const AI_EXTERNAL_CATALOG_PROMPT = createExternalStagePrompt(AI_EXTERNAL_CATALOG_STAGE_PROMPT);
@@ -332,7 +339,7 @@ export const getSystemPrompt = (): string => [
   isAiExternalInformationEnabled() ? AI_EXTERNAL_INFORMATION_PROMPTS : AI_NO_EXTERNAL_INFORMATION_PROMPTS,
   AI_SMALL_CONVERSATION_PROMPT,
   AI_VERACITY_PROMPT,
-  AI_OUTPUT_FORMAT_PROMPT,
+  isAiExternalInformationEnabled() ? AI_OUTPUT_FORMAT_PROMPT_WITH_EXTERNAL_INFORMATION : AI_OUTPUT_FORMAT_PROMPT_WITHOUT_EXTERNAL_INFORMATION,
 ].filter(Boolean).join('\n');
 
 export const STRICT_RESPONSE_FORMAT = {
