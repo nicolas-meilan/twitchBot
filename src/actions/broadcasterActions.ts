@@ -6,6 +6,10 @@ import {
   START_STREAM_KEY,
   STRING_PARAM,
   VIP_KEY,
+  AI_EXTERNAL_INFORMATION_DISABLED_MESSAGE,
+  AI_EXTERNAL_INFORMATION_ENABLED_MESSAGE,
+  AI_EXTERNAL_INFORMATION_OFF_KEY,
+  AI_EXTERNAL_INFORMATION_ON_KEY,
 } from '../configuration/chat';
 import logger from '../utils/logger';
 import Stream from '../Stream';
@@ -13,6 +17,7 @@ import { BASE_STREAM_START_TIME_MIN } from '../configuration/botEvents';
 import { delay } from '../utils/system';
 import { ActionsType } from './type';
 import { twoWeeksVipRequest } from './powerups';
+import { setAiExternalInformationEnabled } from '../services/aiService/aiConfig';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
@@ -46,6 +51,14 @@ const BROADCASTER_ACTIONS: {
     if (!value) return;
 
     await twoWeeksVipRequest(chat, value?.trim());
+  },
+  [AI_EXTERNAL_INFORMATION_ON_KEY]: async ({ chat }) => {
+    setAiExternalInformationEnabled(true);
+    chat.say(BROADCAST_USERNAME, AI_EXTERNAL_INFORMATION_ENABLED_MESSAGE);
+  },
+  [AI_EXTERNAL_INFORMATION_OFF_KEY]: async ({ chat }) => {
+    setAiExternalInformationEnabled(false);
+    chat.say(BROADCAST_USERNAME, AI_EXTERNAL_INFORMATION_DISABLED_MESSAGE);
   },
 };
 

@@ -63,10 +63,14 @@ export const JOKE_ALIAS_KEY = '!chistes';
 export const FRIDGE_KEY = '!heladera';
 export const COMPUTER_KEY = '!pc';
 export const COMPUTER_ALIAS_KEY = '!computadora';
+export const AI_EXTERNAL_INFORMATION_ON_KEY = '!infoexternaon';
+export const AI_EXTERNAL_INFORMATION_OFF_KEY = '!infoexternaoff';
 
 export const BROADCASTER_MESSAGES_CONFIG = [
   START_STREAM_KEY,
   VIP_KEY,
+  AI_EXTERNAL_INFORMATION_ON_KEY,
+  AI_EXTERNAL_INFORMATION_OFF_KEY,
 ];
 
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
@@ -221,6 +225,8 @@ export const TTS_MOD_SENDER = 'Un moderador';
 export const TTS_MESSAGE = `${STRING_PARAM}1 dijo: ${STRING_PARAM}2`;
 export const FULL_TTS_ENABLED_MESSAGE = 'Modo TTS completo activo para la IA. Las respuestas de la IA saldrán por voz sin limitar caracteres.';
 export const FULL_TTS_DISABLED_MESSAGE = 'Modo TTS completo desactivado para la IA. Volvió al TTS normal.';
+export const AI_EXTERNAL_INFORMATION_ENABLED_MESSAGE = 'Información externa de la IA activada.';
+export const AI_EXTERNAL_INFORMATION_DISABLED_MESSAGE = 'Información externa de la IA desactivada. La IA usará comandos y conversación breve.';
 export const FRIDGE_JOKE_MESSAGE = `¿Cuál es la diferencia entre ${STRING_PARAM} y una heladera? Que la heladera no se queja cuando le sacás la carne.`;
 export const FRIDGE_JOKE_ERROR_MESSAGE = 'Necesito un nombre o nick para el chiste. Ejemplo: !heladera @bazinga6701';
 export const VALORANT_USER_NOT_FOUND_MESSAGE = `No encontré al usuario ${STRING_PARAM}. Revisá que exista y que el tag sea válido.`;

@@ -21,6 +21,15 @@ export const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME!;
 export const BOT_USERNAME = process.env.BOT_USERNAME!;
 
 export const AI_MENTION = `@${BOT_USERNAME}`;
+let aiExternalInformationEnabled = false;
+
+export const setAiExternalInformationEnabled = (enabled: boolean): boolean => {
+  aiExternalInformationEnabled = enabled;
+  return aiExternalInformationEnabled;
+};
+
+export const isAiExternalInformationEnabled = (): boolean => aiExternalInformationEnabled;
+
 export const AI_MAX_QUEUE_SIZE = 6;
 export const AI_MAX_EXTERNAL_STEPS = 10;
 export const AI_MAX_RESPONSE_FIELDS = 10;
@@ -181,17 +190,23 @@ const AI_IDENTITY_PROMPT = [
   `No sos el streamer, sos el bot. Mantené el contexto sin inventar nada que no se haya dicho.`,
 ].join('\n');
 
-const AI_DECISION_PROMPT = [
+const AI_DECISION_PROMPT_WITH_EXTERNAL_INFORMATION = [
   `FLUJO DE DECISIÓN`,
   `Elegí una acción por mensaje respetando esta prioridad: 1. ${AI_DECISION_TYPES.COMMAND} sólo si un único comando cubre completamente todos los pedidos y datos solicitados; 2. ${AI_DECISION_TYPES.EXTERNAL_INFORMATION} si el comando no cubre aunque sea una parte del pedido o si la consulta requiere datos externos; 3. ${AI_DECISION_TYPES.SMALL_CONVERSATION}.`,
   `La prioridad no autoriza a usar un comando parcialmente útil. Si el mensaje combina una capacidad de comando con otra capacidad no descrita por ese comando, descartá el comando completo y aplicá ${AI_DECISION_TYPES.EXTERNAL_INFORMATION}.`,
   `Si crees no tener acceso a algún dato o información, probá las reglas ${AI_DECISION_TYPES.EXTERNAL_INFORMATION} en vez de ${AI_DECISION_TYPES.SMALL_CONVERSATION}.`,
 ].join('\n');
 
-const AI_COMMANDS_PROMPT = [
+const AI_DECISION_PROMPT_WITHOUT_EXTERNAL_INFORMATION = [
+  `FLUJO DE DECISIÓN`,
+  `Elegí ${AI_DECISION_TYPES.COMMAND} sólo si un único comando cubre completamente todos los pedidos y datos solicitados; en cualquier otro caso elegí ${AI_DECISION_TYPES.SMALL_CONVERSATION}.`,
+  `La información externa está desactivada: no uses externalInformation ni inventes datos.`,
+].join('\n');
+
+const AI_COMMAND_PROMPT = [
   `${AI_DECISION_TYPES.COMMAND}`,
   `Analizá si algún comando del listado [AVAILABLE_COMMANDS] soluciona el 100% del pedido basado únicamente en su descripción y uso.`,
-  `El comando debe cubrir todas las entidades, períodos, cantidades, métricas, cálculos y restricciones solicitadas. Si falta una sola capacidad, NO USES EL COMANDO: pasá directamente a ${AI_DECISION_TYPES.EXTERNAL_INFORMATION}.`,
+  `El comando debe cubrir todas las entidades, períodos, cantidades, métricas, cálculos y restricciones solicitadas. Si falta una sola capacidad, NO USES EL COMANDO.`,
   `Aplicar el comando quiere decir devolver el campo "command" completo y mantener "externalInformation" en null.`,
   `No inventes ni asumas que el comando hace más de lo descrito.`,
   `[AVAILABLE_COMMANDS]`,
@@ -212,6 +227,12 @@ const AI_EXTERNAL_INFORMATION_SOURCES_PROMPT = [
   `${getAiExternalFontsGuide()}`,
   END_LINE
 ].join('\n');
+
+const AI_EXTERNAL_INFORMATION_PROMPTS = [
+  AI_EXTERNAL_DECISION_PROMPT,
+  AI_EXTERNAL_INFORMATION_SOURCES_PROMPT,
+].join('\n');
+const AI_NO_EXTERNAL_INFORMATION_PROMPTS = '';
 
 const AI_SMALL_CONVERSATION_PROMPT = [
   `${AI_DECISION_TYPES.SMALL_CONVERSATION}`,
@@ -304,16 +325,15 @@ export const AI_EXTERNAL_PARAMS_PROMPT = createExternalStagePrompt(AI_EXTERNAL_P
 export const AI_EXTERNAL_EXECUTION_PROMPT = createExternalStagePrompt(AI_EXTERNAL_EXECUTION_STAGE_PROMPT);
 export const AI_EXTERNAL_FINAL_PROMPT = createExternalStagePrompt(AI_EXTERNAL_FINAL_STAGE_PROMPT);
 
-export const SYSTEM_PROMPT = [
+export const getSystemPrompt = (): string => [
   AI_IDENTITY_PROMPT,
-  AI_DECISION_PROMPT,
-  AI_COMMANDS_PROMPT,
-  AI_EXTERNAL_DECISION_PROMPT,
-  AI_EXTERNAL_INFORMATION_SOURCES_PROMPT,
+  isAiExternalInformationEnabled() ? AI_DECISION_PROMPT_WITH_EXTERNAL_INFORMATION : AI_DECISION_PROMPT_WITHOUT_EXTERNAL_INFORMATION,
+  AI_COMMAND_PROMPT,
+  isAiExternalInformationEnabled() ? AI_EXTERNAL_INFORMATION_PROMPTS : AI_NO_EXTERNAL_INFORMATION_PROMPTS,
   AI_SMALL_CONVERSATION_PROMPT,
   AI_VERACITY_PROMPT,
   AI_OUTPUT_FORMAT_PROMPT,
-].join('\n');
+].filter(Boolean).join('\n');
 
 export const STRICT_RESPONSE_FORMAT = {
   type: 'json_schema',

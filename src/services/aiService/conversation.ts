@@ -3,7 +3,7 @@ import {
   AI_MENTION,
   BOT_USERNAME,
   AI_EXTERNAL_EXECUTION_PROMPT,
-  SYSTEM_PROMPT,
+  getSystemPrompt,
 } from './aiConfig';
 import { AiResult, ChatMessage, MemoryMessage } from './types';
 
@@ -24,7 +24,7 @@ export const buildConversation = (channel: string, username: string, question: s
   const history = memoryByChannel.get(normalizeChannel(channel)) || [];
 
   return [
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: getSystemPrompt() },
     ...history.map((item) => ({
       role: item.role,
       content: `[usuario: ${item.username}] ${item.content}`,
