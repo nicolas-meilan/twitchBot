@@ -158,6 +158,7 @@ yarn lint:fix
 | --- | --- |
 | `yarn dev` | Run the bot through `ts-node-dev` |
 | `yarn build` | Compile `src/` into `dist/` |
+| `yarn run chat-text "message"` | Send a one-time message to the configured Twitch channel without interrupting the running bot |
 | `yarn start` | Build and start the bot |
 | `yarn lint` | Run ESLint |
 | `yarn lint:fix` | Apply ESLint fixes |

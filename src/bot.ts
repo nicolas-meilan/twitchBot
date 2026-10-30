@@ -20,14 +20,13 @@ const PRIME_RECURRENT_MESSAGE_TIME_MIN = Number(process.env.PRIME_RECURRENT_MESS
 let previousMessage = '';
 
 const messageHandler = (chat: tmi.Client): OnNewMessage => async ({ channel, message, tags, ttsUser, self }) => {
-  if (self || (tags.username || '').toLowerCase() === BOT_USERNAME.toLowerCase()) {
-    return;
-  }
-
   const formattedMessage = message.trim();
-  previousMessage = formattedMessage;
+  const isBotMessage = self || Boolean(
+    BOT_USERNAME && (tags.username || '').toLowerCase() === BOT_USERNAME.toLowerCase(),
+  );
+  if (!isBotMessage) previousMessage = formattedMessage;
 
-  if (!formattedMessage.startsWith('!') && isAiMention(formattedMessage)) {
+  if (!isBotMessage && !formattedMessage.startsWith('!') && isAiMention(formattedMessage)) {
     await handleAiMention(chat, channel, tags, formattedMessage);
     return;
   }
