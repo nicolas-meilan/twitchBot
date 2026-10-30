@@ -1,12 +1,14 @@
 import tmi from 'tmi.js';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
+const BOT_USERNAME = process.env.BOT_USERNAME || '';
 
 export enum UserRole {
   BASIC = 'BASIC',
   SUBSCRIPTOR = 'SUBSCRIPTOR',
   VIP = 'VIP',
   MOD = 'MOD',
+  BOT = 'BOT',
   BROADCASTER = 'BROADCASTER'
 }
 
@@ -16,21 +18,29 @@ export const USER_ROLE_ACCESS_CONFIG = {
     UserRole.VIP,
     UserRole.SUBSCRIPTOR,
     UserRole.MOD,
+    UserRole.BOT,
     UserRole.BROADCASTER,
   ],
   [UserRole.SUBSCRIPTOR]: [
     UserRole.SUBSCRIPTOR,
     UserRole.VIP,
     UserRole.MOD,
+    UserRole.BOT,
     UserRole.BROADCASTER,
   ],
   [UserRole.VIP]: [
     UserRole.VIP,
     UserRole.MOD,
+    UserRole.BOT,
+    UserRole.BROADCASTER,
+  ],
+  [UserRole.BOT]: [
+    UserRole.BOT,
     UserRole.BROADCASTER,
   ],
   [UserRole.MOD]: [
     UserRole.MOD,
+    UserRole.BOT,
     UserRole.BROADCASTER,
   ],
   [UserRole.BROADCASTER]: [
@@ -41,6 +51,10 @@ export const USER_ROLE_ACCESS_CONFIG = {
 export const getUserRole = (userTags: tmi.ChatUserstate) => {
   if (BROADCAST_USERNAME && userTags.username?.toLowerCase() === BROADCAST_USERNAME.toLowerCase()) {
     return UserRole.BROADCASTER;
+  }
+
+  if (BOT_USERNAME && userTags.username?.toLowerCase() === BOT_USERNAME.toLowerCase()) {
+    return UserRole.BOT;
   }
 
   if (!userTags.badges) return UserRole.BASIC;

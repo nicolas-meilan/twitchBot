@@ -8,6 +8,7 @@ import {
   BAN_KEY,
   AI_EXTERNAL_INFORMATION_OFF_KEY,
   AI_EXTERNAL_INFORMATION_ON_KEY,
+  BOT_MESSAGES_CONFIG,
   BROADCASTER_MESSAGES_CONFIG,
   CHANGE_CHANNEL_INFORMATION_KEY,
   CHANGE_CHANNEL_INFORMATION_KEY_2,
@@ -170,6 +171,7 @@ export const getCommandDefinitions = () => {
   addCommands(commands, USERS_ACTIONS_CONFIG, 'todos');
   addCommands(commands, VIP_ACTIONS_CONFIG, 'VIP o superior');
   addCommands(commands, MODS_ACTIONS_CONFIG, 'moderador o broadcaster');
+  addCommands(commands, BOT_MESSAGES_CONFIG, 'bot o broadcaster');
   addCommands(commands, BROADCASTER_MESSAGES_CONFIG, 'broadcaster');
   return commands;
 };

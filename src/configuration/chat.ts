@@ -73,6 +73,10 @@ export const BROADCASTER_MESSAGES_CONFIG = [
   AI_EXTERNAL_INFORMATION_OFF_KEY,
 ];
 
+export const BOT_MESSAGES_CONFIG = [
+  START_STREAM_KEY,
+];
+
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
 export const CHANGE_CHANNEL_INFORMATION_KEY_2 = '!game';
 export const KICK_KEY = '!kick';

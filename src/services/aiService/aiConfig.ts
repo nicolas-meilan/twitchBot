@@ -120,6 +120,7 @@ export const getAiUnknownExternalActionMessage = (action: string): string => (
 export const getAiRequiredRoleDescription = (role: UserRole): string => {
   if (role === UserRole.VIP) return 'VIP, moderador o broadcaster';
   if (role === UserRole.MOD) return 'moderador o broadcaster';
+  if (role === UserRole.BOT) return 'bot o broadcaster';
   return 'broadcaster';
 };
 

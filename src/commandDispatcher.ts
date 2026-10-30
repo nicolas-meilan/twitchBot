@@ -18,6 +18,7 @@ import CHAT_KEY_ACTIONS from './actions/chatKeyActions';
 
 import {
   ACTION_NOT_ALLOWED,
+  BOT_MESSAGES_CONFIG,
   BROADCASTER_MESSAGES_CONFIG,
   KEY_DELIMITER,
   MESSAGES_CONFIG,
@@ -39,6 +40,7 @@ export type ExecuteCommandParams = {
 export const getCommandRequiredRole = (command: string): UserRole | undefined => {
   if (VIP_ACTIONS_CONFIG.includes(command)) return UserRole.VIP;
   if (MODS_ACTIONS_CONFIG.includes(command)) return UserRole.MOD;
+  if (BOT_MESSAGES_CONFIG.includes(command)) return UserRole.BOT;
   if (BROADCASTER_MESSAGES_CONFIG.includes(command)) return UserRole.BROADCASTER;
   return undefined;
 };
@@ -112,6 +114,21 @@ export const executeCommand = async ({ chat, channel, tags, command, value, ttsU
       username: tags.username,
       ttsUser,
       tags,
+    });
+
+    return;
+  }
+
+  if (BOT_MESSAGES_CONFIG.includes(command)) {
+    if (!userHasAccess(tags, UserRole.BOT)) {
+      chat.say(channel, ACTION_NOT_ALLOWED);
+      logger.info(`BOT: ${ACTION_NOT_ALLOWED}`);
+      return;
+    }
+
+    await BROADCASTER_ACTIONS[command as keyof typeof BROADCASTER_ACTIONS]({
+      chat,
+      value,
     });
 
     return;
