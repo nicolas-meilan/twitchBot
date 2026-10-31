@@ -15,13 +15,13 @@ import VIP_ACTIONS from './actions/vipActions';
 import BROADCASTER_ACTIONS from './actions/broadcasterActions';
 
 import CHAT_KEY_ACTIONS from './actions/chatKeyActions';
+import { getChatCommand, getConfiguredChatCommandOwnerTwitchId } from './db/chatCommands';
 
 import {
   ACTION_NOT_ALLOWED,
   BOT_MESSAGES_CONFIG,
   BROADCASTER_MESSAGES_CONFIG,
   KEY_DELIMITER,
-  MESSAGES_CONFIG,
   MODS_ACTIONS_CONFIG,
   RESPONSES_KEYS,
   USERS_ACTIONS_CONFIG,
@@ -53,7 +53,7 @@ export const parseCommandMessage = (message: string): { command: string; value: 
   return { command, value };
 };
 
-const resolveMessageResponse = async (message: string): Promise<string | undefined> => {
+const resolveMessageResponse = async (message: string, userId: string): Promise<string | undefined> => {
   try {
     if (!message) return;
 
@@ -62,7 +62,7 @@ const resolveMessageResponse = async (message: string): Promise<string | undefin
 
     if (!RESPONSES_KEYS.includes(formattedKey)) return message;
 
-    const keyValue = await (CHAT_KEY_ACTIONS[formattedKey]!)();
+    const keyValue = await (CHAT_KEY_ACTIONS[formattedKey]!)(undefined, userId);
 
     return message.replace(formattedKey, keyValue);
   } catch {
@@ -149,8 +149,11 @@ export const executeCommand = async ({ chat, channel, tags, command, value, ttsU
     return;
   }
 
-  const currentMessageResponse = MESSAGES_CONFIG[command] || '';
-  const formattedResponse = await resolveMessageResponse(currentMessageResponse.trim());
+  const ownerId = getConfiguredChatCommandOwnerTwitchId();
+  const chatCommand = getChatCommand(ownerId, command);
+  if (!chatCommand) return;
+
+  const formattedResponse = await resolveMessageResponse(chatCommand.value.trim(), ownerId);
 
   if (!formattedResponse) return;
 

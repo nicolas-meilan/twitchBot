@@ -1,9 +1,9 @@
 import tmi from 'tmi.js';
 
-import { revokeVipRequest, storeVipRequest } from '../db/vipdb';
+import { storeVipRequest } from '../db/vipdb';
 import { getBotTokens, getBroadcastTokens } from '../services/twitch/auth';
 import { getUserIdByUsername } from '../services/twitch/user';
-import { giveVip } from '../services/twitch/vip';
+import { giveVip, removeVip } from '../services/twitch/vip';
 import logger from '../utils/logger';
 import {
   LOTTERY_ALREADY_JOINED,
@@ -38,7 +38,7 @@ export const twoWeeksVipRequest = async (chat: tmi.Client, userName?: string) =>
       const expirationTimestamp = Date.now() + 2 * 7 * 24 * 60 * 60 * 1000; // 2 weeks
       await giveVip(tokens.access_token, userId);
       vipDone = true;
-      storeVipRequest(BROADCAST_USERNAME, userId, userName, expirationTimestamp);
+      await storeVipRequest(BROADCAST_USERNAME, userId, userName, expirationTimestamp);
       vipStored = true;
       const successMessage = VIP_REQUEST_ACTION_SUCCESS
         .replace(STRING_PARAM, userName);
@@ -48,8 +48,10 @@ export const twoWeeksVipRequest = async (chat: tmi.Client, userName?: string) =>
     } catch {
       if (vipDone && !vipStored && tokens && userId) {
         try {
-          await revokeVipRequest(tokens.access_token, userId);
-        } catch { /* empty */ }
+          await removeVip(tokens.access_token, userId);
+        } catch (rollbackError) {
+          logger.error('Failed to roll back a Twitch VIP assignment.', rollbackError);
+        }
       }
       const errorMessage = VIP_REQUEST_ACTION_ERROR
         .replace(STRING_PARAM, userName);

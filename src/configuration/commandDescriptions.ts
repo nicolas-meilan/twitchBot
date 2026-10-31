@@ -2,9 +2,10 @@ import { DEFAULT_VALORANT_TAG, DEFAULT_VALORANT_USERNAME } from '../services/val
 import { BASE_STREAM_START_TIME_MIN } from './botEvents';
 import {
   ADD_MANUALLY_TO_PLAYERS_QUEUE_KEY,
+  ADD_COMMAND_KEY,
+  REMOVE_COMMAND_KEY,
   ADD_TO_PLAYERS_QUEUE_KEY,
   ADD_TO_PLAYERS_QUEUE_KEY_ALIAS,
-  APOLOGY_KEY,
   BAN_KEY,
   AI_EXTERNAL_INFORMATION_OFF_KEY,
   AI_EXTERNAL_INFORMATION_ON_KEY,
@@ -13,19 +14,16 @@ import {
   CHANGE_CHANNEL_INFORMATION_KEY,
   CHANGE_CHANNEL_INFORMATION_KEY_2,
   CLEAN_PLAYERS_QUEUE_KEY,
-  CREATE_CLIP_KEY,
-  COMPUTER_ALIAS_KEY,
-  COMPUTER_KEY,
   COMMANDS_KEY,
+  CREATE_CLIP_KEY,
   DELETE_PLAYER_FROM_QUEUE_KEY,
-  DISCORD_ALIAS_KEY,
-  DISCORD_KEY,
   HELP_COMMAND,
-  HOW_TO_PLAY_KEY,
-  PLAYERS_QUEUE_PRIORITY_BENEFITS,
-  KICK_KEY,
   JOKE_ALIAS_KEY,
   JOKE_KEY,
+  MOD_COMMANDS_KEY,
+  PLAYERS_LIST_ALIAS_KEY,
+  PLAYERS_LIST_KEY,
+  PLAYERS_QUEUE_PRIORITY_BENEFITS,
   FRIDGE_KEY,
   LEAVE_PLAYERS_QUEUE_KEY,
   LOTTERY_CLEAN_COMMAND,
@@ -39,20 +37,12 @@ import {
   LAST_GAME_KEY,
   LAST_RANKED_ALIAS_KEY,
   LAST_RANKED_KEY,
-  MESSAGES_CONFIG,
   MODS_ACTIONS_CONFIG,
-  MOD_COMMANDS_KEY,
   MOST_POPULAR_CLIP_KEY,
   MOVE_PLAYER_FROM_QUEUE_KEY,
-  PLAYERS_LIST_ALIAS_KEY,
-  PLAYERS_LIST_KEY,
   PLAYERS_QUEUE_OFF,
   PLAYERS_QUEUE_ON,
-  PLATFORMS_KEY,
-  SCHEDULE_KEY,
-  SOCIAL_NETWORKS_KEY,
   START_STREAM_KEY,
-  STEAM_KEY,
   TIMEOUT_KEY,
   TTS_KEY,
   FULL_TTS_ON_KEY,
@@ -60,22 +50,21 @@ import {
   USERS_ACTIONS_CONFIG,
   VALORANT_ELO_KEY,
   VALORANT_ID_ALIAS_KEY,
-  VALORANT_ID_KEY,
   VALORANT_KEY,
-  VALORANT_NICK_KEY,
   VALORANT_RANK_ALIAS_2_KEY,
   VALORANT_RANK_ALIAS_KEY,
   VALORANT_RANK_KEY,
   VALORANT_RANDOM_AGENT_KEY,
   VIP_ACTIONS_CONFIG,
-  VIP_KEY,
   VIP_COMMANDS_KEY,
-  YOUTUBE_KEY,
-  TIKTOK_KEY,
-  LAUGHTER_KEY,
-  CROSSHAIR_KEY,
+  VIP_KEY,
   LAST_RANKED_2_KEY,
 } from './chat';
+import {
+  getChatCommand,
+  getChatCommandAliases,
+  getConfiguredChatCommandOwnerTwitchId,
+} from '../db/chatCommands';
 
 export type CommandDescription = {
   description: string;
@@ -90,19 +79,6 @@ const noArguments = (description: string): CommandDescription => ({
 const withArguments = (description: string, usage: string): CommandDescription => ({ description, usage });
 
 export const COMMAND_DESCRIPTIONS: Record<string, CommandDescription> = {    
-  [VALORANT_NICK_KEY]: noArguments('mostrar el nombre de usuario de Valorant del streamer'),    
-  [VALORANT_ID_KEY]: noArguments('mostrar el nombre de usuario de Valorant del streamer'),    
-  [PLATFORMS_KEY]: noArguments('mostrar los enlaces de las plataformas del streamer'),    
-  [SOCIAL_NETWORKS_KEY]: noArguments('mostrar los enlaces de las redes sociales del streamer'),    
-  [DISCORD_KEY]: noArguments('mostrar el enlace del Discord del streamer'),    
-  [DISCORD_ALIAS_KEY]: noArguments('mostrar el enlace del Discord del streamer'),    
-  [KICK_KEY]: noArguments('mostrar el enlace del canal de Kick del streamer'),    
-  [YOUTUBE_KEY]: noArguments('mostrar el enlace del canal de YouTube del streamer'),    
-  [TIKTOK_KEY]: noArguments('mostrar el enlace del canal de TikTok del streamer'),    
-  [STEAM_KEY]: noArguments('mostrar el código de amigo de Steam del streamer'),    
-  [SCHEDULE_KEY]: noArguments('mostrar los horarios habituales de stream'),    
-  [LAUGHTER_KEY]: noArguments('enviar un mensaje de humor al chat'),    
-  [APOLOGY_KEY]: noArguments('enviar un mensaje de disculpas al chat'),    
   [VALORANT_RANK_KEY]: withArguments(`mostrar únicamente el rango ACTUAL de Valorant; no ofrece historial, evolución, rango mínimo, rango máximo ni estadísticas acumuladas. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_RANK_KEY} [usuario#tag]`),    
   [VALORANT_RANK_ALIAS_KEY]: withArguments(`mostrar únicamente el rango ACTUAL de Valorant; no ofrece historial, evolución, rango mínimo, rango máximo ni estadísticas acumuladas. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_RANK_ALIAS_KEY} [usuario#tag]`),    
   [VALORANT_ELO_KEY]: withArguments(`mostrar únicamente el rango ACTUAL de Valorant; no ofrece historial, evolución, rango mínimo, rango máximo ni estadísticas acumuladas. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${VALORANT_ELO_KEY} [usuario#tag]`),    
@@ -113,19 +89,23 @@ export const COMMAND_DESCRIPTIONS: Record<string, CommandDescription> = {
   [LAST_RANKED_ALIAS_KEY]: withArguments(`mostrar únicamente el resultado de la última partida de Valorant (Busca la última Ranked); no ofrece historial ni estadísticas acumuladas. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${LAST_RANKED_ALIAS_KEY} [usuario#tag]`),  
   [LAST_RANKED_2_KEY]: withArguments(`mostrar únicamente el resultado de la última partida de Valorant (Busca la última Ranked); no ofrece historial ni estadísticas acumuladas. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${LAST_RANKED_2_KEY} [usuario#tag]`),  
   [LAST_GAME_KEY]: withArguments(`mostrar únicamente el resultado de la última partida de Valorant (Busca la última Ranked); no ofrece historial ni estadísticas acumuladas. Acepta un usuario#tag de LATAM; si no se indica, consulta al streamer (por defecto: ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG})`, `${LAST_GAME_KEY} [usuario#tag]`),  
-  [CROSSHAIR_KEY]: noArguments('mostrar la configuración de la mira del streamer'),  
-  [COMMANDS_KEY]: noArguments('mostrar los comandos disponibles para todos los usuarios'),
-  [MOD_COMMANDS_KEY]: noArguments('mostrar los comandos disponibles para moderadores'),    
-  [VIP_COMMANDS_KEY]: noArguments('mostrar los comandos disponibles para VIPs'),    
-  [PLAYERS_LIST_KEY]: noArguments(`mostrar la lista de jugadores y sus prioridades. Beneficio de la lista: ${PLAYERS_QUEUE_PRIORITY_BENEFITS}`),    
-  [PLAYERS_LIST_ALIAS_KEY]: noArguments(`mostrar la lista de jugadores y sus prioridades. Beneficio de la lista: ${PLAYERS_QUEUE_PRIORITY_BENEFITS}`),
-  [HOW_TO_PLAY_KEY]: noArguments(`mostrar cómo unirse a la partida. ${PLAYERS_QUEUE_PRIORITY_BENEFITS}`),    
-  [JOKE_KEY]: noArguments('mostrar un chiste'),    
-  [JOKE_ALIAS_KEY]: noArguments('mostrar un chiste'),    
   [FRIDGE_KEY]: withArguments('decir un chiste pasado de tono sobre una heladera y carne usando un username o nick', `${FRIDGE_KEY} usuario`),    
-  [COMPUTER_KEY]: noArguments('mostrar las especificaciones de la computadora del streamer'),    
-  [COMPUTER_ALIAS_KEY]: noArguments('mostrar las especificaciones de la computadora del streamer'),    
   [HELP_COMMAND]: withArguments('mostrar la descripción y forma de uso de un comando específico', `${HELP_COMMAND} !comando`),    
+  [COMMANDS_KEY]: noArguments('mostrar los comandos disponibles para todos los usuarios'),
+  [MOD_COMMANDS_KEY]: noArguments('mostrar los comandos disponibles para moderadores'),
+  [VIP_COMMANDS_KEY]: noArguments('mostrar los comandos disponibles para VIPs'),
+  [PLAYERS_LIST_KEY]: noArguments(`mostrar la lista de jugadores y sus prioridades. Beneficio de la lista: ${PLAYERS_QUEUE_PRIORITY_BENEFITS}`),
+  [PLAYERS_LIST_ALIAS_KEY]: noArguments(`mostrar la lista de jugadores y sus prioridades. Beneficio de la lista: ${PLAYERS_QUEUE_PRIORITY_BENEFITS}`),
+  [JOKE_KEY]: noArguments('mostrar un chiste'),
+  [JOKE_ALIAS_KEY]: noArguments('mostrar un chiste'),
+  [ADD_COMMAND_KEY]: withArguments(
+    'agregar un comando de texto con uno o varios alias. Separá los alias y la respuesta con /; indicá la descripción con /description:',
+    `${ADD_COMMAND_KEY} !comando [!alias ...] / respuesta /description: descripción`,
+  ),
+  [REMOVE_COMMAND_KEY]: withArguments(
+    'eliminar un alias de comando de texto. Si era el último alias asociado a la respuesta, también se elimina esa respuesta',
+    `${REMOVE_COMMAND_KEY} !alias`,
+  ),
   [CREATE_CLIP_KEY]: noArguments('crear un clip del directo'),    
   [ADD_TO_PLAYERS_QUEUE_KEY]: noArguments(`sumar al usuario que lo solicita a la lista para jugar. Beneficio de la lista: ${PLAYERS_QUEUE_PRIORITY_BENEFITS}`),    
   [ADD_TO_PLAYERS_QUEUE_KEY_ALIAS]: noArguments(`sumar al usuario que lo solicita a la lista para jugar. Beneficio de la lista: ${PLAYERS_QUEUE_PRIORITY_BENEFITS}`),    
@@ -165,9 +145,9 @@ const addCommands = (commands: Map<string, string>, values: string[], permission
   }
 };
 
-export const getCommandDefinitions = () => {
+export const getCommandDefinitions = (userId = getConfiguredChatCommandOwnerTwitchId()) => {
   const commands = new Map<string, string>();
-  addCommands(commands, Object.keys(MESSAGES_CONFIG), 'todos');
+  addCommands(commands, getChatCommandAliases(userId), 'todos');
   addCommands(commands, USERS_ACTIONS_CONFIG, 'todos');
   addCommands(commands, VIP_ACTIONS_CONFIG, 'VIP o superior');
   addCommands(commands, MODS_ACTIONS_CONFIG, 'moderador o broadcaster');
@@ -176,14 +156,30 @@ export const getCommandDefinitions = () => {
   return commands;
 };
 
-export const getCommandDescription = (command: string): CommandDescription => COMMAND_DESCRIPTIONS[command] || '';
+export const getCommandDescription = (
+  command: string,
+  userId = getConfiguredChatCommandOwnerTwitchId(),
+): CommandDescription => {
+  const chatCommand = getChatCommand(userId, command);
+  if (chatCommand) {
+    const description = {
+      description: chatCommand.description,
+      usage: chatCommand.aliases.map((alias) => `!${alias}`).join(' | '),
+    };
+    COMMAND_DESCRIPTIONS[command] = description;
+    return description;
+  }
+
+  return COMMAND_DESCRIPTIONS[command] || noArguments('comando integrado');
+};
 
 export const getCommandHelp = (command: string) => {
   const requestedCommand = command.trim() || HELP_COMMAND;
   const normalizedCommand = requestedCommand.toLowerCase().startsWith('!') ? requestedCommand.toLowerCase() : `!${requestedCommand.toLowerCase()}`;
-  const permission = getCommandDefinitions().get(normalizedCommand);
+  const userId = getConfiguredChatCommandOwnerTwitchId();
+  const permission = getCommandDefinitions(userId).get(normalizedCommand);
   if (!permission) return `No conozco el comando ${normalizedCommand}. Usá ${HELP_COMMAND} para consultar un comando válido.`;
 
-  const { description, usage } = getCommandDescription(normalizedCommand);
+  const { description, usage } = getCommandDescription(normalizedCommand, userId);
   return `${normalizedCommand}: ${description}; uso: ${usage}; permiso: ${permission}.`;
 };

@@ -28,7 +28,7 @@ export const unvipExpiredRequests = (account: string) => {
           logger.warn(`VIP record for ${vip_user_id} was already removed on Twitch; clearing DB state.`);
         }
 
-        revokeVipRequest(account, vip_user_id);
+        await revokeVipRequest(account, vip_user_id);
         logger.info(`unvip ${vip_user_id}`);
         await delay(REQUEST_INTERVAL);
       }

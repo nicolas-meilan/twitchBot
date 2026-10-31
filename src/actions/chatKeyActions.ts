@@ -5,7 +5,6 @@ import {
   COMMANDS_RESPONSE_KEY,
   COMMANDS_SEPARATOR,
   JOKES_KEY,
-  MESSAGES_CONFIG,
   MOD_COMMANDS_RESPONSE_KEY,
   MODS_ACTIONS_CONFIG,
   PLAYERS_KEY,
@@ -15,9 +14,10 @@ import {
   VIP_ACTIONS_CONFIG,
   VIP_COMMANDS_RESPONSE_KEY,
 } from "../configuration/chat";
+import { getChatCommandAliases } from '../db/chatCommands';
 import gameQueue from "../services/GameQueue";
 
-type ChatKeyActionsType = (value?: string) => string | Promise<string>;
+type ChatKeyActionsType = (value?: string, userId?: string) => string | Promise<string>;
 
 const CHAT_KEY_ACTIONS: {
   [command: string]: ChatKeyActionsType
@@ -39,8 +39,8 @@ const CHAT_KEY_ACTIONS: {
       : '😭'}`;
   },
   [JOKES_KEY]: fetchJokes,
-  [COMMANDS_RESPONSE_KEY]: async () => [
-    ...Object.keys(MESSAGES_CONFIG),
+  [COMMANDS_RESPONSE_KEY]: async (_value, userId) => [
+    ...(userId ? getChatCommandAliases(userId) : []),
     ...USERS_ACTIONS_CONFIG,
   ].sort().join(COMMANDS_SEPARATOR),
   [PLAYERS_KEY]: () => gameQueue.getOrderedQueue(),

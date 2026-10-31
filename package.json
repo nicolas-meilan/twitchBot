@@ -7,11 +7,12 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "start": "yarn build && node dist/index.js",
+    "start": "yarn build && node dist/start.js",
     "deleteUserTokens": "yarn build && node dist/scripts/deleteUserTokens.js",
     "fetchAiExternalDocs": "yarn build && node dist/scripts/fetchAiExternalDocs.js",
-    "chat-text": "yarn build && node dist/scripts/chatText.js",
-    "dev": "ts-node-dev src/index.ts",
+    "initializeChatCommands": "yarn build && node dist/scripts/initializeChatCommands.js",
+    "chat-text": "node -r ts-node/register/transpile-only src/scripts/chatText.ts",
+    "dev": "ts-node-dev src/start.ts",
     "lint": "eslint",
     "lint:fix": "eslint --fix"
   },

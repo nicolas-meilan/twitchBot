@@ -1,0 +1,104 @@
+[
+  {
+    "aliases": [
+      "!nickvalo",
+      "!valorantid"
+    ],
+    "value": "🎮 rungekutta93#RK93",
+    "description": "mostrar el nombre de usuario de Valorant del streamer"
+  },
+  {
+    "aliases": [
+      "!plataformas",
+      "!redes"
+    ],
+    "value": "🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 🎮 https://youtube.com/@rungekutta93 🎮 https://tiktok.com/@rungekutta93 💬 https://discord.gg/bHePmGSXVm",
+    "description": "mostrar los enlaces de las plataformas del streamer; mostrar los enlaces de las redes sociales del streamer"
+  },
+  {
+    "aliases": [
+      "!discord",
+      "!ds"
+    ],
+    "value": "🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!",
+    "description": "mostrar el enlace del Discord del streamer"
+  },
+  {
+    "aliases": [
+      "!kick"
+    ],
+    "value": "🚀 ¡Seguime también en Starvios! 👉 https://starvios.com/rungekutta93 🎮 ¡Nos vemos ahí!",
+    "description": "mostrar el enlace del canal de Starvios del streamer"
+  },
+  {
+    "aliases": [
+      "!starvios"
+    ],
+    "value": "🚀 ¡Seguime también en Starvios! 👉 https://starvios.com/rungekutta93 🎮 ¡Nos vemos ahí!",
+    "description": "mostrar el enlace del canal de Starvios del streamer"
+  },
+  {
+    "aliases": [
+      "!youtube"
+    ],
+    "value": "📺 ¡No te pierdas mis videos en YouTube! Suscribite para contenido épico y más diversión 👉 https://youtube.com/@rungekutta93 🎮 ¡Dale al botón rojo! 🚀🔥",
+    "description": "mostrar el enlace del canal de YouTube del streamer"
+  },
+  {
+    "aliases": [
+      "!tiktok"
+    ],
+    "value": "🎥✨ ¡Prendo en TikTok también! 👉 https://tiktok.com/rungekutta93 🎮🔥 ¡Te espero ahí!",
+    "description": "mostrar el enlace del canal de TikTok del streamer"
+  },
+  {
+    "aliases": [
+      "!steam"
+    ],
+    "value": "🎮 ¡Sumate a Steam y jugamos juntos! 🔥 Mi código de amigo: 1010270454 💨 ¡Agregame y vamos con todo! 🚀",
+    "description": "mostrar el código de amigo de Steam del streamer"
+  },
+  {
+    "aliases": [
+      "!horarios"
+    ],
+    "value": "🎮 Mi horario de streams 🎮 🗓️ Generalmente estoy en vivo a las 6:00 PM y a veces también a las 10:30 PM. Todo sujeto a mi disponibilidad, siempre en horario de Argentina 🇦🇷. ¡Activá las notis para no perderte nada!",
+    "description": "mostrar los horarios habituales de stream"
+  },
+  {
+    "aliases": [
+      "!risas"
+    ],
+    "value": "😂 ¡Se descontroló el chat! Jajaja, qué nivel de risas, gente. 🤣 ¡Los quiero ver a todos spameando el jajajaja! 😂🔥",
+    "description": "enviar un mensaje de humor al chat"
+  },
+  {
+    "aliases": [
+      "!perdon"
+    ],
+    "value": "😅 ¡Uh, me mandé una! Perdón, gente. 🙏 Espero que me perdonen... o no. 😂💜",
+    "description": "enviar un mensaje de disculpas al chat"
+  },
+  {
+    "aliases": [
+      "!mira"
+    ],
+    "value": "Ahí tenés, la mira mágica 😎🎯: 0;p;0;s;1;P;c;1;u;DFFDD0FF;o;0.456;0t;1;0l;3;0o;1;0a;1;0f;0;1b;0;A;c;1;o;1;d;1;0b;0;1b;0;S;s;0.8;o;1",
+    "description": "mostrar la configuración de la mira del streamer"
+  },
+  {
+    "aliases": [
+      "!comojugar"
+    ],
+    "value": "Para unirte a la partida, usá 🖥️ !unirme | Para ver los jugadores, poné 🖥️ !jugadores | Si no podés seguir, tirá 🖥️ !salir para dejar espacio a otro. 🏆 Subs y VIPs tienen tiempo de ventaja. ¡No te quedes afuera! 👾",
+    "description": "mostrar cómo unirse a la partida. Beneficio de la lista: Suscriptores tienen __SUB__ minutos de prioridad y VIPs __VIP__ minutos"
+  },
+  {
+    "aliases": [
+      "!pc",
+      "!computadora"
+    ],
+    "value": "🧠 Ryzen 9 9950X3D | 🔥 RTX 5080 MSI Ventus 3X | 🧩 32GB DDR5 XPG Lancer Neon | 🛠️ Asus TUF X870-Plus WiFi | ❄️ ROG Strix LC III 360 ARGB | ⚡ XPG Core Reactor II 1200W 80+ Gold | 🖥️ Antec C5 ARGB",
+    "description": "mostrar las especificaciones de la computadora del streamer"
+  }
+]

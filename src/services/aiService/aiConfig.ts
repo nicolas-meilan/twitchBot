@@ -205,7 +205,7 @@ const AI_DECISION_PROMPT_WITHOUT_EXTERNAL_INFORMATION = [
   `Elegí ${AI_DECISION_TYPES.COMMAND} si un único comando cubre MÍNIMAMENTE lo solicitado; caso contrario elegí ${AI_DECISION_TYPES.SMALL_CONVERSATION}.`,
 ].join('\n');
 
-const AI_COMMAND_PROMPT = [
+const getAiCommandPrompt = () => [
   `${AI_DECISION_TYPES.COMMAND}`,
   `Analizá si algún comando del listado ${AVALIABLE_COMMANDS_LIST} soluciona del pedido basado únicamente en su descripción y uso.`,
   `Aplicar el comando quiere decir devolver el campo "command" completo. Ej: { command: { name: !command, value: value }, answer: 'Ejecuté !command' }`,
@@ -336,7 +336,7 @@ export const AI_EXTERNAL_FINAL_PROMPT = createExternalStagePrompt(AI_EXTERNAL_FI
 export const getSystemPrompt = (): string => [
   AI_IDENTITY_PROMPT,
   isAiExternalInformationEnabled() ? AI_DECISION_PROMPT_WITH_EXTERNAL_INFORMATION : AI_DECISION_PROMPT_WITHOUT_EXTERNAL_INFORMATION,
-  AI_COMMAND_PROMPT,
+  getAiCommandPrompt(),
   isAiExternalInformationEnabled() ? AI_EXTERNAL_INFORMATION_PROMPTS : AI_NO_EXTERNAL_INFORMATION_PROMPTS,
   AI_SMALL_CONVERSATION_PROMPT,
   AI_VERACITY_PROMPT,

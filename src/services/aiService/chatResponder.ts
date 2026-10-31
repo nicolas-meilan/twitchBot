@@ -8,12 +8,15 @@ import {
   AI_COMMAND_ERROR_MESSAGE,
   BOT_MESSAGES_CONFIG,
   BROADCASTER_MESSAGES_CONFIG,
-  MESSAGES_CONFIG,
   MODS_ACTIONS_CONFIG,
   TTS_KEY,
   USERS_ACTIONS_CONFIG,
   VIP_ACTIONS_CONFIG,
 } from '../../configuration/chat';
+import {
+  getChatCommandAliases,
+  getConfiguredChatCommandOwnerTwitchId,
+} from '../../db/chatCommands';
 import { sendEventTTS } from '../botEvents';
 import logger from '../../utils/logger';
 import { formatKnownCommandsForChat, splitChatMessage } from '../../utils/chatMessage';
@@ -31,7 +34,6 @@ import {
 import { AiResult } from './types';
 
 export const AI_EXECUTABLE_COMMANDS = new Set([
-  ...Object.keys(MESSAGES_CONFIG),
   ...USERS_ACTIONS_CONFIG,
   ...VIP_ACTIONS_CONFIG,
   ...MODS_ACTIONS_CONFIG,
@@ -39,8 +41,14 @@ export const AI_EXECUTABLE_COMMANDS = new Set([
   ...BROADCASTER_MESSAGES_CONFIG,
 ]);
 
+const getAiExecutableCommands = (): Set<string> => {
+  getChatCommandAliases(getConfiguredChatCommandOwnerTwitchId())
+    .forEach((alias) => AI_EXECUTABLE_COMMANDS.add(alias));
+  return AI_EXECUTABLE_COMMANDS;
+};
+
 export const formatAiResponseForChat = (message: string): string => (
-  formatKnownCommandsForChat(message, AI_EXECUTABLE_COMMANDS)
+  formatKnownCommandsForChat(message, getAiExecutableCommands())
 );
 
 export const createMentionedChat = (chat: tmi.Client, username: string): tmi.Client => new Proxy(chat, {
@@ -82,7 +90,7 @@ export const executeAiCommand = async (
   const command = result.command!.name;
   const value = result.command!.value;
 
-  if (!AI_EXECUTABLE_COMMANDS.has(command) || !command.startsWith('!')) {
+  if (!getAiExecutableCommands().has(command) || !command.startsWith('!')) {
     sayAi(chat, channel, username, AI_COMMAND_ERROR_MESSAGE);
     return;
   }

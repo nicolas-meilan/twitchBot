@@ -36,8 +36,6 @@ The complete variable list is available in [.env.example](.env.example). The mai
 CLIENT_ID=your_twitch_client_id
 CLIENT_SECRET=your_twitch_client_secret
 BOT_USERNAME=your_bot_username
-BROADCAST_USERNAME=your_channel_username
-BROADCAST_ACCOUNT_ID=your_broadcaster_id
 BOT_ACCOUNT_ID=your_bot_id
 LOGIN_REDIRECT_URI=http://localhost:3339/callback
 ENCRYPTION_KEY=long_random_secret
@@ -130,15 +128,17 @@ The AI is not allowed to invent routes, parameters, response fields, or results 
 Start the bot with automatic TypeScript restart:
 
 ```bash
-yarn dev
+yarn dev your_channel_username
 ```
 
 Build the production JavaScript output:
 
 ```bash
 yarn build
-node dist/index.js
+node dist/start.js your_channel_username
 ```
+
+`yarn start <twitch-username>` builds and starts the selected user's session; no broadcaster username or ID is stored in `.env`. The selected username is authenticated at startup, and its Twitch ID is resolved from the token. Bot OAuth credentials are stored separately from user OAuth credentials.
 
 Run the configured linter:
 
@@ -156,14 +156,30 @@ yarn lint:fix
 
 | Script | Purpose |
 | --- | --- |
-| `yarn dev` | Run the bot through `ts-node-dev` |
+| `yarn dev <twitch-username>` | Run the selected user session through `ts-node-dev` |
 | `yarn build` | Compile `src/` into `dist/` |
-| `yarn run chat-text "message"` | Send a one-time message to the configured Twitch channel without interrupting the running bot |
-| `yarn start` | Build and start the bot |
+| `yarn run chat-text <twitch-username> "message"` | Send a one-time message to the selected Twitch channel without a full-project build or interrupting the running bot |
+| `yarn initializeChatCommands <twitch-username>` | Initialize the selected user's chat command database and import the initial command catalog |
+| `yarn start <twitch-username>` | Build and start a session for the selected Twitch user |
 | `yarn lint` | Run ESLint |
 | `yarn lint:fix` | Apply ESLint fixes |
 | `yarn fetchAiExternalDocs` | Download and generate external API documentation |
-| `yarn deleteUserTokens` | Build and delete stored Twitch tokens |
+| `yarn deleteUserTokens <twitch-username>` | Build and delete bot and selected-user Twitch tokens |
+
+## Chat commands
+
+Text-only chat commands belong to a Twitch user and are stored in `database.db` with their aliases, response, and help description. Dynamic commands such as command/player lists and jokes remain built-in actions, not database text responses. The schema has a `user` table with an auto-generated internal ID, Twitch ID, and username; `oauth_tokens` and `vip_status` reference that user. `bot_tokens` stores the bot's credentials independently. `chat_command_alias` maps a user and unique alias to a shared `chat_command_value`. At startup, the bot ensures the current tables exist and imports the initial text-command catalog from `data/chat-commands.json` without overwriting existing values or descriptions. Run the initializer manually with `yarn initializeChatCommands <twitch-username>`.
+
+The selected broadcaster can add a command with one or more aliases, a response, and a description:
+
+```text
+!addcommand !kick / https://kick.com/rungekutta93 /description: Enlace del canal de Kick
+```
+
+Remove one alias with `!removecommand !hello` or `!removecommand hello`. If it was the last alias pointing to that response, the response is deleted too; otherwise it remains available through its other aliases. Removing a catalog-provided alias persists across restarts, while adding that alias again enables it.
+
+Aliases in `!addcommand` and `!removecommand` accept either form, with or without `!`, and are stored as lowercase letters and numbers only. To execute a command in chat, prefix its alias with `!`. Separate aliases from the response with `/` and introduce the description with ` /description:`; this allows response text to contain URLs and other slashes. The aliases, response, and description are all required. Existing aliases and built-in action commands cannot be overwritten. New aliases are immediately available to chat, `!help`, `!comandos`, and the AI without restarting.
+Use `!help addcommand` in chat to see the accepted syntax.
 
 ## Data and generated files
 

@@ -1,4 +1,4 @@
-import { DEFAULT_VALORANT_TAG, DEFAULT_VALORANT_USERNAME } from "../services/valorant";
+import { DEFAULT_VALORANT_TAG, DEFAULT_VALORANT_USERNAME } from '../services/valorant';
 
 export const KEY_DELIMITER = '__';
 export const STRING_PARAM = '__PARAM__';
@@ -29,46 +29,34 @@ export const COMMAND_DELIMITER = '/';
 
 export const START_STREAM_KEY = '!online';
 export const VIP_KEY = '!vip';
+export const ADD_COMMAND_KEY = '!addcommand';
+export const REMOVE_COMMAND_KEY = '!removecommand';
 export const HELP_COMMAND = '!help';
+export const COMMANDS_KEY = '!comandos';
+export const MOD_COMMANDS_KEY = '!comandosmod';
+export const VIP_COMMANDS_KEY = '!comandosvip';
+export const JOKE_KEY = '!chiste';
+export const JOKE_ALIAS_KEY = '!chistes';
 export const PLAYERS_QUEUE_PRIORITY_BENEFITS = 'Suscriptores tienen __SUB__ minutos de prioridad y VIPs __VIP__ minutos';
-export const VALORANT_NICK_KEY = '!nickvalo';
-export const VALORANT_ID_KEY = '!valorantid';
-export const PLATFORMS_KEY = '!plataformas';
-export const SOCIAL_NETWORKS_KEY = '!redes';
-export const DISCORD_KEY = '!discord';
-export const DISCORD_ALIAS_KEY = '!ds';
-export const YOUTUBE_KEY = '!youtube';
-export const TIKTOK_KEY = '!tiktok';
-export const STEAM_KEY = '!steam';
-export const SCHEDULE_KEY = '!horarios';
-export const LAUGHTER_KEY = '!risas';
-export const APOLOGY_KEY = '!perdon';
 export const VALORANT_RANK_KEY = '!rangovalorant';
 export const VALORANT_RANK_ALIAS_KEY = '!rango';
 export const VALORANT_ELO_KEY = '!elo';
 export const VALORANT_RANK_ALIAS_2_KEY = '!valorantrango';
 export const VALORANT_KEY = '!valorant';
 export const VALORANT_ID_ALIAS_KEY = '!id';
-export const CROSSHAIR_KEY = '!mira';
 export const LAST_RANKED_KEY = '!ultimarankedvalo';
 export const LAST_RANKED_2_KEY = '!ultimaranked';
 export const LAST_RANKED_ALIAS_KEY = '!ultimarankedvalorant';
 export const LAST_GAME_KEY = '!ultimapartida';
-export const COMMANDS_KEY = '!comandos';
-export const MOD_COMMANDS_KEY = '!comandosmod';
-export const VIP_COMMANDS_KEY = '!comandosvip';
-export const HOW_TO_PLAY_KEY = '!comojugar';
-export const JOKE_KEY = '!chiste';
-export const JOKE_ALIAS_KEY = '!chistes';
 export const FRIDGE_KEY = '!heladera';
-export const COMPUTER_KEY = '!pc';
-export const COMPUTER_ALIAS_KEY = '!computadora';
 export const AI_EXTERNAL_INFORMATION_ON_KEY = '!infoexternaon';
 export const AI_EXTERNAL_INFORMATION_OFF_KEY = '!infoexternaoff';
 
 export const BROADCASTER_MESSAGES_CONFIG = [
   START_STREAM_KEY,
   VIP_KEY,
+  ADD_COMMAND_KEY,
+  REMOVE_COMMAND_KEY,
   AI_EXTERNAL_INFORMATION_ON_KEY,
   AI_EXTERNAL_INFORMATION_OFF_KEY,
 ];
@@ -79,7 +67,6 @@ export const BOT_MESSAGES_CONFIG = [
 
 export const CHANGE_CHANNEL_INFORMATION_KEY = '!categoria';
 export const CHANGE_CHANNEL_INFORMATION_KEY_2 = '!game';
-export const KICK_KEY = '!kick';
 export const MOST_POPULAR_CLIP_KEY = '!topclip';
 export const TTS_KEY = '!tts';
 export const FULL_TTS_ON_KEY = '!iattson';
@@ -111,6 +98,13 @@ export const LOTTERY_RESUME_COMMAND = '!sorteoon';
 
 export const USERS_ACTIONS_CONFIG = [
   HELP_COMMAND,
+  COMMANDS_KEY,
+  MOD_COMMANDS_KEY,
+  VIP_COMMANDS_KEY,
+  PLAYERS_LIST_KEY,
+  PLAYERS_LIST_ALIAS_KEY,
+  JOKE_KEY,
+  JOKE_ALIAS_KEY,
   CREATE_CLIP_KEY,
   ADD_TO_PLAYERS_QUEUE_KEY,
   ADD_TO_PLAYERS_QUEUE_KEY_ALIAS,
@@ -158,38 +152,6 @@ export const MODS_ACTIONS_CONFIG = [
   LOTTERY_PAUSE_COMMAND,
   LOTTERY_RESUME_COMMAND,
 ];
-
-export const MESSAGES_CONFIG: {
-  [message: string]: string;
-} = {
-  [VALORANT_NICK_KEY]: `🎮 ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG}`,
-  [VALORANT_ID_KEY]: `🎮 ${DEFAULT_VALORANT_USERNAME}#${DEFAULT_VALORANT_TAG}`,
-  [PLATFORMS_KEY]: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 🎮 https://youtube.com/@rungekutta93 🎮 https://tiktok.com/@rungekutta93 💬 https://discord.gg/bHePmGSXVm',
-  [SOCIAL_NETWORKS_KEY]: '🌐 ¡Seguí mis aventuras en todas las plataformas! 🌐 🎮 https://www.twitch.tv/rungekutta93 🎮 https://kick.com/rungekutta93 🎮 https://youtube.com/@rungekutta93 🎮 https://tiktok.com/@rungekutta93 💬 https://discord.gg/bHePmGSXVm',
-  [DISCORD_KEY]: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
-  [DISCORD_ALIAS_KEY]: '🎙️ ¡Sumate al Discord de la comunidad! Charlas, memes y partidas se arman acá 👉 https://discord.gg/bHePmGSXVm 🍻 ¡No te quedes afuera, che!',
-  [KICK_KEY]: '🚀 ¡Seguime también en Kick! Pasate a la verde para más streams copados 👉 https://kick.com/rungekutta93 🎮 ¡Nos vemos ahí!',
-  [YOUTUBE_KEY]: '📺 ¡No te pierdas mis videos en YouTube! Suscribite para contenido épico y más diversión 👉 https://youtube.com/@rungekutta93 🎮 ¡Dale al botón rojo! 🚀🔥',
-  [TIKTOK_KEY]: '🎥✨ ¡Prendo en TikTok también! 👉 https://tiktok.com/rungekutta93 🎮🔥 ¡Te espero ahí!',
-  [STEAM_KEY]: '🎮 ¡Sumate a Steam y jugamos juntos! 🔥 Mi código de amigo: 1010270454 💨 ¡Agregame y vamos con todo! 🚀',
-  [SCHEDULE_KEY]: '🎮 Mi horario de streams 🎮 🗓️ Generalmente estoy en vivo a las 6:00 PM y a veces también a las 10:30 PM. Todo sujeto a mi disponibilidad, siempre en horario de Argentina 🇦🇷. ¡Activá las notis para no perderte nada!',
-  [LAUGHTER_KEY]: '😂 ¡Se descontroló el chat! Jajaja, qué nivel de risas, gente. 🤣 ¡Los quiero ver a todos spameando el jajajaja! 😂🔥',
-  [APOLOGY_KEY]: '😅 ¡Uh, me mandé una! Perdón, gente. 🙏 Espero que me perdonen... o no. 😂💜',
-  [CROSSHAIR_KEY]: `Ahí tenés, la mira mágica 😎🎯: 0;p;0;s;1;P;c;1;u;DFFDD0FF;o;0.456;0t;1;0l;3;0o;1;0a;1;0f;0;1b;0;A;c;1;o;1;d;1;0b;0;1b;0;S;s;0.8;o;1`,
-  [LAST_RANKED_KEY]: VALORANT_LAST_RANKED_RESPONSE_KEY,
-  [LAST_RANKED_ALIAS_KEY]: VALORANT_LAST_RANKED_RESPONSE_KEY,
-  [LAST_GAME_KEY]: VALORANT_LAST_RANKED_RESPONSE_KEY,
-  [COMMANDS_KEY]: `Lista de comandos:${COMMANDS_SEPARATOR}${COMMANDS_RESPONSE_KEY}`,
-  [MOD_COMMANDS_KEY]: `Lista de comandos para mods:${COMMANDS_SEPARATOR}${MOD_COMMANDS_RESPONSE_KEY}`,
-  [VIP_COMMANDS_KEY]: `Lista de comandos VIP:${COMMANDS_SEPARATOR}${VIP_COMMANDS_RESPONSE_KEY}`,
-  [PLAYERS_LIST_KEY]: `🎯 Jugadores listos para la acción: ${PLAYERS_KEY}`,
-  [PLAYERS_LIST_ALIAS_KEY]: `🎯 Jugadores listos para la acción: ${PLAYERS_KEY}`,
-  [HOW_TO_PLAY_KEY]: 'Para unirte a la partida, usá 🖥️ !unirme | Para ver los jugadores, poné 🖥️ !jugadores | Si no podés seguir, tirá 🖥️ !salir para dejar espacio a otro. 🏆 Subs y VIPs tienen tiempo de ventaja. ¡No te quedes afuera! 👾',
-  [JOKE_KEY]: `🤡 ${JOKES_KEY}`,
-  [JOKE_ALIAS_KEY]: `🤡 ${JOKES_KEY}`,
-  [COMPUTER_KEY]: '🧠 Ryzen 9 9950X3D | 🔥 RTX 5080 MSI Ventus 3X | 🧩 32GB DDR5 XPG Lancer Neon | 🛠️ Asus TUF X870-Plus WiFi | ❄️ ROG Strix LC III 360 ARGB | ⚡ XPG Core Reactor II 1200W 80+ Gold | 🖥️ Antec C5 ARGB',
-  [COMPUTER_ALIAS_KEY]: '🧠 Ryzen 9 9950X3D | 🔥 RTX 5080 MSI Ventus 3X | 🧩 32GB DDR5 XPG Lancer Neon | 🛠️ Asus TUF X870-Plus WiFi | ❄️ ROG Strix LC III 360 ARGB | ⚡ XPG Core Reactor II 1200W 80+ Gold | 🖥️ Antec C5 ARGB',
-};
 
 export const GAME_SYMBOL = '🎮';
 

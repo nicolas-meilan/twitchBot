@@ -8,6 +8,8 @@ import Stream from '../Stream';
 import {
   ADD_TO_PLAYERS_QUEUE_KEY,
   ADD_TO_PLAYERS_QUEUE_KEY_ALIAS,
+  COMMANDS_KEY,
+  COMMANDS_RESPONSE_KEY,
   CLIP_ACTION_ERROR,
   CLIP_ACTION_SUCCESS,
   CLIP_ACTION_SUCCESS_EDIT_AVAILABLE,
@@ -27,6 +29,16 @@ import {
   LOTTERY_ONLY_SUBS,
   LOTTERY_PAUSED,
   HELP_COMMAND,
+  JOKE_ALIAS_KEY,
+  JOKES_KEY,
+  JOKE_KEY,
+  MOD_COMMANDS_KEY,
+  MOD_COMMANDS_RESPONSE_KEY,
+  PLAYERS_KEY,
+  PLAYERS_LIST_ALIAS_KEY,
+  PLAYERS_LIST_KEY,
+  VIP_COMMANDS_KEY,
+  VIP_COMMANDS_RESPONSE_KEY,
   VALORANT_RANK_KEY,
   VALORANT_RANK_ALIAS_KEY,
   VALORANT_ELO_KEY,
@@ -53,17 +65,52 @@ import { joinLottery } from './powerups';
 import { getCommandHelp } from '../configuration/commandDescriptions';
 import CHAT_KEY_ACTIONS from './chatKeyActions';
 import { parseValorantPlayer } from '../services/valorant';
+import { getConfiguredChatCommandOwnerTwitchId } from '../db/chatCommands';
+import { splitChatMessage } from '../utils/chatMessage';
 
 const BROADCAST_USERNAME = process.env.BROADCAST_USERNAME || '';
 
 const CLIP_AWAITING_TIME = 15000;
 let processingClip = false;
 
+const sayChatMessages = (chat: Parameters<ActionsType>[0]['chat'], message: string): void => {
+  splitChatMessage(message).forEach((part) => chat.say(BROADCAST_USERNAME, part));
+};
+
 const USER_ACTIONS: {
   [command: string]: ActionsType;
 } = {
   [HELP_COMMAND]: ({ chat, value }) => {
     chat.say(BROADCAST_USERNAME, getCommandHelp(value?.trim() || ''));
+  },
+  [COMMANDS_KEY]: async ({ chat }) => {
+    const commands = await CHAT_KEY_ACTIONS[COMMANDS_RESPONSE_KEY](
+      undefined,
+      getConfiguredChatCommandOwnerTwitchId(),
+    );
+    sayChatMessages(chat, `Lista de comandos: 💻 ${commands}`);
+  },
+  [MOD_COMMANDS_KEY]: async ({ chat }) => {
+    const commands = await CHAT_KEY_ACTIONS[MOD_COMMANDS_RESPONSE_KEY]();
+    sayChatMessages(chat, `Lista de comandos para mods: 💻 ${commands}`);
+  },
+  [VIP_COMMANDS_KEY]: async ({ chat }) => {
+    const commands = await CHAT_KEY_ACTIONS[VIP_COMMANDS_RESPONSE_KEY]();
+    sayChatMessages(chat, `Lista de comandos VIP: 💻 ${commands}`);
+  },
+  [PLAYERS_LIST_KEY]: async ({ chat }) => {
+    const players = await CHAT_KEY_ACTIONS[PLAYERS_KEY]();
+    sayChatMessages(chat, `🎯 Jugadores listos para la acción: ${players}`);
+  },
+  [PLAYERS_LIST_ALIAS_KEY]: ({ chat }) => {
+    USER_ACTIONS[PLAYERS_LIST_KEY]({ chat });
+  },
+  [JOKE_KEY]: async ({ chat }) => {
+    const joke = await CHAT_KEY_ACTIONS[JOKES_KEY]();
+    sayChatMessages(chat, `🤡 ${joke}`);
+  },
+  [JOKE_ALIAS_KEY]: ({ chat }) => {
+    USER_ACTIONS[JOKE_KEY]({ chat });
   },
   [ADD_TO_PLAYERS_QUEUE_KEY]: async ({ chat, username, tags }) => {
     if (!username || !tags) return;
